@@ -45,9 +45,6 @@ class WidgetParser {
         }
 
         Log.d("WidgetParser", "Найдено виджетов: ${widgets.size}")
-        widgets.forEachIndexed { index, widget ->
-            Log.d("WidgetParser", "  $index: ${widget.title} (${widget.code}) - ${widget.properties.size} свойств, ${widget.styles.size} стилей, ${widget.events.size} событий")
-        }
         return widgets
     }
 
@@ -75,56 +72,23 @@ class WidgetParser {
                             Log.d("WidgetParser", "  type: $type")
                         }
                         "properties" -> {
-                            // Парсим вложенный блок properties
                             properties.addAll(parseProperties(parser))
-                            Log.d("WidgetParser", "  properties: ${properties.size}")
-                        }
-                        "styles" -> {
-                            // Парсим вложенный блок styles
-                            styles.addAll(parseStyles(parser))
-                            Log.d("WidgetParser", "  styles: ${styles.size}")
-                        }
-                        "events" -> {
-                            // Парсим вложенный блок events
-                            events.addAll(parseEvents(parser))
-                            Log.d("WidgetParser", "  events: ${events.size}")
                         }
                         "property" -> {
-                            // Если property напрямую внутри widget (не в блоке properties)
-                            try {
-                                val property = parseProperty(parser)
+                            val property = parseProperty(parser)
+                            // Добавляем только если код не пустой
+                            if (property.code.isNotEmpty()) {
                                 properties.add(property)
-                                Log.d("WidgetParser", "  property: ${property.code} = ${property.value}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге property", e)
-                                skipToEndTag(parser, "property")
                             }
                         }
-                        "style" -> {
-                            // Если style напрямую внутри widget (не в блоке styles)
-                            try {
-                                val style = parseStyle(parser)
-                                styles.add(style)
-                                Log.d("WidgetParser", "  style: ${style.code} = ${style.value}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге style", e)
-                                skipToEndTag(parser, "style")
-                            }
+                        "events" -> {
+                            events.addAll(parseEventsSimple(parser))
                         }
                         "event" -> {
-                            // Если event напрямую внутри widget (не в блоке events)
-                            try {
-                                val event = parseWidgetEvent(parser)
-                                events.add(event)
-                                Log.d("WidgetParser", "  event: ${event.eventCode}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге event", e)
-                                skipToEndTag(parser, "event")
-                            }
+                            val event = parseWidgetEventSimple(parser)
+                            events.add(event)
                         }
                         else -> {
-                            // Пропускаем неизвестные теги
-                            Log.d("WidgetParser", "Пропущен тег в widget: ${parser.name}")
                             skipCurrentTag(parser)
                         }
                     }
@@ -137,77 +101,9 @@ class WidgetParser {
     }
 
     /**
-     * Парсит вложенные properties из блока <properties>
+     * Парсит упрощенную структуру events (только тег event с текстом)
      */
-    private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
-        val properties = mutableListOf<EventProperty>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "property" -> {
-                            try {
-                                val property = parseProperty(parser)
-                                properties.add(property)
-                                Log.d("WidgetParser", "    property в properties: ${property.code}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге property в properties", e)
-                                skipToEndTag(parser, "property")
-                            }
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return properties
-    }
-
-    /**
-     * Парсит вложенные styles из блока <styles>
-     */
-    private fun parseStyles(parser: XmlPullParser): List<WidgetStyle> {
-        val styles = mutableListOf<WidgetStyle>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "styles")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "style" -> {
-                            try {
-                                val style = parseStyle(parser)
-                                styles.add(style)
-                                Log.d("WidgetParser", "    style в styles: ${style.code}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге style в styles", e)
-                                skipToEndTag(parser, "style")
-                            }
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return styles
-    }
-
-    /**
-     * Парсит вложенные events из блока <events>
-     */
-    private fun parseEvents(parser: XmlPullParser): List<WidgetEvent> {
+    private fun parseEventsSimple(parser: XmlPullParser): List<WidgetEvent> {
         val events = mutableListOf<WidgetEvent>()
 
         var eventType = parser.next()
@@ -216,17 +112,12 @@ class WidgetParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "event" -> {
-                            try {
-                                val event = parseWidgetEvent(parser)
-                                events.add(event)
-                                Log.d("WidgetParser", "    event в events: ${event.eventCode}")
-                            } catch (e: Exception) {
-                                Log.e("WidgetParser", "Ошибка при парсинге event в events", e)
-                                skipToEndTag(parser, "event")
+                            val eventCode = parser.nextText()
+                            if (eventCode.isNotEmpty()) {
+                                events.add(WidgetEvent(eventCode, 0, emptyList()))
                             }
                         }
                         else -> {
-                            // Пропускаем неизвестные теги
                             skipCurrentTag(parser)
                         }
                     }
@@ -238,9 +129,37 @@ class WidgetParser {
         return events
     }
 
-    /**
-     * Парсит свойство из XML
-     */
+    private fun parseWidgetEventSimple(parser: XmlPullParser): WidgetEvent {
+        val eventCode = parser.nextText()
+        return WidgetEvent(eventCode, 0, emptyList())
+    }
+
+    private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
+        val properties = mutableListOf<EventProperty>()
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "property" -> {
+                            val property = parseProperty(parser)
+                            if (property.code.isNotEmpty()) {
+                                properties.add(property)
+                            }
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return properties
+    }
+
     private fun parseProperty(parser: XmlPullParser): EventProperty {
         var code = ""
         var value = ""
@@ -250,18 +169,9 @@ class WidgetParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> {
-                            code = parser.nextText()
-                            Log.d("WidgetParser", "      code: $code")
-                        }
-                        "value" -> {
-                            value = parser.nextText()
-                            Log.d("WidgetParser", "      value: $value")
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
+                        "code" -> code = parser.nextText()
+                        "value" -> value = parser.nextText()
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
@@ -271,103 +181,13 @@ class WidgetParser {
         return EventProperty(code, value)
     }
 
-    /**
-     * Парсит стиль из XML
-     */
-    private fun parseStyle(parser: XmlPullParser): WidgetStyle {
-        var code = ""
-        var value = ""
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "style")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> {
-                            code = parser.nextText()
-                            Log.d("WidgetParser", "      code: $code")
-                        }
-                        "value" -> {
-                            value = parser.nextText()
-                            Log.d("WidgetParser", "      value: $value")
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return WidgetStyle(code, value)
-    }
-
-    /**
-     * Парсит событие виджета из XML
-     */
-    private fun parseWidgetEvent(parser: XmlPullParser): WidgetEvent {
-        var eventCode = ""
-        var order = 0
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "event")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "event_code" -> {
-                            eventCode = parser.nextText()
-                            Log.d("WidgetParser", "      event_code: $eventCode")
-                        }
-                        "order" -> {
-                            order = parser.nextText().toIntOrNull() ?: 0
-                            Log.d("WidgetParser", "      order: $order")
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return WidgetEvent(eventCode, order, emptyList())
-    }
-
-    /**
-     * Пропускает текущий тег и все его дочерние элементы
-     */
     private fun skipCurrentTag(parser: XmlPullParser) {
-        if (parser.eventType != XmlPullParser.START_TAG) {
-            return
-        }
+        if (parser.eventType != XmlPullParser.START_TAG) return
         var depth = 1
         while (depth > 0) {
             when (parser.next()) {
                 XmlPullParser.START_TAG -> depth++
                 XmlPullParser.END_TAG -> depth--
-                XmlPullParser.END_DOCUMENT -> return
-            }
-        }
-    }
-
-    /**
-     * Пропускает элементы до указанного закрывающего тега
-     */
-    private fun skipToEndTag(parser: XmlPullParser, tagName: String) {
-        var depth = 1
-        while (depth > 0) {
-            when (parser.next()) {
-                XmlPullParser.START_TAG -> depth++
-                XmlPullParser.END_TAG -> {
-                    depth--
-                    if (parser.name == tagName && depth == 0) {
-                        return
-                    }
-                }
                 XmlPullParser.END_DOCUMENT -> return
             }
         }

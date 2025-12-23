@@ -3,86 +3,35 @@
 	<allStyles>
 		<textStyles>
 			<textStyle>
-				<code>headlineM</code>
+				<code>headlineLarge32</code>
 				<fontFamily>headline</fontFamily>
-				<fontSize>21</fontSize>
+				<fontSize>32</fontSize>
 				<fontWeight>500</fontWeight>
 			</textStyle>
 			<textStyle>
-				<code>headlineL</code>
+				<code>headlineSmall24</code>
 				<fontFamily>headline</fontFamily>
-				<fontSize>27</fontSize>
-				<fontWeight>500</fontWeight>
-			</textStyle>
-			<textStyle>
-				<code>headlineXL</code>
-				<fontFamily>headline</fontFamily>
-				<fontSize>34</fontSize>
-				<fontWeight>500</fontWeight>
-			</textStyle>
-			<textStyle>
-				<code>bodyS.tight.normal</code>
-				<fontFamily>body</fontFamily>
-				<fontSize>12</fontSize>
+				<fontSize>24</fontSize>
 				<fontWeight>400</fontWeight>
 			</textStyle>
 			<textStyle>
-				<code>bodyS.tight.medium</code>
-				<fontFamily>body</fontFamily>
-				<fontSize>12</fontSize>
-				<fontWeight>500</fontWeight>
-			</textStyle>
-			<textStyle>
-				<code>bodyM.tight.normal</code>
-				<fontFamily>body</fontFamily>
-				<fontSize>16</fontSize>
+				<code>titleLarge19</code>
+				<fontFamily>title</fontFamily>
+				<fontSize>19</fontSize>
 				<fontWeight>400</fontWeight>
 			</textStyle>
 			<textStyle>
-				<code>bodyM.tight.medium</code>
-				<fontFamily>body</fontFamily>
-				<fontSize>16</fontSize>
-				<fontWeight>500</fontWeight>
+				<code>titleLarge22</code>
+				<fontFamily>title</fontFamily>
+				<fontSize>22</fontSize>
+				<fontWeight>400</fontWeight>
 			</textStyle>
 		</textStyles>
 		<colorStyles>
 			<colorStyle>
-				<code>semantic/text/primary</code>
-				<lightTheme>
-					<color>#1F22252B</color>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>100</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>semantic/icon/placeholder</code>
-				<lightTheme>
-					<color>#22252B</color>
-					<opacity>100</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>100</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>components/button/transparent/brand/text</code>
-				<lightTheme>
-					<color>#1D72FF</color>
-					<opacity>100</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>100</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>semantic/text/constantPrimary</code>
+				<code>surface</code>
 				<lightTheme>
 					<color>#FFFFFF</color>
-					<opacity>100</opacity>
 				</lightTheme>
 				<darkTheme>
 					<color>#000000</color>
@@ -90,42 +39,29 @@
 				</darkTheme>
 			</colorStyle>
 			<colorStyle>
-				<code>semantic/icon/constantPrimary</code>
+				<code>on-surface</code>
+				<lightTheme>
+					<color>#1D1B20</color>
+				</lightTheme>
+				<darkTheme>
+					<color>#000000</color>
+					<opacity>100</opacity>
+				</darkTheme>
+			</colorStyle>
+			<colorStyle>
+				<code>on-surface-variant</code>
+				<lightTheme><color>#49454F</color></lightTheme>
+				<darkTheme><color>#000000</color><opacity>100</opacity></darkTheme>
+			</colorStyle>
+			<colorStyle>
+				<code>primary</code>
+				<lightTheme><color>#485E92</color><opacity>100</opacity></lightTheme>
+				<darkTheme><color>#000000</color><opacity>100</opacity></darkTheme>
+			</colorStyle>
+			<colorStyle>
+				<code>on-primary</code>
 				<lightTheme>
 					<color>#FFFFFF</color>
-					<opacity>100</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>100</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>components/airbar/body</code>
-				<lightTheme>
-					<color>#101114</color>
-					<opacity>100</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>100</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>semantic/constant/12</code>
-				<lightTheme>
-					<color>#FFFFFF</color>
-					<opacity>12</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>12</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>semantic/neutral/4</code>
-				<lightTheme>
-					<color>#677283</color>
 					<opacity>4</opacity>
 				</lightTheme>
 				<darkTheme>
@@ -134,173 +70,48 @@
 				</darkTheme>
 			</colorStyle>
 			<colorStyle>
-				<code>semantic/constant/16</code>
+				<code>secondary-container</code>
 				<lightTheme>
-					<color>#FFFFFF</color>
-					<opacity>16</opacity>
+					<color>#D9DFF6</color>
+					<opacity>100</opacity>
 				</lightTheme>
 				<darkTheme>
 					<color>#000000</color>
-					<opacity>16</opacity>
+					<opacity>100</opacity>
 				</darkTheme>
 			</colorStyle>
 			<colorStyle>
-				<code>semantic/constant/60</code>
+				<code>on-secondary-container</code>
 				<lightTheme>
-					<color>#FFFFFF</color>
-					<opacity>60</opacity>
+					<color>#4A4459</color>
+					<opacity>4</opacity>
 				</lightTheme>
 				<darkTheme>
 					<color>#000000</color>
-					<opacity>60</opacity>
-				</darkTheme>
-			</colorStyle>
-			<colorStyle>
-				<code>semantic/constant/70</code>
-				<lightTheme>
-					<color>#FFFFFF</color>
-					<opacity>70</opacity>
-				</lightTheme>
-				<darkTheme>
-					<color>#000000</color>
-					<opacity>70</opacity>
+					<opacity>4</opacity>
 				</darkTheme>
 			</colorStyle>
 		</colorStyles>
 		<roundStyles>
 			<roundStyle>
-				<code>radius8</code>
-				<radiusValue>8</radiusValue>
-			</roundStyle>
-			<roundStyle>
-				<code>radius12</code>
-				<radiusValue>12</radiusValue>
-			</roundStyle>
-			<roundStyle>
-				<code>radius20</code>
-				<radiusValue>20</radiusValue>
-			</roundStyle>
-			<roundStyle>
-				<code>radius24</code>
-				<radiusValue>24</radiusValue>
-			</roundStyle>
-			<roundStyle>
-				<code>radius32</code>
-				<radiusValue>32</radiusValue>
+				<code>radius16</code>
+				<radiusValue>16</radiusValue>
 			</roundStyle>
 		</roundStyles>
 		<paddingStyles>
 			<paddingStyle>
 				<code>padding4-6-4-6</code>
-				<paddingLeft>4</paddingLeft>
-				<paddingTop>6</paddingTop>
-				<paddingRight>4</paddingRight>
-				<paddingBottom>6</paddingBottom>
+				<paddingLeft>17</paddingLeft>
+				<paddingTop>10</paddingTop>
+				<paddingRight>17</paddingRight>
+				<paddingBottom>10</paddingBottom>
 			</paddingStyle>
 			<paddingStyle>
-				<code>padding8-4-8-4</code>
+				<code>padding8-16-8-16</code>
 				<paddingLeft>8</paddingLeft>
-				<paddingTop>4</paddingTop>
+				<paddingTop>16</paddingTop>
 				<paddingRight>8</paddingRight>
-				<paddingBottom>4</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding12-12-12-12</code>
-				<paddingLeft>12</paddingLeft>
-				<paddingTop>12</paddingTop>
-				<paddingRight>12</paddingRight>
-				<paddingBottom>12</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding16-16-16-16</code>
-				<paddingLeft>16</paddingLeft>
-				<paddingTop>16</paddingTop>
-				<paddingRight>16</paddingRight>
 				<paddingBottom>16</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding20-16-20-16</code>
-				<paddingLeft>20</paddingLeft>
-				<paddingTop>16</paddingTop>
-				<paddingRight>20</paddingRight>
-				<paddingBottom>16</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding20-20-20-20</code>
-				<paddingLeft>20</paddingLeft>
-				<paddingTop>20</paddingTop>
-				<paddingRight>20</paddingRight>
-				<paddingBottom>20</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding16-20-16-20</code>
-				<paddingLeft>16</paddingLeft>
-				<paddingTop>20</paddingTop>
-				<paddingRight>16</paddingRight>
-				<paddingBottom>20</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding16-8-16-12</code>
-				<paddingLeft>16</paddingLeft>
-				<paddingTop>8</paddingTop>
-				<paddingRight>16</paddingRight>
-				<paddingBottom>12</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding0-0-12-0</code>
-				<paddingLeft>0</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>12</paddingRight>
-				<paddingBottom>0</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding0-0-0-24</code>
-				<paddingLeft>0</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>0</paddingRight>
-				<paddingBottom>24</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding0-0-0-4</code>
-				<paddingLeft>0</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>0</paddingRight>
-				<paddingBottom>4</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding0-0-8-0</code>
-				<paddingLeft>0</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>8</paddingRight>
-				<paddingBottom>0</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding20-0-20-8</code>
-				<paddingLeft>20</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>20</paddingRight>
-				<paddingBottom>8</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding20-12-20-12</code>
-				<paddingLeft>20</paddingLeft>
-				<paddingTop>12</paddingTop>
-				<paddingRight>20</paddingRight>
-				<paddingBottom>12</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding20-16-20-0</code>
-				<paddingLeft>20</paddingLeft>
-				<paddingTop>16</paddingTop>
-				<paddingRight>20</paddingRight>
-				<paddingBottom>0</paddingBottom>
-			</paddingStyle>
-			<paddingStyle>
-				<code>padding0-0-0-0</code>
-				<paddingLeft>0</paddingLeft>
-				<paddingTop>0</paddingTop>
-				<paddingRight>0</paddingRight>
-				<paddingBottom>0</paddingBottom>
 			</paddingStyle>
 		</paddingStyles>
 		<alignmentStyles>
@@ -410,342 +221,159 @@
 				</property>
 			</properties>
 		</eventAction>
+		<eventAction title="Вызов нативного кода">
+			<code>nativeCode</code>
+			<order></order>
+			<properties>
+				<property>
+					<code>class</code>
+					<value>имя вызываемого класса, содержащего необходимый нативный код</value>
+				</property>
+			</properties>
+		</eventAction>
 	</allEventActions>
-	<allEvents>
-		<event title="Окончание скроллинга">
+	<allEvent>
+		<event title="Окончание скроллинга - обсудить с разработкой, как это должно работать, с чем быть связано">
 			<code>onFinishScroll</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<eventActionCode></eventActionCode>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Инициализация микроаппа/экрана">
 			<code>onCreate</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Уход с экрана">
 			<code>onDestroy</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Клик на лэйаут/виджет">
 			<code>onTap</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Фокус">
 			<code>onFocus</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
-		<event title="Сброс фокуса">
+		<event title="Сброс фокуса" order="">
 			<code>onFinishFocus</code>
-			<order>0</order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Набор текста">
 			<code>onTyping</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
 		<event title="Завершение набора текста">
 			<code>onFinishTyping</code>
-			<order>0</order>
+			<order></order>
 			<eventActions>
 				<eventAction>
-					<code>query</code>
-					<order>0</order>
-					<properties>
-						<property>
-							<code>queryCode</code>
-							<value></value>
-						</property>
-					</properties>
+					<code></code>
+					<properties></properties>
 				</eventAction>
 			</eventActions>
 		</event>
-	</allEvents>
+		<event title="Считывание NFC-меток">
+			<code>onScanningNFC</code>
+			<order></order>
+			<eventActions>
+				<eventAction>
+					<code></code>
+					<properties></properties>
+				</eventAction>
+			</eventActions>
+		</event>
+	</allEvent>
 	<allQueries>
-		<query title="Все активные продукты">
-			<code>allActiveProducts</code>
-			<type>GET</type>
-			<endpoint>/portfolios/list/active</endpoint>
+		<query title="Вход в МП">
+			<code>adminAuth</code>
+			<type>POST</type>
+			<endpoint>/v1/admin/auth/login</endpoint>
 			<properties>
 				<property>
-					<code>query_parameter</code>
-					<variableName>requestProductTypes</variableName>
-					<variableValue>ACCOUNT</variableValue>
-				</property>
-			</properties>
-			<conditions>
-				<condition>
-					<code>http_response_code</code>
-					<value>200</value>
-				</condition>
-			</conditions>
-		</query>
-		<query title="Избранный продукт">
-			<code>activeProductsForMain</code>
-			<type>GET</type>
-			<endpoint>/portfolios/list/active</endpoint>
-			<properties>
-				<property>
-					<code>query_string</code>
-					<variableName>requestProductTypes</variableName>
-					<variableValue>ACCOUNT</variableValue>
-				</property>
-				<property>
-					<code>query_string</code>
-					<variableName>isFavorite</variableName>
-					<variableValue>true</variableValue>
-				</property>
-			</properties>
-		</query>
-		<query title="Детальная информация по продукту">
-			<code>productDetails</code>
-			<type>GET</type>
-			<endpoint>/portfolio/details/{publicId}</endpoint>
-			<properties>
-				<property>
-					<code>query_parameter</code>
-					<variableName>publicId</variableName>
-					<variableValue></variableValue>
-				</property>
-			</properties>
-		</query>
-		<query title="Частые операции">
-			<code>RepeatableOperationsForMain</code>
-			<type>GET</type>
-			<endpoint>/operations/repeatable</endpoint>
-			<properties>
-				<property>
-					<code>query_string</code>
-					<variableName>limit</variableName>
-					<variableValue>4</variableValue>
+					<code>query_parameter/query_string/query_body</code>
+					<variableName>переменная из запроса (из самого метода, в которое нужно подставить значение. Как она называется в query_parameter/query_string/query_body)</variableName>
+					<variableValue>переменная из контекста/глобальная переменная/переменная из ответа другого запроса, которую подставляем в значение переменной из запроса</variableValue>
 				</property>
 			</properties>
 		</query>
 	</allQueries>
-	<allWidgets>
-		<widget title="Изображение (иконка)">
-			<code>image</code>
-			<type>native</type>
+	<screenQueries>
+		<screenQuery>
+			<code>enter_adminAuth</code>
+			<screenCode>enter</screenCode>
+			<queryCode>adminAuth</queryCode>
 			<properties>
 				<property>
-					<code>source</code>
-					<value></value>
+					<code>query_body</code>
+					<variableName>cardUuid</variableName>
+					<variableValue>@{microappTavrida.enter_adminAuth_cardUuid}</variableValue>
 				</property>
-			</properties>
-			<styles>
-				<style>
-					<code>colorStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTap</code>
-				</event>
-			</events>
-		</widget>
-		<widget title="Текст">
-			<code>label</code>
-			<type>native</type>
-			<properties>
 				<property>
-					<code>text</code>
-					<value></value>
+					<code>query_body</code>
+					<variableName>hashPassword</variableName>
+					<variableValue></variableValue>
 				</property>
-			</properties>
-			<styles>
-				<style>
-					<code>textStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTap</code>
-				</event>
-			</events>
-		</widget>
-		<widget title="Кнопка">
-			<code>button</code>
-			<type>native</type>
-			<properties>
 				<property>
-					<code>text</code>
-					<value></value>
+					<code>query_body</code>
+					<variableName>terminalId</variableName>
+					<variableValue></variableValue>
 				</property>
-			</properties>
-			<styles>
-				<style>
-					<code>textStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTap</code>
-				</event>
-			</events>
-		</widget>
-		<widget title="Чекбокс">
-			<code>checkbox</code>
-			<type>native</type>
-			<properties>
 				<property>
-					<code>checked</code>
-					<value>false</value>
+					<code>query_body</code>
+					<variableName>terminalGuid</variableName>
+					<variableValue></variableValue>
 				</property>
 			</properties>
-			<styles>
-				<style>
-					<code>colorStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTap</code>
-				</event>
-			</events>
-		</widget>
-		<widget title="Свитчер">
-			<code>switcher</code>
-			<type>native</type>
-			<properties>
-				<property>
-					<code>enabled</code>
-					<value>false</value>
-				</property>
-			</properties>
-			<styles>
-				<style>
-					<code>colorStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTap</code>
-				</event>
-			</events>
-		</widget>
-		<widget title="Поле ввода">
-			<code>input</code>
-			<type>native</type>
-			<properties>
-				<property>
-					<code>value</code>
-					<value></value>
-				</property>
-			</properties>
-			<styles>
-				<style>
-					<code>textStyle</code>
-					<value></value>
-				</style>
-			</styles>
-			<events>
-				<event>
-					<code>onTyping</code>
-				</event>
-				<event>
-					<code>onFinishTyping</code>
-				</event>
-				<event>
-					<code>onFocus</code>
-				</event>
-				<event>
-					<code>onFinishFocus</code>
-				</event>
-			</events>
-		</widget>
-	</allWidgets>
+			<order>1</order>
+		</screenQuery>
+	</screenQueries>
 	<allLayouts>
 		<layout title="Вертикальный слой">
 			<code>vertical</code>
 			<properties>
 				<property>
 					<code>visibility</code>
-					<value>true</value>
+					<value></value>
 				</property>
 			</properties>
 		</layout>
@@ -754,701 +382,2553 @@
 			<properties>
 				<property>
 					<code>visibility</code>
-					<value>true</value>
+					<value></value>
 				</property>
 			</properties>
 		</layout>
-		<layout title="Наложенный слой">
-			<code>layer</code>
+		<layout title="Слои">
+			<code>layers</code>
 			<properties>
 				<property>
 					<code>priority</code>
-					<value>1</value>
+					<value></value>
 				</property>
 				<property>
 					<code>visibility</code>
-					<value>true</value>
+					<value></value>
 				</property>
 			</properties>
 		</layout>
 	</allLayouts>
-	<microapp title="Микроапп ВТБ">
-		<code>microappVTB</code>
-		<shortCode>maVTB</shortCode>
-		<deeplink>https://www.online.vtb.ru/i/ma/maVTB/</deeplink>
+	<allWidgets>
+		<widget title="Изображение (иконка)">
+			<code>image</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>url</code>
+					<value>ссылка на изображение</value>
+				</property>
+				<property>
+					<code>height</code>
+					<value>высота в пикселях (если значение не указано, то используется оригинальный размер)</value>
+				</property>
+				<property>
+					<code>width</code>
+					<value>ширина в пикселях (если значение не указано, то используется оригинальный размер)</value>
+				</property>
+				<property>
+					<code></code>
+					<value></value>
+				</property>
+				<property>
+					<code></code>
+					<value></value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+		<widget title="Текст">
+			<code>label</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>text</code>
+					<value>текст</value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+		<widget title="Кнопка">
+			<code>button</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>text</code>
+					<value>текст</value>
+				</property>
+				<property>
+					<code>enabled</code>
+					<value>доступность нажатия в формате true/false (не обязательно, по умолчанию true)</value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+		<widget title="Чекбокс">
+			<code>checkbox</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>checked</code>
+					<value>исходное состояние в формате true/false (не обязательно, по умолчанию false)</value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+		<widget title="Свитчер">
+			<code>switcher</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>checked</code>
+					<value>исходное состояние в формате true/false (не обязательно, по умолчанию false)</value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+		<widget title="Инпут">
+			<code>input</code>
+			<type>native</type>
+			<properties>
+				<property>
+					<code>text</code>
+					<value>предзаполненный текст на инпуте (не обязательно)</value>
+				</property>
+				<property>
+					<code>hint</code>
+					<value>подсказка на инпуте (не обязательно)</value>
+				</property>
+				<property>
+					<code>readOnly</code>
+					<value>доступен только для чтения в формате true/false (не обязательно, по умолчанию false)</value>
+				</property>
+			</properties>
+			<events>
+				<event>onTap</event>
+			</events>
+		</widget>
+	</allWidgets>
+	<microapp title="Микроапп Таврида">
+		<code>microappTavrida</code>
+		<shortСode>maT</shortСode>
+		<deeplink>https://www.online.vtb.ru/i/ma/maT/</deeplink>
 		<persistents>
-			<persistent>@{microappVTB.main_mainSelectedProduct_balance}</persistent>
-			<persistent>@{microappVTB.main_mainSelectedProduct_balance_visibility}</persistent>
-			<persistent>@{microappVTB.main_mainSelectedProduct_balance_image}</persistent>
-			<persistent>@{microappVTB.selectedAccountId}</persistent>
-			<persistent>@{microappVTB.accountId}</persistent>
+			<persistent></persistent>
 		</persistents>
 	</microapp>
-	<screenQueries>
-		<screenQuery>
-			<code>main_activeProductsForMain</code>
-			<screenCode>main</screenCode>
-			<queryCode>activeProductsForMain</queryCode>
-			<order>1</order>
-			<properties>
-				<property>
-					<code>query_string</code>
-					<variableName>requestProductTypes</variableName>
-					<variableValue>ACCOUNT</variableValue>
-				</property>
-				<property>
-					<code>query_string</code>
-					<variableName>isFavorite</variableName>
-					<variableValue>true</variableValue>
-				</property>
-			</properties>
-		</screenQuery>
-		<screenQuery>
-			<code>selectedProductDetails_productDetails</code>
-			<screenCode>selectedProductDetails</screenCode>
-			<queryCode>productDetails</queryCode>
-			<order>1</order>
-			<properties>
-				<property>
-					<code>query_parameter</code>
-					<variableName>publicId</variableName>
-					<variableValue>@{microappVTB.selectedAccountId}</variableValue>
-				</property>
-			</properties>
-		</screenQuery>
-		<screenQuery>
-			<code>main_RepeatableOperationsForMain</code>
-			<screenCode>main</screenCode>
-			<queryCode>RepeatableOperationsForMain</queryCode>
-			<order>2</order>
-			<properties>
-				<property>
-					<code>query_string</code>
-					<variableName>limit</variableName>
-					<variableValue>4</variableValue>
-				</property>
-			</properties>
-		</screenQuery>
-	</screenQueries>
 	<screens>
-		<screen title="Главная">
-			<screenCode>main</screenCode>
-			<screenShortCode>m</screenShortCode>
-			<deeplink>https://online.vtb.ru/i/ma/maVTB/m</deeplink>
-			<properties></properties>
-			<events>
-				<event>
-					<code>onCreate</code>
-					<order>1</order>
-					<eventActions>
-						<eventAction>
-							<code>query</code>
-							<order>1</order>
-							<properties>
-								<property>
-									<code>queryCode</code>
-									<value>activeProductsForMain</value>
-								</property>
-							</properties>
-						</eventAction>
-						<eventAction>
-							<code>saveToContext</code>
-							<order>2</order>
-							<properties>
-								<property>
-									<code>valueFrom</code>
-									<value>${main_activeProductsForMain.accounts[0].balance}</value>
-								</property>
-								<property>
-									<code>valueTo</code>
-									<value>@{microappVTB.main_mainSelectedProduct_balance}</value>
-								</property>
-							</properties>
-						</eventAction>
-						<eventAction>
-							<code>saveToContext</code>
-							<order>3</order>
-							<properties>
-								<property>
-									<code>valueFrom</code>
-									<value>true</value>
-								</property>
-								<property>
-									<code>valueTo</code>
-									<value>@{microappVTB.main_mainSelectedProduct_balance_visibility}</value>
-								</property>
-							</properties>
-						</eventAction>
-						<eventAction>
-							<code>saveToContext</code>
-							<order>4</order>
-							<properties>
-								<property>
-									<code>valueFrom</code>
-									<value>iconBalanceOpen.svg</value>
-								</property>
-								<property>
-									<code>valueTo</code>
-									<value>@{microappVTB.main_mainSelectedProduct_balance_image}</value>
-								</property>
-							</properties>
-						</eventAction>
-					</eventActions>
-				</event>
-			</events>
-			<screenLayouts>
-				<screenLayout title="Главная">
-					<screenLayoutCode>main_main</screenLayoutCode>
+		<screen title="Вход">
+			<screenCode>enter</screenCode>
+			<screenShortCode>e</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/e</deeplink>
+			<screenLayout title="Вход">
+				<screenLayoutCode>enter_enter</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<events>
+					<event>
+						<event_code>onScanningNFC</event_code>
+						<order>1</order>
+						<eventActions>
+							<eventAction>
+								<code>saveToContext</code>
+								<order>1</order>
+								<properties>
+									<property>
+										<code>valueFrom</code>
+										<value>???</value>
+									</property>
+									<property>
+										<code>valueTo</code>
+										<value>@{microappTavrida.enter_adminAuth_cardUuid}</value>
+									</property>
+								</properties>
+							</eventAction>
+							<eventAction>
+								<code>query</code>
+								<order>2</order>
+								<properties>
+									<property>
+										<code>queryCode</code>
+										<value>enter_adminAuth</value>
+									</property>
+								</properties>
+							</eventAction>
+							<eventAction>
+								<code>saveToContext</code>
+								<order>3</order>
+								<properties>
+									<property>
+										<code>valueFrom</code>
+										<value>${enter_adminAuth.sessionId}</value>
+									</property>
+									<property>
+										<code>valueTo</code>
+										<value>@{microappTavrida.enter_adminAuth_sessionId}</value>
+									</property>
+								</properties>
+							</eventAction>
+							<eventAction>
+								<code>openScreen</code>
+								<order>3</order>
+								<properties>
+									<property>
+										<code>screenCode</code>
+										<value>adminMenu</value>
+									</property>
+								</properties>
+							</eventAction>
+						</eventActions>
+					</event>
+				</events>
+				<screenLayout title="Вход. Заголовок. Текст виджет">
+					<screenLayoutCode>enter_headline</screenLayoutCode>
 					<layoutCode>vertical</layoutCode>
 					<screenLayoutIndex>1</screenLayoutIndex>
 					<properties></properties>
-					<styles></styles>
-					<screenLayouts>
-						<screenLayout title="Главная. Блок Избранный продукт">
-							<screenLayoutCode>main_mainSelectedProduct</screenLayoutCode>
-							<layoutCode>vertical</layoutCode>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Вход. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>enter_enter_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Для входа приложите карту администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Вход. Лого. Иконка виджет">
+					<screenLayoutCode>enter_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Вход. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>enter_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>image</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Меню администратора">
+			<screenCode>adminMenu</screenCode>
+			<screenShortCode>am</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/am</deeplink>
+			<screenLayout title="Меню администратора">
+				<screenLayoutCode>adminMenu_adminMenu</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Меню администратора. Заголовок. Текст виджет">
+					<screenLayoutCode>adminMenu_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Меню администратора. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>adminMenu_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties>
+							<property>
+								<code></code>
+								<value></value>
+							</property>
+						</properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Меню администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Меню администратора. Меню действий">
+					<screenLayoutCode>adminMenu_actions</screenLayoutCode>
+					<layoutCode>horizontal</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Меню администратора. Меню действий. Кнопка 1 виджет">
+						<screenLayoutCode>adminMenu_actions</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>colorStyle</code>
+								<value>primary</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+							<style>
+								<code>roundStyle</code>
+								<value>radius16</value>
+							</style>
+						</styles>
+						<events>
+							<event>
+								<event_code>onTap</event_code>
+								<order>1</order>
+								<eventActions>
+									<eventAction>
+										<code>openScreen</code>
+										<order>1</order>
+										<properties>
+											<property>
+												<code>screenCode</code>
+												<value>cardCreate</value>
+											</property>
+										</properties>
+									</eventAction>
+								</eventActions>
+							</event>
+						</events>
+						<screenLayoutWidget title="Меню администратора. Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>adminMenu_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Создать карту</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Меню администратора. Меню действий. Кнопка 2 виджет">
+						<screenLayoutCode>adminMenu_actions</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>colorStyle</code>
+								<value>primary</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+							<style>
+								<code>roundStyle</code>
+								<value>radius16</value>
+							</style>
+						</styles>
+						<events>
+							<event>
+								<event_code>onTap</event_code>
+								<order>1</order>
+								<eventActions>
+									<eventAction>
+										<code>openScreen</code>
+										<order>1</order>
+										<properties>
+											<property>
+												<code>screenCode</code>
+												<value>carriers</value>
+											</property>
+										</properties>
+									</eventAction>
+								</eventActions>
+							</event>
+						</events>
+						<screenLayoutWidget title="Меню администратора. Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>adminMenu_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Перевозчики</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту">
+			<screenCode>cardCreate</screenCode>
+			<screenShortCode>cc</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/cc</deeplink>
+			<screenLayout title="Создать карту">
+				<screenLayoutCode>cardCreate_cardCreate</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту. Заголовок">
+					<screenLayoutCode>cardCreate_headline</screenLayoutCode>
+					<layoutCode>horizontal</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreate_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>titleLarge22</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Создать карту</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту.  Меню действий">
+					<screenLayoutCode>cardCreate_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Создать карту.  Меню действий. Для роли. Заголовок">
+						<screenLayoutCode>cardCreate_actions_roles_headline</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту.  Меню действий. Для роли. Заголовок. Текст виджет">
+							<screenLayoutWidgetCode>cardCreate_actions_roles_headline_label_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>headlineSmall24</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignLeft</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Для роли</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту.  Меню действий. Для роли. Кнопка 1">
+						<screenLayoutCode>cardCreate_actions_roles_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>colorStyle</code>
+								<value>primary</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+							<style>
+								<code>roundStyle</code>
+								<value>radius16</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту.  Меню действий. Для роли. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardCreate_actions_roles_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Администратора</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту.  Меню действий. Для роли. Кнопки 2 и 3">
+						<screenLayoutCode>cardCreate_actions_roles_23button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>3</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayout title="Создать карту.  Меню действий. Для роли. Кнопка 2">
+							<screenLayoutCode>cardCreate_actions_roles_2button</screenLayoutCode>
+							<layoutCode>horizontal</layoutCode>
 							<screenLayoutIndex>1</screenLayoutIndex>
 							<properties></properties>
-							<styles></styles>
-							<screenLayouts>
-								<screenLayout title="Главная. Блок Избранный продукт. Строка с наименованием">
-									<screenLayoutCode>main_mainSelectedProduct_name</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>1</screenLayoutIndex>
-									<properties></properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Блок Избранный продукт. Строка с наименованием. Текст виджет">
-											<screenLayoutCode>main_mainSelectedProduct_name_label</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>1</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Блок Избранный продукт. Строка с наименованием. Текст виджет">
-													<screenLayoutWidgetCode>main_mainSelectedProduct_name_label_widget</screenLayoutWidgetCode>
-													<widgetCode>label</widgetCode>
-													<properties>
-														<property>
-															<code>text</code>
-															<value>${main_activeProductsForMain.accounts[0].alias}</value>
-														</property>
-													</properties>
-													<styles>
-														<style>
-															<code>textStyle</code>
-															<value>bodyM.tight.normal</value>
-														</style>
-														<style>
-															<code>colorStyle</code>
-															<value>semantic/text/constantPrimary</value>
-														</style>
-														<style>
-															<code>alignmentStyle</code>
-															<value>AlignLeft</value>
-														</style>
-													</styles>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-										<screenLayout title="Главная. Блок Избранный продукт. Строка с наименованием. Иконка виджет">
-											<screenLayoutCode>main_mainSelectedProduct_name_image</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>2</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Блок Избранный продукт. Строка с наименованием. Иконка виджет">
-													<screenLayoutWidgetCode>main_mainSelectedProduct_name_image_widget</screenLayoutWidgetCode>
-													<widgetCode>image</widgetCode>
-													<properties>
-														<property>
-															<code>source</code>
-															<value>iconFavorite.svg</value>
-														</property>
-													</properties>
-													<styles>
-														<style>
-															<code>colorStyle</code>
-															<value>semantic/icon/constantPrimary</value>
-														</style>
-														<style>
-															<code>alignmentStyle</code>
-															<value>AlignLeft</value>
-														</style>
-													</styles>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-								<screenLayout title="Главная. Блок Избранный продукт. Строка с балансом">
-									<screenLayoutCode>main_mainSelectedProduct_balance</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>2</screenLayoutIndex>
-									<properties></properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Блок Избранный продукт. Строка с балансом. Текст виджет">
-											<screenLayoutCode>main_mainSelectedProduct_balance_label</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>1</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Блок Избранный продукт. Строка с балансом. Текст виджет">
-													<screenLayoutWidgetCode>main_mainSelectedProduct_balance_label_widget</screenLayoutWidgetCode>
-													<widgetCode>label</widgetCode>
-													<properties>
-														<property>
-															<code>text</code>
-															<value>@{microappVTB.main_mainSelectedProduct_balance}</value>
-														</property>
-													</properties>
-													<styles>
-														<style>
-															<code>textStyle</code>
-															<value>headlineXL</value>
-														</style>
-														<style>
-															<code>colorStyle</code>
-															<value>semantic/text/constantPrimary</value>
-														</style>
-														<style>
-															<code>alignmentStyle</code>
-															<value>AlignLeft</value>
-														</style>
-													</styles>
-													<events>
-														<event>
-															<code>onTap</code>
-															<order>1</order>
-															<eventActions>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>1</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>${main_activeProductsForMain.accounts[0].publicId}</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.selectedAccountId}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>openScreen</code>
-																	<order>2</order>
-																	<properties>
-																		<property>
-																			<code>screenCode</code>
-																			<value>selectedProductDetails</value>
-																		</property>
-																	</properties>
-																</eventAction>
-															</eventActions>
-														</event>
-													</events>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-										<screenLayout title="Главная. Блок Избранный продукт. Строка с балансом. Иконка виджет">
-											<screenLayoutCode>main_mainSelectedProduct_balance_image</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>2</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Блок Избранный продукт. Строка с балансом. Иконка виджет">
-													<screenLayoutWidgetCode>main_mainSelectedProduct_balance_image_widget</screenLayoutWidgetCode>
-													<widgetCode>image</widgetCode>
-													<properties>
-														<property>
-															<code>source</code>
-															<value>@{microappVTB.main_mainSelectedProduct_balance_image}</value>
-														</property>
-													</properties>
-													<styles>
-														<style>
-															<code>colorStyle</code>
-															<value>semantic/icon/constantPrimary</value>
-														</style>
-														<style>
-															<code>alignmentStyle</code>
-															<value>AlignLeft</value>
-														</style>
-													</styles>
-													<events>
-														<event>
-															<code>onTap</code>
-															<order>1</order>
-															<conditions>
-																<condition>
-																	<variable>@{microappVTB.main_mainSelectedProduct_balance_visibility}</variable>
-																	<operator>==</operator>
-																	<value>true</value>
-																</condition>
-															</conditions>
-															<eventActions>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>1</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>●●●●●●</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>2</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>iconBalanceClose.svg</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance_image}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>refreshWidget</code>
-																	<order>3</order>
-																	<properties>
-																		<property>
-																			<code>screenLayoutWidgetCode</code>
-																			<value>main_mainSelectedProduct_balance_label_widget</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>refreshWidget</code>
-																	<order>4</order>
-																	<properties>
-																		<property>
-																			<code>screenLayoutWidgetCode</code>
-																			<value>main_mainSelectedProduct_balance_image_widget</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>5</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>false</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance_visibility}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-															</eventActions>
-														</event>
-														<event>
-															<code>onTap</code>
-															<order>2</order>
-															<conditions>
-																<condition>
-																	<variable>@{microappVTB.main_mainSelectedProduct_balance_visibility}</variable>
-																	<operator>==</operator>
-																	<value>false</value>
-																</condition>
-															</conditions>
-															<eventActions>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>1</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>${main_activeProductsForMain.accounts[0].balance}</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>2</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>iconBalanceOpen.svg</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance_image}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>refreshWidget</code>
-																	<order>3</order>
-																	<properties>
-																		<property>
-																			<code>screenLayoutWidgetCode</code>
-																			<value>main_mainSelectedProduct_balance_label_widget</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>refreshWidget</code>
-																	<order>4</order>
-																	<properties>
-																		<property>
-																			<code>screenLayoutWidgetCode</code>
-																			<value>main_mainSelectedProduct_balance_image_widget</value>
-																		</property>
-																	</properties>
-																</eventAction>
-																<eventAction>
-																	<code>saveToContext</code>
-																	<order>5</order>
-																	<properties>
-																		<property>
-																			<code>valueFrom</code>
-																			<value>true</value>
-																		</property>
-																		<property>
-																			<code>valueTo</code>
-																			<value>@{microappVTB.main_mainSelectedProduct_balance_visibility}</value>
-																		</property>
-																	</properties>
-																</eventAction>
-															</eventActions>
-														</event>
-													</events>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-							</screenLayouts>
+							<styles>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignLeft</value>
+								</style>
+							</styles>
+							<screenLayoutWidget title="Создать карту.  Меню действий. Для роли. Кнопка 2 виджет">
+								<screenLayoutWidgetCode>cardCreate_actions_roles_2button_widget</screenLayoutWidgetCode>
+								<widgetCode>button</widgetCode>
+								<properties></properties>
+								<styles>
+									<style>
+										<code>textStyle</code>
+										<value>titleLarge19</value>
+									</style>
+									<style>
+										<code>colorStyle</code>
+										<value>on-primary</value>
+									</style>
+									<style>
+										<code>alignmentStyle</code>
+										<value>alignCenter</value>
+									</style>
+								</styles>
+								<bindingProperties>
+									<value>Кассира</value>
+								</bindingProperties>
+							</screenLayoutWidget>
 						</screenLayout>
-						<screenLayout title="Главная. Напоминание о доставке">
-							<screenLayoutCode>main_mainReminder</screenLayoutCode>
+						<screenLayout title="Создать карту.  Меню действий. Для роли. Кнопка 3">
+							<screenLayoutCode>cardCreate_actions_roles_3button</screenLayoutCode>
 							<layoutCode>horizontal</layoutCode>
 							<screenLayoutIndex>2</screenLayoutIndex>
 							<properties></properties>
-							<styles></styles>
-							<screenLayouts>
-								<screenLayout title="Главная. Напоминание о доставке. Строка 1">
-									<screenLayoutCode>main_mainReminder_r1</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>1</screenLayoutIndex>
-									<properties></properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Напоминание о доставке. Строка 1. Текст виджет">
-											<screenLayoutCode>main_mainReminder_r1_label</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>1</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Напоминание о доставке. Строка 1. Текст виджет">
-													<screenLayoutWidgetCode>main_mainReminder_r1_label_widget</screenLayoutWidgetCode>
-													<widgetCode>label</widgetCode>
-													<properties>
-														<property>
-															<code>text</code>
-															<value>Напоминание о доставке карты</value>
-														</property>
-													</properties>
-													<styles></styles>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-								<screenLayout title="Главная. Напоминание о доставке. Строка 2">
-									<screenLayoutCode>main_mainReminder_r2</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>2</screenLayoutIndex>
-									<properties></properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Напоминание о доставке. Строка 2. Текст виджет">
-											<screenLayoutCode>main_mainReminder_r2_label</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>1</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Напоминание о доставке. Строка 2. Текст виджет">
-													<screenLayoutWidgetCode>main_mainReminder_r2_label_widget</screenLayoutWidgetCode>
-													<widgetCode>label</widgetCode>
-													<properties>
-														<property>
-															<code>text</code>
-															<value>Заберите карту в отделении до 15 декабря</value>
-														</property>
-													</properties>
-													<styles></styles>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-							</screenLayouts>
+							<styles>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignLeft</value>
+								</style>
+							</styles>
+							<screenLayoutWidget title="Создать карту.  Меню действий. Для роли. Кнопка 3 виджет">
+								<screenLayoutWidgetCode>cardCreate_actions_roles_3button_widget</screenLayoutWidgetCode>
+								<widgetCode>button</widgetCode>
+								<properties></properties>
+								<styles>
+									<style>
+										<code>textStyle</code>
+										<value>titleLarge19</value>
+									</style>
+									<style>
+										<code>colorStyle</code>
+										<value>on-primary</value>
+									</style>
+									<style>
+										<code>alignmentStyle</code>
+										<value>alignCenter</value>
+									</style>
+								</styles>
+								<bindingProperties>
+									<value>Водителя</value>
+								</bindingProperties>
+							</screenLayoutWidget>
 						</screenLayout>
-						<screenLayout title="Главная. Платежи и переводы">
-							<screenLayoutCode>main_mainPaymentsAndTransfers</screenLayoutCode>
+					</screenLayout>
+					<screenLayout title="Создать карту.  Меню действий. Техническую. Заголовок">
+						<screenLayoutCode>cardCreate_actions_tech_headline</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>4</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту.  Меню действий. Техническую. Заголовок. Текст виджет">
+							<screenLayoutWidgetCode>cardCreate_actions_tech_headline_label_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>headlineSmall24</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignLeft</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Техническую</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту.  Меню действий. Техническую. Кнопки 1 и 2">
+						<screenLayoutCode>cardCreate_actions_tech_12button</screenLayoutCode>
+						<layoutCode>vertical</layoutCode>
+						<screenLayoutIndex>5</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayout title="Создать карту.  Меню действий. Техническую. Кнопка 1">
+							<screenLayoutCode>cardCreate_actions_tech_1button</screenLayoutCode>
 							<layoutCode>horizontal</layoutCode>
-							<screenLayoutIndex>3</screenLayoutIndex>
+							<screenLayoutIndex>1</screenLayoutIndex>
 							<properties></properties>
-							<styles></styles>
+							<styles>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignTop</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>secondary-container</value>
+								</style>
+							</styles>
+							<screenLayoutWidget title="Создать карту.  Меню действий. Для роли. Кнопка 2 виджет">
+								<screenLayoutWidgetCode>cardCreate_actions_tech_1button_widget</screenLayoutWidgetCode>
+								<widgetCode>button</widgetCode>
+								<properties></properties>
+								<styles>
+									<style>
+										<code>textStyle</code>
+										<value>titleLarge19</value>
+									</style>
+									<style>
+										<code>colorStyle</code>
+										<value>on-secondary-container</value>
+									</style>
+									<style>
+										<code>alignmentStyle</code>
+										<value>alignCenter</value>
+									</style>
+								</styles>
+								<bindingProperties>
+									<value>Активации</value>
+								</bindingProperties>
+							</screenLayoutWidget>
 						</screenLayout>
-						<screenLayout title="Главная. Блок Частые операции">
-							<screenLayoutCode>main_mainRepeatableOperations</screenLayoutCode>
-							<layoutCode>vertical</layoutCode>
-							<screenLayoutIndex>4</screenLayoutIndex>
+						<screenLayout title="Создать карту.  Меню действий. Техническую. Кнопка 2">
+							<screenLayoutCode>cardCreate_actions_tech_2button</screenLayoutCode>
+							<layoutCode>horizontal</layoutCode>
+							<screenLayoutIndex>2</screenLayoutIndex>
 							<properties></properties>
-							<styles></styles>
-							<screenLayouts>
-								<screenLayout title="Главная. Блок Частые операции. Заголовок">
-									<screenLayoutCode>main_mainRepeatableOperations_header</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>1</screenLayoutIndex>
-									<properties></properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Блок Частые операции. Заголовок. Текст">
-											<screenLayoutCode>main_mainRepeatableOperations_header_label</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>1</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayoutWidgets>
-												<screenLayoutWidget title="Главная. Блок Частые операции. Заголовок. Текст">
-													<screenLayoutWidgetCode>main_mainRepeatableOperations_header_label_widget</screenLayoutWidgetCode>
-													<widgetCode>label</widgetCode>
-													<properties>
-														<property>
-															<code>text</code>
-															<value>Частые операции</value>
-														</property>
-													</properties>
-													<styles></styles>
-												</screenLayoutWidget>
-											</screenLayoutWidgets>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-								<screenLayout title="Главная. Блок Частые операции. Список операций">
-									<screenLayoutCode>main_mainRepeatableOperations_operationsList</screenLayoutCode>
-									<layoutCode>horizontal</layoutCode>
-									<screenLayoutIndex>2</screenLayoutIndex>
-									<properties>
-										<property>
-											<code>forIndexName</code>
-											<value>repeatableOperations_index</value>
-										</property>
-									</properties>
-									<styles></styles>
-									<screenLayouts>
-										<screenLayout title="Главная. Блок Частые операции. Список операций. Операция">
-											<screenLayoutCode>main_mainRepeatableOperations_operationsList_operation</screenLayoutCode>
-											<layoutCode>vertical</layoutCode>
-											<screenLayoutIndex>${repeatableOperations_index}</screenLayoutIndex>
-											<properties></properties>
-											<styles></styles>
-											<screenLayouts>
-												<screenLayout title="Главная. Блок Частые операции. Список операций. Операция. Иконка виджет">
-													<screenLayoutCode>main_mainRepeatableOperations_operationsList_operation_image</screenLayoutCode>
-													<layoutCode>vertical</layoutCode>
-													<screenLayoutIndex>1</screenLayoutIndex>
-													<properties></properties>
-													<styles></styles>
-													<screenLayoutWidgets>
-														<screenLayoutWidget title="Главная. Блок Частые операции. Список операций. Операция. Иконка виджет">
-															<screenLayoutWidgetCode>main_mainRepeatableOperations_operationsList_operation_image_widget</screenLayoutWidgetCode>
-															<widgetCode>image</widgetCode>
-															<properties>
-																<property>
-																	<code>source</code>
-																	<value>${main_RepeatableOperationsForMain.operations[repeatableOperations_index].image}</value>
-																</property>
-															</properties>
-															<styles></styles>
-														</screenLayoutWidget>
-													</screenLayoutWidgets>
-												</screenLayout>
-												<screenLayout title="Главная. Блок Частые операции. Список операций. Операция. Текст виджет">
-													<screenLayoutCode>main_mainRepeatableOperations_operationsList_operation_label</screenLayoutCode>
-													<layoutCode>vertical</layoutCode>
-													<screenLayoutIndex>2</screenLayoutIndex>
-													<properties></properties>
-													<styles></styles>
-													<screenLayoutWidgets>
-														<screenLayoutWidget title="Главная. Блок Частые операции. Список операций. Операция. Текст виджет">
-															<screenLayoutWidgetCode>main_mainRepeatableOperations_operationsList_operation_label_widget</screenLayoutWidgetCode>
-															<widgetCode>label</widgetCode>
-															<properties>
-																<property>
-																	<code>text</code>
-																	<value>${main_RepeatableOperationsForMain.operations[repeatableOperations_index].name}</value>
-																</property>
-															</properties>
-															<styles></styles>
-														</screenLayoutWidget>
-													</screenLayoutWidgets>
-												</screenLayout>
-											</screenLayouts>
-										</screenLayout>
-									</screenLayouts>
-								</screenLayout>
-							</screenLayouts>
+							<styles>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignTop</value>
+								</style>
+							</styles>
+							<screenLayoutWidget title="Создать карту.  Меню действий. Техническую. Кнопка 2 виджет">
+								<screenLayoutWidgetCode>cardCreate_actions_tech_2button_widget</screenLayoutWidgetCode>
+								<widgetCode>button</widgetCode>
+								<properties></properties>
+								<styles>
+									<style>
+										<code>textStyle</code>
+										<value>titleLarge19</value>
+									</style>
+									<style>
+										<code>colorStyle</code>
+										<value>on-secondary-container</value>
+									</style>
+									<style>
+										<code>alignmentStyle</code>
+										<value>alignCenter</value>
+									</style>
+								</styles>
+								<bindingProperties>
+									<value>Сброса</value>
+								</bindingProperties>
+							</screenLayoutWidget>
 						</screenLayout>
-					</screenLayouts>
+					</screenLayout>
 				</screenLayout>
-			</screenLayouts>
+			</screenLayout>
 		</screen>
-		<screen title="Деталка избранного продукта">
-			<screenCode>selectedProductDetails</screenCode>
-			<screenShortCode>spd</screenShortCode>
-			<deeplink>https://online.vtb.ru/i/ma/maVTB/spd</deeplink>
-			<events>
-				<event>
-					<code>onCreate</code>
-					<order>1</order>
-					<eventActions>
-						<eventAction>
-							<code>query</code>
-							<order>1</order>
-							<properties>
-								<property>
-									<code>queryCode</code>
-									<value>productDetails</value>
-								</property>
-							</properties>
-						</eventAction>
-					</eventActions>
-				</event>
-			</events>
-			<screenLayouts>
-				<screenLayout title="Деталка избранного продукта">
-					<screenLayoutCode>selectedProductDetails_selectedProductDetails</screenLayoutCode>
+		<screen title="Карта активации">
+			<screenCode>cardActivate</screenCode>
+			<screenShortCode>ca</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ca</deeplink>
+			<screenLayout title="Карта активации">
+				<screenLayoutCode>cardActivate_cardActivate</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Карта активации. Заголовок">
+					<screenLayoutCode>cardActivate_headline</screenLayoutCode>
+					<layoutCode>horizontal</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Карта активации. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardActivate_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>titleLarge22</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта активации</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Карта активации.  Меню действий">
+					<screenLayoutCode>cardActivate_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Карта активации.  Меню действий. Кнопка 1">
+						<screenLayoutCode>cardActivate_actions_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Карта активации.  Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardActivate_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Активация терминала</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Карта активации.  Меню действий. Кнопка 2">
+						<screenLayoutCode>cardActivate_actions_2button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Карта активации.  Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>cardActivate_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Активация кассы</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Карта сброса">
+			<screenCode>cardReset</screenCode>
+			<screenShortCode>cr</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/cr</deeplink>
+			<screenLayout title="Карта сброса">
+				<screenLayoutCode>cardReset_cardReset</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Карта сброса. Заголовок">
+					<screenLayoutCode>cardReset_headline</screenLayoutCode>
+					<layoutCode>horizontal</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Карта сброса. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardReset_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>titleLarge22</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта сброса</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Карта сброса.  Меню действий">
+					<screenLayoutCode>cardReset_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Карта сброса.  Меню действий. Кнопка 1">
+						<screenLayoutCode>cardReset_actions_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Карта сброса.  Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardReset_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Сброс терминала</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Карта сброса.  Меню действий. Кнопка 2">
+						<screenLayoutCode>cardReset_actions_2button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Карта сброса.  Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>cardReset_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Сброс кассы</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту администратора. Приложите карту администратора">
+			<screenCode>scanningAdminCard</screenCode>
+			<screenShortCode>sam</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/sam</deeplink>
+			<screenLayout title="Приложите карту администратора">
+				<screenLayoutCode>scanningAdminCard_scanningAdminCard</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Приложите карту администратора. Заголовок. Текст виджет">
+					<screenLayoutCode>scanningAdminCard_headline</screenLayoutCode>
 					<layoutCode>vertical</layoutCode>
 					<screenLayoutIndex>1</screenLayoutIndex>
 					<properties></properties>
-					<styles></styles>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
 				</screenLayout>
-			</screenLayouts>
+				<screenLayout title="Приложите карту администратора. Заголовок 2. Текст виджет">
+					<screenLayoutCode>scanningAdminCard_2headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Вход. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard_2headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Приложите карту администратора. Лого. Иконка виджет">
+					<screenLayoutCode>scanningAdminCard_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>scanningAdminCard_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту администратора. Статусный экран успеха">
+			<screenCode>cardCreateAdminSucsess</screenCode>
+			<screenShortCode>ccas</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ccas</deeplink>
+			<screenLayout title="Создать карту администратора. Статусный экран успеха">
+				<screenLayoutCode>cardCreateAdminSucsess_cardCreateAdminSucsess</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту администратора. Статусный экран успеха. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateAdminSucsess_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту администратора. Статусный экран успеха. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateAdminSucsess_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageSucsessLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту администратора. Статусный экран успеха. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateAdminSucsess_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту администратора. Статусный экран успеха. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateAdminSucsess_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта администратора создана</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту администратора. Статусный экран ошибки">
+			<screenCode>cardCreateAdminFail</screenCode>
+			<screenShortCode>ccaf</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ccaf</deeplink>
+			<screenLayout title="Создать карту администратора. Статусный экран ошибки">
+				<screenLayoutCode>cardCreateAdminFail_cardCreateAdminFail</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту администратора. Статусный экран ошибки. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateAdminFail_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту администратора. Статусный экран ошибки. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateAdminFail_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageFailLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту администратора. Статусный экран ошибки. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateAdminFail_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту администратора. Статусный экран ошибки. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateAdminFail_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Ошибка создания карты</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту администратора. Статусный экран ошибки. Текст виджет">
+					<screenLayoutCode>cardCreateAdminFail_text</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту администратора. Статусный экран ошибки. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateAdminFail_text_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineSmall24</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту еще раз</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту администратора. Статусный экран ошибки.  Меню действий">
+					<screenLayoutCode>cardCreateAdminFail_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Создать карту администратора. Статусный экран ошибки.  Меню действий. Кнопка 1">
+						<screenLayoutCode>cardCreateAdminFail_actions_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту администратора. Статусный экран ошибки.  Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardCreateAdminFail_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Приложите еще раз</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту администратора. Статусный экран ошибки.  Меню действий. Кнопка 2">
+						<screenLayoutCode>cardCreateAdminFail_actions_2button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту администратора. Статусный экран ошибки.  Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>cardCreateAdminFail_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>На главную</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту кассира">
+			<screenCode>cardCreateCashier</screenCode>
+			<screenShortCode>ccc</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ccc</deeplink>
+			<screenLayout title="Создать карту кассира">
+				<screenLayoutCode>cardCreateCashier_cardCreateCashier</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту кассира. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateCashier_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateCashier_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта кассира</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. ФИО. Инпут виджет">
+					<screenLayoutCode>cardCreateCashier_fio</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. ФИО. Инпут виджет">
+						<screenLayoutWidgetCode>cardCreateCashier_fio_input_widget</screenLayoutWidgetCode>
+						<widgetCode>input</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>titleLarge22</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface-variant</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Введите ФИО</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. Кнопка виджет">
+					<screenLayoutCode>cardCreateCashier_button</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignBottom</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Кнопка виджет">
+						<screenLayoutWidgetCode>cardCreateCashier_button_widget</screenLayoutWidgetCode>
+						<widgetCode>button</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Далее</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту кассира. Приложите карту администратора">
+			<screenCode>scanningAdminCard2</screenCode>
+			<screenShortCode>sam2</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/sam2</deeplink>
+			<screenLayout title="Приложите карту администратора">
+				<screenLayoutCode>scanningAdminCard2_scanningAdminCard2</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Приложите карту администратора. Заголовок. Текст виджет">
+					<screenLayoutCode>scanningAdminCard2_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard2_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Приложите карту администратора. Заголовок 2. Текст виджет">
+					<screenLayoutCode>scanningAdminCard2_2headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Вход. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard2_2headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Приложите карту администратора. Лого. Иконка виджет">
+					<screenLayoutCode>scanningAdminCard2_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>scanningAdminCard2_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту кассира. Статусный экран успеха">
+			<screenCode>cardCreateCashierSucsess</screenCode>
+			<screenShortCode>cccs</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/cccs</deeplink>
+			<screenLayout title="Создать карту кассира. Статусный экран успеха">
+				<screenLayoutCode>cardCreateCashierSucsess_cardCreateCashierSucsess</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту кассира. Статусный экран успеха. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateCashierSucsess_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Статусный экран успеха. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateCashierSucsess_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageSucsessLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. Статусный экран успеха. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateCashierSucsess_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Статусный экран успеха. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateCashierSucsess_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта кассира создана</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту кассира. Статусный экран ошибки">
+			<screenCode>cardCreateCashierFail</screenCode>
+			<screenShortCode>cccf</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/cccf</deeplink>
+			<screenLayout title="Создать карту кассира. Статусный экран ошибки">
+				<screenLayoutCode>cardCreateCashierFail_cardCreateCashierFail</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту кассира. Статусный экран ошибки. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateCashierFail_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Статусный экран ошибки. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateCashierFail_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageFailLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. Статусный экран ошибки. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateCashierFail_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Статусный экран ошибки. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateCashierFail_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Ошибка создания карты</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. Статусный экран ошибки. Текст виджет">
+					<screenLayoutCode>cardCreateCashierFail_text</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту кассира. Статусный экран ошибки. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateCashierFail_text_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineSmall24</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту еще раз</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту кассира. Статусный экран ошибки.  Меню действий">
+					<screenLayoutCode>cardCreateCashierFail_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Создать карту кассира. Статусный экран ошибки.  Меню действий. Кнопка 1">
+						<screenLayoutCode>cardCreateCashierFail_actions_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту кассира. Статусный экран ошибки.  Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardCreateCashierFail_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Приложите еще раз</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту кассира. Статусный экран ошибки.  Меню действий. Кнопка 2">
+						<screenLayoutCode>cardCreateCashierFail_actions_2button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту кассира. Статусный экран ошибки.  Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>cardCreateCashierFail_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>На главную</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту активации терминала. Приложите карту администратора">
+			<screenCode>scanningAdminCard3</screenCode>
+			<screenShortCode>sam3</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/sam3</deeplink>
+			<screenLayout title="Приложите карту администратора">
+				<screenLayoutCode>scanningAdminCard3_scanningAdminCard3</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Приложите карту администратора. Заголовок. Текст виджет">
+					<screenLayoutCode>scanningAdminCard3_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard3_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignLeft</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Приложите карту администратора. Заголовок 2. Текст виджет">
+					<screenLayoutCode>scanningAdminCard3_2headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>scanningAdminCard3_2headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту администратора</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Приложите карту администратора. Лого. Иконка виджет">
+					<screenLayoutCode>scanningAdminCard3_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Приложите карту администратора. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>scanningAdminCard3_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту активации терминала. Статусный экран успеха">
+			<screenCode>cardCreateActivateTerminalSucsess</screenCode>
+			<screenShortCode>ccats</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ccats</deeplink>
+			<screenLayout title="Создать карту активации терминала. Статусный экран успеха">
+				<screenLayoutCode>cardCreateActivateTerminalSucsess_cardCreateActivateTerminalSucsess</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту активации терминала. Статусный экран успеха. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateActivateTerminalSucsess_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту активации терминала. Статусный экран успеха. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateActivateTerminalSucsess_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageSucsessLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту активации терминала. Статусный экран успеха. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateActivateTerminalSucsess_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту активации терминала. Статусный экран успеха. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateActivateTerminalSucsess_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Карта для активации терминала создана</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Создать карту активации терминала. Статусный экран ошибки">
+			<screenCode>cardCreateActivateTerminalFail</screenCode>
+			<screenShortCode>ccatf</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/ccatf</deeplink>
+			<screenLayout title="Создать карту активации терминала. Статусный экран ошибки">
+				<screenLayoutCode>cardCreateActivateTerminalFail_cardCreateActivateTerminalFail</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Создать карту активации терминала. Статусный экран ошибки. Лого. Иконка виджет">
+					<screenLayoutCode>cardCreateActivateTerminalFail_logo</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту активации терминала. Статусный экран ошибки. Лого. Иконка виджет">
+						<screenLayoutWidgetCode>cardCreateActivateTerminalFail_logo_image_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>imageFailLogo.svg</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту активации терминала. Статусный экран ошибки. Заголовок. Текст виджет">
+					<screenLayoutCode>cardCreateActivateTerminalFail_headline</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту активации терминала. Статусный экран ошибки. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateActivateTerminalFail_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge32</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Ошибка создания карты</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту активации терминала. Статусный экран ошибки. Текст виджет">
+					<screenLayoutCode>cardCreateActivateTerminalFail_text</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>3</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Создать карту активации терминала. Статусный экран ошибки. Текст виджет">
+						<screenLayoutWidgetCode>cardCreateActivateTerminalFail_text_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineSmall24</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+						<bindingProperties>
+							<value>Приложите карту еще раз</value>
+						</bindingProperties>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Создать карту активации терминала. Статусный экран ошибки.  Меню действий">
+					<screenLayoutCode>cardCreateActivateTerminalFail_actions</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Создать карту активации терминала. Статусный экран ошибки.  Меню действий. Кнопка 1">
+						<screenLayoutCode>cardCreateActivateTerminalFail_actions_1button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту активации терминала. Статусный экран ошибки.  Меню действий. Кнопка 1 виджет">
+							<screenLayoutWidgetCode>cardCreateActivateTerminalFail_actions_1button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-primary</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>Приложите еще раз</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Создать карту активации терминала. Статусный экран ошибки.  Меню действий. Кнопка 2">
+						<screenLayoutCode>cardCreateActivateTerminalFail_actions_2button</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Создать карту активации терминала. Статусный экран ошибки.  Меню действий. Кнопка 2 виджет">
+							<screenLayoutWidgetCode>cardCreateActivateTerminalFail_actions_2button_widget</screenLayoutWidgetCode>
+							<widgetCode>button</widgetCode>
+							<properties></properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge19</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-secondary-container</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+							<bindingProperties>
+								<value>На главную</value>
+							</bindingProperties>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
+		</screen>
+		<screen title="Перевозчики">
+			<screenCode>carriers</screenCode>
+			<screenShortCode>с</screenShortCode>
+			<deeplink>https://www.online.vtb.ru/i/ma/maT/с</deeplink>
+			<screenLayout title="Перевозчики">
+				<screenLayoutCode>carriers_carriers</screenLayoutCode>
+				<layoutCode>vertical</layoutCode>
+				<screenLayoutIndex>1</screenLayoutIndex>
+				<properties></properties>
+				<styles>
+					<style>
+						<code>colorStyle</code>
+						<value>surface</value>
+					</style>
+				</styles>
+				<screenLayout title="Перевозчики. Заголовок. Текст виджет">
+					<screenLayoutCode>carriers_headline</screenLayoutCode>
+					<layoutCode>horizontal</layoutCode>
+					<screenLayoutIndex>1</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayoutWidget title="Перевозчики. Заголовок. Текст виджет">
+						<screenLayoutWidgetCode>carriers_headline_label_widget</screenLayoutWidgetCode>
+						<widgetCode>label</widgetCode>
+						<properties>
+							<property>
+								<code>text</code>
+								<value>Перевозчики</value>
+							</property>
+						</properties>
+						<styles>
+							<style>
+								<code>textStyle</code>
+								<value>headlineLarge22</value>
+							</style>
+							<style>
+								<code>colorStyle</code>
+								<value>on-surface</value>
+							</style>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignCenter</value>
+							</style>
+						</styles>
+					</screenLayoutWidget>
+				</screenLayout>
+				<screenLayout title="Перевозчики. Список">
+					<screenLayoutCode>carriers_list</screenLayoutCode>
+					<layoutCode>vertical</layoutCode>
+					<screenLayoutIndex>2</screenLayoutIndex>
+					<properties></properties>
+					<styles>
+						<style>
+							<code>alignmentStyle</code>
+							<value>alignTop</value>
+						</style>
+					</styles>
+					<screenLayout title="Перевозчики. Список. Элемент 1">
+						<screenLayoutCode>carriers_list_1</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>1</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Перевозчики. Список. Элемент 1. Текст виджет">
+							<screenLayoutWidgetCode>carriers_list_1_label_widget</screenLayoutWidgetCode>
+							<widgetCode>label</widgetCode>
+							<properties>
+								<property>
+									<code>text</code>
+									<value>${carriers_list.[0].carrierName}</value>
+								</property>
+							</properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge22</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Перевозчики. Список. Элемент 2">
+						<screenLayoutCode>carriers_list_2</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>2</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Перевозчики. Список. Элемент 2. Текст виджет">
+							<screenLayoutWidgetCode>carriers_list_2_label_widget</screenLayoutWidgetCode>
+							<widgetCode>label</widgetCode>
+							<properties>
+								<property>
+									<code>text</code>
+									<value>${carriers_list.[1].carrierName}</value>
+								</property>
+							</properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge22</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Перевозчики. Список. Элемент 3">
+						<screenLayoutCode>carriers_list_3</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>3</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Перевозчики. Список. Элемент 3. Текст виджет">
+							<screenLayoutWidgetCode>carriers_list_3_label_widget</screenLayoutWidgetCode>
+							<widgetCode>label</widgetCode>
+							<properties>
+								<property>
+									<code>text</code>
+									<value>${carriers_list.[2].carrierName}</value>
+								</property>
+							</properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge22</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Перевозчики. Список. Элемент 4">
+						<screenLayoutCode>carriers_list_4</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>4</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Перевозчики. Список. Элемент 4. Текст виджет">
+							<screenLayoutWidgetCode>carriers_list_4_label_widget</screenLayoutWidgetCode>
+							<widgetCode>label</widgetCode>
+							<properties>
+								<property>
+									<code>text</code>
+									<value>${carriers_list.[3].carrierName}</value>
+								</property>
+							</properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge22</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+						</screenLayoutWidget>
+					</screenLayout>
+					<screenLayout title="Перевозчики. Список. Элемент 5">
+						<screenLayoutCode>carriers_list_5</screenLayoutCode>
+						<layoutCode>horizontal</layoutCode>
+						<screenLayoutIndex>5</screenLayoutIndex>
+						<properties></properties>
+						<styles>
+							<style>
+								<code>alignmentStyle</code>
+								<value>alignTop</value>
+							</style>
+						</styles>
+						<screenLayoutWidget title="Перевозчики. Список. Элемент 5. Текст виджет">
+							<screenLayoutWidgetCode>carriers_list_5_label_widget</screenLayoutWidgetCode>
+							<widgetCode>label</widgetCode>
+							<properties>
+								<property>
+									<code>text</code>
+									<value>${carriers_list.[4].carrierName}</value>
+								</property>
+							</properties>
+							<styles>
+								<style>
+									<code>textStyle</code>
+									<value>titleLarge22</value>
+								</style>
+								<style>
+									<code>colorStyle</code>
+									<value>on-surface</value>
+								</style>
+								<style>
+									<code>alignmentStyle</code>
+									<value>alignCenter</value>
+								</style>
+							</styles>
+						</screenLayoutWidget>
+					</screenLayout>
+				</screenLayout>
+			</screenLayout>
 		</screen>
 	</screens>
 </microapp>

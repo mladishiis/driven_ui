@@ -1,6 +1,7 @@
 package com.example.drivenui.presentation.details.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.drivenui.navigation.NavigationManager
-import com.example.drivenui.parser.SDUIParser
+import com.example.drivenui.presentation.details.model.ComponentTreeItem
 import com.example.drivenui.presentation.details.model.DetailsEffect
 import com.example.drivenui.presentation.details.view.DetailsScreen
 import com.example.drivenui.presentation.details.vm.DetailsViewModel
@@ -31,7 +32,7 @@ internal class DetailsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Получаем данные из NavigationManager
+        // Получаем данные из NavigationManager (новая структура)
         val parsedResult = NavigationManager.getAndClearData()
 
         // Передаем данные в ViewModel
@@ -60,7 +61,7 @@ internal class DetailsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         // Очищаем данные при уничтожении вью
-        NavigationManager.clearData()
+        NavigationManager.clearAllData()
     }
 
     private fun observeEffects() {
@@ -81,12 +82,43 @@ internal class DetailsFragment : Fragment() {
                 is DetailsEffect.ShowExportSuccess -> {
                     showToast("Экспорт завершен: ${effect.filePath}")
                 }
+
+                is DetailsEffect.ShowComponentStructure -> {
+                    showComponentStructureDialog(effect.title, effect.structureInfo)
+                }
+
+                is DetailsEffect.ShowScreenComponents -> {
+                    showScreenComponentsDialog(effect.screenTitle, effect.components)
+                }
             }
         }.launchIn(lifecycleScope)
     }
 
     private fun showToast(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun showComponentStructureDialog(title: String, structureInfo: String) {
+        // Замените использование @Composable функции на Context
+        val context = requireContext()
+        Toast.makeText(
+            context,
+            "$title\n(см. логи для деталей)",
+            Toast.LENGTH_LONG
+        ).show()
+
+        // Логируем в консоль
+        Log.d("DetailsFragment", structureInfo)
+    }
+
+    private fun showScreenComponentsDialog(screenTitle: String, components: List<ComponentTreeItem>) {
+        // TODO: Реализовать показ диалога или перейти на новый экран
+        // с отображением дерева компонентов
+        Toast.makeText(
+            requireContext(),
+            "$screenTitle: ${components.size} компонентов",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     companion object {

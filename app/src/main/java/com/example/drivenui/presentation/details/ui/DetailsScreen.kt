@@ -191,7 +191,7 @@ private fun OverviewTab(
         }
 
         // Информация о микроаппе
-        state.parsedMicroapp?.microapp?.let { microapp ->
+        state.parsedResult?.microapp?.let { microapp ->
             item {
                 ExpandableSection(
                     title = "Информация о микроаппе",
@@ -233,7 +233,7 @@ private fun OverviewTab(
                             icon = Icons.Filled.ContentCopy,
                             text = "Копировать JSON",
                             onClick = {
-                                val json = createExportJson(state.parsedMicroapp!!)
+                                val json = createExportJson(state.parsedResult!!)
                                 onEvent(DetailsEvent.OnCopyToClipboard(json))
                             }
                         )
@@ -654,7 +654,7 @@ private fun ActionButton(
 /**
  * Создает JSON для экспорта
  */
-private fun createExportJson(parsedMicroapp: com.example.drivenui.parser.SDUIParser.ParsedMicroapp): String {
+private fun createExportJson(parsedMicroapp: com.example.drivenui.parser.SDUIParserNew.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
         appendLine("  \"microapp\": {")
@@ -756,7 +756,7 @@ private fun DetailsTab(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Микроапп
-        state.parsedMicroapp?.microapp?.let { microapp ->
+        state.parsedResult?.microapp?.let { microapp ->
             item {
                 ExpandableSection(
                     title = "Микроапп (детально)",
@@ -847,7 +847,7 @@ private fun DetailsTab(
                     onEvent(DetailsEvent.OnSectionExpanded("raw_data", expanded))
                 }
             ) {
-                state.parsedMicroapp?.let { data ->
+                state.parsedResult?.let { data ->
                     val json = createDetailedJson(data)
                     Column {
                         Button(
@@ -935,7 +935,7 @@ private fun LayoutCard(
 /**
  * Создает детализированный JSON с полными данными о микроаппе
  */
-private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIParser.ParsedMicroapp): String {
+private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIParserNew.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
 
@@ -964,8 +964,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
             appendLine("      \"code\": \"${escapeJson(screen.screenCode)}\",")
             appendLine("      \"shortCode\": \"${escapeJson(screen.screenShortCode)}\",")
             appendLine("      \"deeplink\": \"${escapeJson(screen.deeplink)}\",")
-            appendLine("      \"eventsCount\": ${screen.events},")
-            appendLine("      \"layoutsCount\": ${screen.screenLayouts}")
             append("    }")
             if (screenIndex < parsedMicroapp.screens.size - 1) append(",")
             appendLine()

@@ -1,6 +1,6 @@
 package com.example.drivenui.domain
 
-import com.example.drivenui.parser.SDUIParser
+import com.example.drivenui.parser.SDUIParserNew
 
 /**
  * Интерфейс для работы с файлами и парсингом SDUI
@@ -8,18 +8,18 @@ import com.example.drivenui.parser.SDUIParser
 interface FileInteractor {
 
     /**
-     * Загружает и парсит файл из assets
+     * Парсит файл из assets с новой структурой компонентов
      * @param fileName Имя файла в папке assets
-     * @return Результат парсинга
+     * @return Результат парсинга с новой структурой
      */
-    suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroapp
+    suspend fun parseFileFromAssets(fileName: String): SDUIParserNew.ParsedMicroappResult
 
     /**
-     * Загружает и парсит файл из ZIP архива
+     * Парсит ZIP файл с новой структурой компонентов
      * @param filePath Путь к ZIP файлу
-     * @return Результат парсинга
+     * @return Результат парсинга с новой структурой
      */
-    suspend fun parseFileFromZip(filePath: String): SDUIParser.ParsedMicroapp
+    suspend fun parseFileFromZip(filePath: String): SDUIParserNew.ParsedMicroappResult
 
     /**
      * Получает список доступных файлов в assets
@@ -28,9 +28,9 @@ interface FileInteractor {
     fun getAvailableFiles(): List<String>
 
     /**
-     * Загружает XML файл из assets
+     * Загружает XML файл как строку
      * @param fileName Имя файла
-     * @return Содержимое файла в виде строки
+     * @return Содержимое файла как строка
      */
     suspend fun loadXmlFile(fileName: String): String
 
@@ -38,31 +38,29 @@ interface FileInteractor {
      * Сохраняет результат парсинга
      * @param parsedMicroapp Результат парсинга
      */
-    fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroapp)
+    fun saveParsedResult(parsedMicroapp: SDUIParserNew.ParsedMicroappResult)
 
     /**
      * Получает последний результат парсинга
-     * @return Результат парсинга или null
+     * @return Последний результат или null
      */
-    fun getLastParsedResult(): SDUIParser.ParsedMicroapp?
+    fun getLastParsedResult(): SDUIParserNew.ParsedMicroappResult?
 
     /**
-     * Валидирует результат парсинга микроаппа.
-     *
-     * @param result Результат парсинга для проверки
-     * @return true если данные валидны и могут быть использованы
+     * Валидирует результат парсинга
+     * @param result Результат для валидации
+     * @return true если результат валиден
      */
-    suspend fun validateParsingResult(result: SDUIParser.ParsedMicroapp): Boolean
+    suspend fun validateParsingResult(result: SDUIParserNew.ParsedMicroappResult): Boolean
 
     /**
-     * Возвращает статистику последнего парсинга.
-     *
-     * @return Карта со статистикой или null если парсинг не выполнялся
+     * Получает статистику парсинга
+     * @return Статистика или null если нет данных
      */
     fun getParsingStats(): Map<String, Any>?
 
     /**
-     * Очищает кэшированные данные парсинга.
+     * Очищает сохраненные данные парсинга
      */
     fun clearParsedData()
 }

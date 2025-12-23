@@ -28,8 +28,6 @@ class LayoutParser {
                                 if (layout.code.isNotEmpty()) {
                                     layouts.add(layout)
                                     Log.d("LayoutParser", "Успешно распарсен layout: ${layout.title} (${layout.code})")
-                                } else {
-                                    Log.w("LayoutParser", "Пропущен layout с пустым кодом: ${layout.title}")
                                 }
                             } catch (e: Exception) {
                                 Log.e("LayoutParser", "Ошибка при парсинге layout", e)
@@ -43,9 +41,6 @@ class LayoutParser {
         }
 
         Log.d("LayoutParser", "Найдено лэйаутов: ${layouts.size}")
-        layouts.forEachIndexed { index, layout ->
-            Log.d("LayoutParser", "  $index: ${layout.title} (${layout.code}) - ${layout.properties.size} свойств")
-        }
         return layouts
     }
 
@@ -61,31 +56,15 @@ class LayoutParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> {
-                            code = parser.nextText()
-                            Log.d("LayoutParser", "  code: $code")
-                        }
-                        "properties" -> {
-                            // Парсим вложенный блок properties
-                            properties.addAll(parseProperties(parser))
-                            Log.d("LayoutParser", "  properties: ${properties.size}")
-                        }
+                        "code" -> code = parser.nextText()
+                        "properties" -> properties.addAll(parseProperties(parser))
                         "property" -> {
-                            // Если property напрямую внутри layout (не в блоке properties)
-                            try {
-                                val property = parseProperty(parser)
+                            val property = parseProperty(parser)
+                            if (property.code.isNotEmpty()) {
                                 properties.add(property)
-                                Log.d("LayoutParser", "  property: ${property.code} = ${property.value}")
-                            } catch (e: Exception) {
-                                Log.e("LayoutParser", "Ошибка при парсинге property", e)
-                                skipToEndTag(parser, "property")
                             }
                         }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            Log.d("LayoutParser", "Пропущен тег в layout: ${parser.name}")
-                            skipCurrentTag(parser)
-                        }
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
@@ -95,9 +74,6 @@ class LayoutParser {
         return Layout(title, code, properties)
     }
 
-    /**
-     * Парсит вложенные properties из блока <properties>
-     */
     private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
         val properties = mutableListOf<EventProperty>()
 
@@ -107,19 +83,12 @@ class LayoutParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "property" -> {
-                            try {
-                                val property = parseProperty(parser)
+                            val property = parseProperty(parser)
+                            if (property.code.isNotEmpty()) {
                                 properties.add(property)
-                                Log.d("LayoutParser", "    property в properties: ${property.code}")
-                            } catch (e: Exception) {
-                                Log.e("LayoutParser", "Ошибка при парсинге property в properties", e)
-                                skipToEndTag(parser, "property")
                             }
                         }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
@@ -129,9 +98,6 @@ class LayoutParser {
         return properties
     }
 
-    /**
-     * Парсит свойство из XML
-     */
     private fun parseProperty(parser: XmlPullParser): EventProperty {
         var code = ""
         var value = ""
@@ -141,18 +107,9 @@ class LayoutParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> {
-                            code = parser.nextText()
-                            Log.d("LayoutParser", "      code: $code")
-                        }
-                        "value" -> {
-                            value = parser.nextText()
-                            Log.d("LayoutParser", "      value: $value")
-                        }
-                        else -> {
-                            // Пропускаем неизвестные теги
-                            skipCurrentTag(parser)
-                        }
+                        "code" -> code = parser.nextText()
+                        "value" -> value = parser.nextText()
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
@@ -162,37 +119,13 @@ class LayoutParser {
         return EventProperty(code, value)
     }
 
-    /**
-     * Пропускает текущий тег и все его дочерние элементы
-     */
     private fun skipCurrentTag(parser: XmlPullParser) {
-        if (parser.eventType != XmlPullParser.START_TAG) {
-            return
-        }
+        if (parser.eventType != XmlPullParser.START_TAG) return
         var depth = 1
         while (depth > 0) {
             when (parser.next()) {
                 XmlPullParser.START_TAG -> depth++
                 XmlPullParser.END_TAG -> depth--
-                XmlPullParser.END_DOCUMENT -> return
-            }
-        }
-    }
-
-    /**
-     * Пропускает элементы до указанного закрывающего тега
-     */
-    private fun skipToEndTag(parser: XmlPullParser, tagName: String) {
-        var depth = 1
-        while (depth > 0) {
-            when (parser.next()) {
-                XmlPullParser.START_TAG -> depth++
-                XmlPullParser.END_TAG -> {
-                    depth--
-                    if (parser.name == tagName && depth == 0) {
-                        return
-                    }
-                }
                 XmlPullParser.END_DOCUMENT -> return
             }
         }

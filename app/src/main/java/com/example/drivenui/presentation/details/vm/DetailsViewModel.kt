@@ -5,7 +5,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.example.drivenui.parser.SDUIParser
+import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.models.*
 import com.example.drivenui.presentation.details.model.*
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,16 +21,15 @@ internal class DetailsViewModel @Inject constructor(
     override fun createInitialState() = DetailsState()
 
     /**
-     * Устанавливает результат парсинга
+     * Устанавливает результат парсинга с новой структурой
      */
-    fun setParsedResult(parsedMicroapp: SDUIParser.ParsedMicroapp?) {
+    fun setParsedResult(parsedResult: SDUIParserNew.ParsedMicroappResult?) {
         updateState {
             copy(
-                parsedMicroapp = parsedMicroapp,
-                hasData = parsedMicroapp != null
+                parsedResult = parsedResult
             )
         }
-        logParsingData(parsedMicroapp)
+        logParsingData(parsedResult)
     }
 
     override fun handleEvent(event: DetailsEvent) {
@@ -54,8 +54,16 @@ internal class DetailsViewModel @Inject constructor(
                 handleCopyToClipboard(event.text)
             }
 
+            is DetailsEvent.OnShowScreenComponents -> {
+                handleShowScreenComponents(event.screenCode)
+            }
+
             DetailsEvent.OnExportData -> {
                 handleExportData()
+            }
+
+            DetailsEvent.OnShowComponentStructure -> {
+                handleShowComponentStructure()
             }
         }
     }
@@ -117,7 +125,7 @@ internal class DetailsViewModel @Inject constructor(
             try {
                 updateState { copy(isLoading = true) }
 
-                val result = uiState.value.parsedMicroapp
+                val result = uiState.value.parsedResult
                 if (result == null) {
                     setEffect { DetailsEffect.ShowMessage("Нет данных для экспорта") }
                     return@launch
@@ -144,34 +152,48 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Создает JSON для экспорта
+     * Показать структуру компонентов
      */
-    private fun createExportJson(result: SDUIParser.ParsedMicroapp): String {
-        return buildString {
-            appendLine("{")
-            appendLine("  \"microapp\": {")
-            result.microapp?.let {
-                appendLine("    \"title\": \"${escapeJson(it.title)}\",")
-                appendLine("    \"code\": \"${escapeJson(it.code)}\",")
-                appendLine("    \"shortCode\": \"${escapeJson(it.shortCode)}\",")
-                appendLine("    \"deeplink\": \"${escapeJson(it.deeplink)}\"")
+    private fun handleShowComponentStructure() {
+        val result = uiState.value.parsedResult
+        if (result != null && result.screens.isNotEmpty()) {
+            val structureInfo = buildString {
+                appendLine("=== Структура компонентов ===")
+                result.screens.forEachIndexed { index, screen ->
+                    appendLine("Экран ${index + 1}: ${screen.title} (${screen.screenCode})")
+                    screen.rootComponent?.let { root ->
+                        val componentCount = countComponents(root)
+                        val maxDepth = getMaxDepth(root)
+                        appendLine("  Компонентов: $componentCount")
+                        appendLine("  Макс. глубина: $maxDepth")
+                        appendLine("  Типы компонентов:")
+
+                        val typeStats = getComponentTypeStats(root)
+                        typeStats.forEach { (type, count) ->
+                            appendLine("    - $type: $count")
+                        }
+
+                        // Логируем первые 3 уровня дерева
+                        appendLine("  Дерево компонентов:")
+                        logComponentTree(root, 0, 3, this)
+                    } ?: appendLine("  Корневой компонент: отсутствует")
+                    appendLine()
+                }
             }
-            appendLine("  },")
-            appendLine("  \"statistics\": {")
-            appendLine("    \"screens\": ${result.screens.size},")
-            appendLine("    \"textStyles\": ${result.styles?.textStyles?.size ?: 0},")
-            appendLine("    \"colorStyles\": ${result.styles?.colorStyles?.size ?: 0},")
-            appendLine("    \"queries\": ${result.queries.size},")
-            appendLine("    \"events\": ${result.events?.events?.size ?: 0}")
-            appendLine("  }")
-            appendLine("}")
+
+            setEffect {
+                DetailsEffect.ShowComponentStructure(
+                    title = "Структура компонентов",
+                    structureInfo = structureInfo
+                )
+            }
         }
     }
 
     /**
      * Создает детализированный JSON со всеми данными парсинга
      */
-    fun createDetailedJson(result: SDUIParser.ParsedMicroapp): String {
+    private fun createDetailedJson(result: SDUIParserNew.ParsedMicroappResult): String {
         return buildString {
             appendLine("{")
 
@@ -205,22 +227,25 @@ internal class DetailsViewModel @Inject constructor(
             appendLine("    \"events\": ${result.events?.events?.size ?: 0},")
             appendLine("    \"eventActions\": ${result.eventActions?.eventActions?.size ?: 0},")
             appendLine("    \"widgets\": ${result.widgets.size},")
-            appendLine("    \"layouts\": ${result.layouts.size}")
+            appendLine("    \"layouts\": ${result.layouts.size},")
+            appendLine("    \"componentsCount\": ${result.countAllComponents()}")
             appendLine("  },")
 
-            // Список экранов (первые 5 для примера)
+            // Список экранов
             if (result.screens.isNotEmpty()) {
-                appendLine("  \"sampleScreens\": [")
-                result.screens.take(5).forEachIndexed { index, screen ->
+                appendLine("  \"screens\": [")
+                result.screens.forEachIndexed { index, screen ->
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(screen.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(screen.screenCode)}\",")
                     appendLine("      \"shortCode\": \"${escapeJson(screen.screenShortCode)}\",")
                     appendLine("      \"deeplink\": \"${escapeJson(screen.deeplink)}\",")
-                    appendLine("      \"eventsCount\": ${screen.events.size},")
-                    appendLine("      \"layoutsCount\": ${screen.screenLayouts.size}")
+                    appendLine("      \"hasComponentStructure\": ${screen.rootComponent != null}")
+                    screen.rootComponent?.let { root ->
+                        appendLine("      \"componentsCount\": ${countComponents(root)}")
+                    }
                     append("    }")
-                    if (index < minOf(5, result.screens.size) - 1) append(",")
+                    if (index < result.screens.size - 1) append(",")
                     appendLine()
                 }
                 appendLine("  ],")
@@ -243,10 +268,21 @@ internal class DetailsViewModel @Inject constructor(
                 appendLine("  ],")
             }
 
+            // Компонентная структура
+            if (result.screens.any { it.rootComponent != null }) {
+                appendLine("  \"componentStructure\": {")
+                appendLine("    \"totalComponents\": ${result.countAllComponents()},")
+                appendLine("    \"screensWithComponents\": ${result.screens.count { it.rootComponent != null }},")
+                appendLine("    \"sampleComponentTree\": \"Показать полную структуру в UI\"")
+                appendLine("  },")
+            }
+
             // Общая информация о парсинге
             appendLine("  \"parsingInfo\": {")
             appendLine("    \"timestamp\": \"${System.currentTimeMillis()}\",")
-            appendLine("    \"totalElements\": ${calculateTotalElements(result)}")
+            appendLine("    \"parserVersion\": \"new\",")
+            appendLine("    \"totalElements\": ${calculateTotalElements(result)},")
+            appendLine("    \"hasData\": ${uiState.value.hasData}")
             appendLine("  }")
 
             appendLine("}")
@@ -256,7 +292,7 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Подсчитывает общее количество элементов
      */
-    private fun calculateTotalElements(result: SDUIParser.ParsedMicroapp): Int {
+    private fun calculateTotalElements(result: SDUIParserNew.ParsedMicroappResult): Int {
         var total = 0
         total += result.screens.size
         total += result.styles?.textStyles?.size ?: 0
@@ -270,6 +306,7 @@ internal class DetailsViewModel @Inject constructor(
         total += result.eventActions?.eventActions?.size ?: 0
         total += result.widgets.size
         total += result.layouts.size
+        total += result.countAllComponents()
         return total
     }
 
@@ -288,10 +325,10 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Логирует данные парсинга
      */
-    private fun logParsingData(result: SDUIParser.ParsedMicroapp?) {
+    private fun logParsingData(result: SDUIParserNew.ParsedMicroappResult?) {
         if (result == null) return
 
-        Log.d("DetailsViewModel", "=== Данные парсинга ===")
+        Log.d("DetailsViewModel", "=== Данные парсинга (новая структура) ===")
         Log.d("DetailsViewModel", "Микроапп: ${result.microapp?.title}")
         Log.d("DetailsViewModel", "Экранов: ${result.screens.size}")
         Log.d("DetailsViewModel", "Стилей текста: ${result.styles?.textStyles?.size ?: 0}")
@@ -300,40 +337,137 @@ internal class DetailsViewModel @Inject constructor(
         Log.d("DetailsViewModel", "Событий: ${result.events?.events?.size ?: 0}")
         Log.d("DetailsViewModel", "Виджетов: ${result.widgets.size}")
         Log.d("DetailsViewModel", "Лэйаутов: ${result.layouts.size}")
+        Log.d("DetailsViewModel", "Компонентов всего: ${result.countAllComponents()}")
 
         // Логируем первые 3 экрана
         result.screens.take(3).forEachIndexed { index, screen ->
             Log.d("DetailsViewModel", "Экран ${index + 1}: ${screen.title}")
+            screen.rootComponent?.let { root ->
+                Log.d("DetailsViewModel", "  Компонентов: ${countComponents(root)}")
+            }
         }
 
-        // Логируем первые 3 запроса
-        result.queries.take(3).forEachIndexed { index, query ->
-            Log.d("DetailsViewModel", "Запрос ${index + 1}: ${query.title}")
+        // Логируем структуру компонентов первого экрана
+        result.screens.firstOrNull()?.rootComponent?.let { root ->
+            Log.d("DetailsViewModel", "Структура компонентов первого экрана:")
+            logComponentTree(root, 0, 2)
         }
     }
+
+    /**
+     * Рекурсивно логирует дерево компонентов
+     */
+    private fun logComponentTree(
+        component: Component,
+        depth: Int,
+        maxDepth: Int = Int.MAX_VALUE,
+        builder: StringBuilder? = null
+    ) {
+        if (depth > maxDepth) return
+
+        val indent = "  ".repeat(depth)
+        val message = "$indent${component.type}: ${component.title} (${component.code})"
+
+        if (builder != null) {
+            builder.appendLine(message)
+        } else {
+            Log.d("DetailsViewModel", message)
+        }
+
+        if (depth < maxDepth) {
+            component.children.forEach { child ->
+                logComponentTree(child, depth + 1, maxDepth, builder)
+            }
+        } else if (component.children.isNotEmpty()) {
+            val skipMessage = "$indent  ... ещё ${component.children.size} компонентов"
+            if (builder != null) {
+                builder.appendLine(skipMessage)
+            } else {
+                Log.d("DetailsViewModel", skipMessage)
+            }
+        }
+    }
+
+    /**
+     * Считает количество компонентов рекурсивно
+     */
+    private fun countComponents(component: Component): Int {
+        var count = 1
+        component.children.forEach { child ->
+            count += countComponents(child)
+        }
+        return count
+    }
+
+    /**
+     * Получает максимальную глубину дерева
+     */
+    private fun getMaxDepth(component: Component): Int {
+        if (component.children.isEmpty()) return 1
+
+        var maxDepth = 0
+        component.children.forEach { child ->
+            val childDepth = getMaxDepth(child)
+            if (childDepth > maxDepth) {
+                maxDepth = childDepth
+            }
+        }
+
+        return maxDepth + 1
+    }
+
+    /**
+     * Получает статистику по типам компонентов
+     */
+    private fun getComponentTypeStats(component: Component): Map<String, Int> {
+        val stats = mutableMapOf<String, Int>()
+
+        fun countType(comp: Component) {
+            val typeName = when (comp.type) {
+                ComponentType.LAYOUT -> "Layout"
+                ComponentType.WIDGET -> "Widget"
+                ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
+                ComponentType.SCREEN -> "Screen"
+            }
+
+            stats[typeName] = stats.getOrDefault(typeName, 0) + 1
+
+            comp.children.forEach { child ->
+                countType(child)
+            }
+        }
+
+        countType(component)
+        return stats
+    }
+
+    // ===== Методы для получения данных для UI =====
+
+    /**
+     * Получает статистику для отображения
+     */
+    fun getStats(): Map<String, Any> {
+        val result = uiState.value.parsedResult
+        return result?.getStats() ?: emptyMap()
+    }
+
+    /**
+     * Получает микроапп
+     */
+    fun getMicroapp(): Microapp? = uiState.value.parsedResult?.microapp
 
     /**
      * Получает список экранов для отображения
      */
     fun getScreens(): List<ScreenItem> {
-        return uiState.value.parsedMicroapp?.screens?.map { screen ->
-            ScreenItem(
-                id = screen.screenCode,
-                title = screen.title,
-                code = screen.screenCode,
-                shortCode = screen.screenShortCode,
-                deeplink = screen.deeplink,
-                eventsCount = screen.events.size,
-                layoutsCount = screen.screenLayouts.size
-            )
-        } ?: emptyList()
+        return uiState.value.getScreensWithComponents()
     }
 
     /**
      * Получает список стилей текста
      */
     fun getTextStyles(): List<TextStyleItem> {
-        return uiState.value.parsedMicroapp?.styles?.textStyles?.map { style ->
+        return uiState.value.parsedResult?.styles?.textStyles?.map { style ->
             TextStyleItem(
                 code = style.code,
                 fontFamily = style.fontFamily,
@@ -347,7 +481,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список стилей цвета
      */
     fun getColorStyles(): List<ColorStyleItem> {
-        return uiState.value.parsedMicroapp?.styles?.colorStyles?.map { style ->
+        return uiState.value.parsedResult?.styles?.colorStyles?.map { style ->
             ColorStyleItem(
                 code = style.code,
                 lightColor = style.lightTheme.color,
@@ -362,7 +496,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список стилей скругления
      */
     fun getRoundStyles(): List<RoundStyleItem> {
-        return uiState.value.parsedMicroapp?.styles?.roundStyles?.map { style ->
+        return uiState.value.parsedResult?.styles?.roundStyles?.map { style ->
             RoundStyleItem(
                 code = style.code,
                 radiusValue = style.radiusValue
@@ -374,7 +508,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список стилей отступов
      */
     fun getPaddingStyles(): List<PaddingStyleItem> {
-        return uiState.value.parsedMicroapp?.styles?.paddingStyles?.map { style ->
+        return uiState.value.parsedResult?.styles?.paddingStyles?.map { style ->
             PaddingStyleItem(
                 code = style.code,
                 paddingLeft = style.paddingLeft,
@@ -389,7 +523,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список стилей выравнивания
      */
     fun getAlignmentStyles(): List<AlignmentStyleItem> {
-        return uiState.value.parsedMicroapp?.styles?.alignmentStyles?.map { style ->
+        return uiState.value.parsedResult?.styles?.alignmentStyles?.map { style ->
             AlignmentStyleItem(
                 code = style.code
             )
@@ -400,7 +534,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список запросов
      */
     fun getQueries(): List<QueryItem> {
-        return uiState.value.parsedMicroapp?.queries?.map { query ->
+        return uiState.value.parsedResult?.queries?.map { query ->
             QueryItem(
                 title = query.title,
                 code = query.code,
@@ -415,7 +549,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список событий
      */
     fun getEvents(): List<EventItem> {
-        return uiState.value.parsedMicroapp?.events?.events?.map { event ->
+        return uiState.value.parsedResult?.events?.events?.map { event ->
             EventItem(
                 title = event.title,
                 code = event.code,
@@ -428,7 +562,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список виджетов
      */
     fun getWidgets(): List<WidgetItem> {
-        return uiState.value.parsedMicroapp?.widgets?.map { widget ->
+        return uiState.value.parsedResult?.widgets?.map { widget ->
             WidgetItem(
                 id = widget.code,
                 title = widget.title,
@@ -445,7 +579,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список лэйаутов
      */
     fun getLayouts(): List<LayoutItem> {
-        return uiState.value.parsedMicroapp?.layouts?.map { layout ->
+        return uiState.value.parsedResult?.layouts?.map { layout ->
             LayoutItem(
                 id = layout.code,
                 title = layout.title,
@@ -459,7 +593,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список экранных запросов
      */
     fun getScreenQueries(): List<ScreenQueryItem> {
-        return uiState.value.parsedMicroapp?.screenQueries?.map { query ->
+        return uiState.value.parsedResult?.screenQueries?.map { query ->
             ScreenQueryItem(
                 id = query.code,
                 code = query.code,
@@ -474,7 +608,7 @@ internal class DetailsViewModel @Inject constructor(
      * Получает список действий событий
      */
     fun getEventActions(): List<EventActionItem> {
-        return uiState.value.parsedMicroapp?.eventActions?.eventActions?.map { action ->
+        return uiState.value.parsedResult?.eventActions?.eventActions?.map { action ->
             EventActionItem(
                 id = action.code,
                 title = action.title,
@@ -483,5 +617,34 @@ internal class DetailsViewModel @Inject constructor(
                 propertiesCount = action.properties.size
             )
         } ?: emptyList()
+    }
+
+    /**
+     * Получает структуру компонентов для экрана
+     */
+    fun getComponentStructure(screenCode: String): List<ComponentTreeItem> {
+        return uiState.value.getScreenComponents(screenCode)
+    }
+
+    /**
+     * Обработка показа компонентов экрана
+     */
+    private fun handleShowScreenComponents(screenCode: String) {
+        val components = getComponentStructure(screenCode)
+        if (components.isNotEmpty()) {
+            val screenTitle = uiState.value.parsedResult?.screens
+                ?.firstOrNull { it.screenCode == screenCode }?.title ?: screenCode
+
+            setEffect {
+                DetailsEffect.ShowScreenComponents(
+                    screenTitle = screenTitle,
+                    components = components
+                )
+            }
+        } else {
+            setEffect {
+                DetailsEffect.ShowMessage("У экрана нет компонентов")
+            }
+        }
     }
 }
