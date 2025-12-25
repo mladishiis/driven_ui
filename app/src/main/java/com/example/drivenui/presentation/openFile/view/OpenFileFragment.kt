@@ -17,6 +17,7 @@ import com.example.drivenui.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.presentation.openFile.vm.OpenFileViewModel
 import com.example.drivenui.theme.DrivenUITheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -40,7 +41,7 @@ internal class OpenFileFragment : Fragment() {
                     val openFileState by viewModel.uiState.collectAsState()
                     OpenFileScreen(
                         state = openFileState,
-                        onUploadFile = { event ->
+                        onEvent = { event ->
                             viewModel.handleEvent(event)
                         }
                     )
@@ -72,8 +73,20 @@ internal class OpenFileFragment : Fragment() {
                     showSuccessSnackbar(effect.message)
                 }
 
+                is OpenFileEffect.ShowSuccessWithBindings -> {
+                    showSuccessWithBindings(effect)
+                }
+
                 is OpenFileEffect.ShowParsingResultDialog -> {
                     showParsingResultDialog(effect)
+                }
+
+                is OpenFileEffect.ShowBindingStats -> {
+                    showBindingStatsDialog(effect)
+                }
+
+                is OpenFileEffect.ShowJsonFileSelectionDialog -> {
+                    showJsonFileSelectionDialog(effect)
                 }
             }
         }.launchIn(lifecycleScope)
@@ -96,26 +109,76 @@ internal class OpenFileFragment : Fragment() {
     }
 
     private fun showSuccessSnackbar(message: String) {
-        // Можно использовать Snackbar или Toast
-        android.widget.Toast.makeText(
-            requireContext(),
-            message,
-            android.widget.Toast.LENGTH_LONG
-        ).show()
+        view?.let {
+            Snackbar.make(it, message, Snackbar.LENGTH_LONG)
+                .setAction("OK") {}
+                .show()
+        }
+    }
+
+    private fun showSuccessWithBindings(effect: OpenFileEffect.ShowSuccessWithBindings) {
+        val message = buildString {
+            append(effect.message)
+            append("\n\n")
+            effect.bindingStats?.let { stats ->
+                append("Статистика биндингов:\n")
+                stats.forEach { (key, value) ->
+                    when (key) {
+                        "resolvedValues" -> {
+                            append("  $key: ${(value as Map<*, *>).size} значений\n")
+                        }
+                        "resolutionRate" -> {
+                            val rate = value as Float
+                            append("  $key: ${String.format("%.1f", rate * 100)}%\n")
+                        }
+                        else -> {
+                            append("  $key: $value\n")
+                        }
+                    }
+                }
+                if (effect.resolvedValues.isNotEmpty()) {
+                    append("\nПримеры разрешенных значений:\n")
+                    effect.resolvedValues.entries.take(3).forEach { (key, value) ->
+                        append("  $key = $value\n")
+                    }
+                }
+            }
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Парсинг с биндингами завершен")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Детали биндингов") { _, _ ->
+                viewModel.handleEvent(OpenFileEvent.OnShowBindingStats)
+            }
+            .show()
     }
 
     private fun showParsingResultDialog(effect: OpenFileEffect.ShowParsingResultDialog) {
-        val message = """
-            Результат парсинга:
-            
-            Микроапп: ${effect.title}
-            Экран${if (effect.screensCount != 1) "ов" else ""}: ${effect.screensCount}
-            Стилей текста: ${effect.textStylesCount}
-            Стилей цвета: ${effect.colorStylesCount}
-            Запросов API: ${effect.queriesCount}
-            
-            Нажмите "Показать результат парсинга" для деталей.
-        """.trimIndent()
+        val message = buildString {
+            append("Результат парсинга:\n\n")
+            append("Микроапп: ${effect.title}\n")
+            append("Экран${if (effect.screensCount != 1) "ов" else ""}: ${effect.screensCount}\n")
+            append("Стилей текста: ${effect.textStylesCount}\n")
+            append("Стилей цвета: ${effect.colorStylesCount}\n")
+            append("Запросов API: ${effect.queriesCount}\n")
+
+            if (effect.componentsCount > 0) {
+                append("Компонентов: ${effect.componentsCount}\n")
+            }
+
+            if (effect.bindingsCount > 0) {
+                append("Биндингов: ${effect.bindingsCount}\n")
+                append("Разрешено биндингов: ${effect.resolvedBindingsCount}\n")
+            }
+
+            if (effect.jsonFilesCount > 0) {
+                append("Использовано JSON файлов: ${effect.jsonFilesCount}\n")
+            }
+
+            append("\nНажмите \"Показать результат парсинга\" для деталей.")
+        }
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Парсинг завершен")
@@ -123,6 +186,80 @@ internal class OpenFileFragment : Fragment() {
             .setPositiveButton("OK", null)
             .setNeutralButton("Детали") { _, _ ->
                 viewModel.handleEvent(OpenFileEvent.OnShowParsingDetails)
+            }
+            .show()
+    }
+
+    private fun showBindingStatsDialog(effect: OpenFileEffect.ShowBindingStats) {
+        val message = buildString {
+            append("Детальная статистика биндингов:\n\n")
+
+            effect.stats?.let { stats ->
+                stats.forEach { (key, value) ->
+                    when (key) {
+                        "resolvedValues" -> {
+                            val resolvedMap = value as Map<*, *>
+                            append("$key: ${resolvedMap.size} значений\n")
+                            if (resolvedMap.isNotEmpty()) {
+                                append("\nРазрешенные значения:\n")
+                                resolvedMap.entries.take(10).forEach { (k, v) ->
+                                    append("  $k = $v\n")
+                                }
+                                if (resolvedMap.size > 10) {
+                                    append("  ... и еще ${resolvedMap.size - 10} значений\n")
+                                }
+                            }
+                        }
+                        "resolutionRate" -> {
+                            val rate = value as Float
+                            append("$key: ${String.format("%.1f", rate * 100)}%\n")
+                        }
+                        else -> {
+                            append("$key: $value\n")
+                        }
+                    }
+                }
+            } ?: run {
+                append("Статистика не доступна\n")
+            }
+
+            if (effect.resolvedValues.isNotEmpty()) {
+                append("\nВсе разрешенные значения (${effect.resolvedValues.size}):\n")
+                effect.resolvedValues.entries.take(15).forEach { (key, value) ->
+                    append("  $key = $value\n")
+                }
+                if (effect.resolvedValues.size > 15) {
+                    append("  ... и еще ${effect.resolvedValues.size - 15} значений\n")
+                }
+            }
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Статистика биндингов")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun showJsonFileSelectionDialog(effect: OpenFileEffect.ShowJsonFileSelectionDialog) {
+        val items = effect.availableFiles.toTypedArray()
+        val checkedItems = BooleanArray(items.size) { index ->
+            effect.selectedFiles.contains(items[index])
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Выберите JSON файлы для биндингов")
+            .setMultiChoiceItems(items, checkedItems) { _, which, isChecked ->
+                checkedItems[which] = isChecked
+            }
+            .setPositiveButton("Применить") { _, _ ->
+                val selectedFiles = items.filterIndexed { index, _ -> checkedItems[index] }
+                viewModel.handleEvent(OpenFileEvent.OnSelectJsonFiles(selectedFiles))
+            }
+            .setNegativeButton("Отмена", null)
+            .setNeutralButton("Выбрать все") { _, _ ->
+                val allSelected = effect.availableFiles
+                viewModel.handleEvent(OpenFileEvent.OnSelectJsonFiles(allSelected))
             }
             .show()
     }

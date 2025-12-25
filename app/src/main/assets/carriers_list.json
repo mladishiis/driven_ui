@@ -1,0 +1,24 @@
+{
+  "carriers_allCarriers": [
+    {
+      "carrierId": 0,
+      "carrierName": "Крымтроллейбус"
+    },
+    {
+      "carrierId": 1,
+      "carrierName": "Авангард"
+    },
+    {
+      "carrierId": 2,
+      "carrierName": "АТП-2008"
+    },
+    {
+      "carrierId": 3,
+      "carrierName": "Бахчисарайское АТП №14340"
+    },
+    {
+      "carrierId": 4,
+      "carrierName": "Большой мир"
+    }
+  ]
+}

@@ -90,6 +90,7 @@ private fun RenderComponent(
             onEvent = onEvent,
             depth = depth
         )
+
         is WidgetComponent -> RenderWidgetComponent(
             widget = component,
             styleRegistry = styleRegistry,
@@ -130,6 +131,7 @@ private fun RenderLayoutComponent(
                 }
             }
         }
+
         "horizontal" -> {
             Row(
                 modifier = modifier,
@@ -147,6 +149,7 @@ private fun RenderLayoutComponent(
                 }
             }
         }
+
         "layers" -> {
             Box(
                 modifier = modifier
@@ -163,6 +166,7 @@ private fun RenderLayoutComponent(
                 }
             }
         }
+
         else -> {
             // Дефолтный лэйаут
             Box(
@@ -194,16 +198,18 @@ private fun RenderWidgetComponent(
     // Получаем модификаторы из стилей
     val modifier = buildModifierFromStyles(widget.styles, styleRegistry)
 
-    // Получаем текст из bindingProperties
-    val bindingText = widget.bindingProperties.firstOrNull() ?: ""
+    // Получаем свойства в виде Map<code, value>
+    val properties = widget.properties.associate {
+        it.code to it.resolvedValue // Используем resolvedValue для биндингов
+    }
 
-    // Получаем свойства
-    val properties = widget.properties.associate { it.code to it.value }
+    // Получаем текст из свойства "text"
+    val text = properties["text"] ?: ""
 
-    when (widget.widgetCode) {
-        "label" -> {
+    when (widget.widgetCode.lowercase()) {
+        "label", "text" -> {
             RenderLabel(
-                text = bindingText,
+                text = text,
                 modifier = modifier,
                 styles = widget.styles,
                 styleRegistry = styleRegistry,
@@ -215,9 +221,10 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         "button" -> {
             RenderButton(
-                text = bindingText,
+                text = text,
                 modifier = modifier,
                 styles = widget.styles,
                 styleRegistry = styleRegistry,
@@ -229,9 +236,10 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         "image" -> {
             RenderImage(
-                imageRef = bindingText,
+                imageRef = text,
                 modifier = modifier,
                 styles = widget.styles,
                 styleRegistry = styleRegistry,
@@ -243,6 +251,7 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         "input" -> {
             RenderInput(
                 modifier = modifier,
@@ -256,6 +265,7 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         "checkbox" -> {
             RenderCheckbox(
                 modifier = modifier,
@@ -269,6 +279,7 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         "switcher" -> {
             RenderSwitch(
                 modifier = modifier,
@@ -282,6 +293,7 @@ private fun RenderWidgetComponent(
                 }
             )
         }
+
         else -> {
             // Пытаемся найти в реестре
             widgetRegistry?.getWidgetDefinition(widget.widgetCode)?.let { widgetDef ->
@@ -532,17 +544,21 @@ private fun buildModifierFromStyles(
                 val color = getColorFromCode(style.value, styleRegistry)
                 acc.background(color)
             }) as Modifier.Companion
+
             "roundStyle" -> ({
                 val radius = getRadiusFromCode(style.value)
                 acc.clip(RoundedCornerShape(radius))
             }) as Modifier.Companion
+
             "paddingStyle" -> ({
                 val padding = getPaddingFromCode(style.value)
                 acc.padding(padding)
             }) as Modifier.Companion
+
             "alignmentStyle" -> ({
                 applyAlignmentStyle(style.value, acc)
             }) as Modifier.Companion
+
             else -> acc
         }
     }
@@ -553,11 +569,21 @@ private fun buildModifierFromStyles(
  */
 private fun applyAlignmentStyle(alignmentCode: String, modifier: Modifier): Modifier {
     return when (alignmentCode.lowercase()) {
-        "aligncenter" -> modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally)
-        "alignleft", "alignstart" -> modifier.fillMaxWidth().wrapContentWidth(Alignment.Start)
-        "alignright", "alignend" -> modifier.fillMaxWidth().wrapContentWidth(Alignment.End)
-        "aligntop" -> modifier.fillMaxHeight().wrapContentHeight(Alignment.Top)
-        "alignbottom" -> modifier.fillMaxHeight().wrapContentHeight(Alignment.Bottom)
+        "aligncenter" -> modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+        "alignleft", "alignstart" -> modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.Start)
+        "alignright", "alignend" -> modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.End)
+        "aligntop" -> modifier
+            .fillMaxHeight()
+            .wrapContentHeight(Alignment.Top)
+        "alignbottom" -> modifier
+            .fillMaxHeight()
+            .wrapContentHeight(Alignment.Bottom)
         else -> modifier
     }
 }
@@ -587,10 +613,12 @@ private fun buildTextStyleFromStyles(
                     }
                 )
             }
+
             "colorStyle" -> {
                 val color = getColorFromCode(style.value, styleRegistry)
                 acc.copy(color = color)
             }
+
             else -> acc
         }
     }
@@ -665,24 +693,28 @@ private fun getDefaultTextStyle(textStyleCode: String): com.example.drivenui.par
             fontSize = 32,
             fontWeight = 500
         )
+
         "headlineSmall24" -> com.example.drivenui.parser.models.TextStyle(
             code = "headlineSmall24",
             fontFamily = "headline",
             fontSize = 24,
             fontWeight = 400
         )
+
         "titleLarge22" -> com.example.drivenui.parser.models.TextStyle(
             code = "titleLarge22",
             fontFamily = "title",
             fontSize = 22,
             fontWeight = 400
         )
+
         "titleLarge19" -> com.example.drivenui.parser.models.TextStyle(
             code = "titleLarge19",
             fontFamily = "title",
             fontSize = 19,
             fontWeight = 400
         )
+
         else -> com.example.drivenui.parser.models.TextStyle(
             code = "default",
             fontFamily = "default",

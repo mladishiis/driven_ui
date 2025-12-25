@@ -33,8 +33,8 @@ fun List<Component>.mapToUiModelList(styleRegistry: ComposeStyleRegistry): List<
     }
 
 fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): ComponentModel? {
-    val heightProperty = properties.find { it.code == "height" }?.value.orEmpty()
-    val widthProperty = properties.find { it.code == "width" }?.value.orEmpty()
+    val heightProperty = properties.find { it.code == "height" }?.resolvedValue.orEmpty()
+    val widthProperty = properties.find { it.code == "width" }?.resolvedValue.orEmpty()
     val paddingStyle = styles.find { it.code == "paddingStyle"}?.value.orEmpty()
     val modifier = Modifier
         .applyPaddingStyle(getPaddingFromCode(paddingStyle, styleRegistry))
@@ -104,7 +104,7 @@ fun WidgetComponent.mapWidgetToLabelModel(modifier: Modifier, styleRegistry: Com
     return if (textProperty != null) {
         LabelModel(
             modifier = modifier,
-            text = textProperty.value,
+            text = textProperty.resolvedValue, // Используем resolvedValue
             textStyle = getTextStyle(textColor, styles, styleRegistry),
             alignmentStyle = getAlignmentStyle()
         )
@@ -131,7 +131,7 @@ fun getTextStyle(
 
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
     // TODO может переделать проперти на мапу, чтобы легче доставать?
-    val urlProperty = properties.find { it.code == "url" }?.value
+    val urlProperty = properties.find { it.code == "url" }?.resolvedValue
     return ImageModel(
         modifier = modifier,
         url = urlProperty,
@@ -140,8 +140,8 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
 }
 
 fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): ButtonModel {
-    val textProperty = properties.find { it.code == "text" }?.value ?: ""
-    val enabledProperty = properties.find { it.code == "enabled" }?.value?.toBoolean() ?: true
+    val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
+    val enabledProperty = properties.find { it.code == "enabled" }?.resolvedValue?.toBoolean() ?: true
     val textColor = getColorFromStyles(styleRegistry)
     return ButtonModel(
         modifier = modifier,
@@ -154,8 +154,8 @@ fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: Co
 }
 
 fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): AppBarModel {
-    val titleProperty = properties.find { it.code == "title" }?.value ?: ""
-    val iconProperty = properties.find { it.code == "leftIconUrl" }?.value
+    val titleProperty = properties.find { it.code == "title" }?.resolvedValue ?: ""
+    val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
     val textColor = getColorFromStyles(styleRegistry)
     return AppBarModel(
         modifier = Modifier,

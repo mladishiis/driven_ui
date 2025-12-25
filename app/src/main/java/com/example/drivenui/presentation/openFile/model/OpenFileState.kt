@@ -14,11 +14,26 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Жмак по кнопке Загрузить файл */
     data object OnUploadFile : OpenFileEvent
 
+    /** Жмак по кнопке Загрузить файл с биндингами */
+    data object OnUploadFileWithBindings : OpenFileEvent
+
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
 
     /** Показать детали парсинга */
     data object OnShowParsingDetails : OpenFileEvent
+
+    /** Показать статистику биндингов */
+    data object OnShowBindingStats : OpenFileEvent
+
+    /** Загрузить JSON файлы */
+    data object OnLoadJsonFiles : OpenFileEvent
+
+    /** Парсить с данными */
+    data object OnParseWithData : OpenFileEvent
+
+    /** Выбрать JSON файлы */
+    data class OnSelectJsonFiles(val files: List<String>) : OpenFileEvent
 }
 
 /** События с вью-модели на экран */
@@ -36,6 +51,13 @@ internal sealed interface OpenFileEffect : VtbEffect {
     /** Показать сообщение об успехе */
     data class ShowSuccess(val message: String) : OpenFileEffect
 
+    /** Показать сообщение об успехе с информацией о биндингах */
+    data class ShowSuccessWithBindings(
+        val message: String,
+        val bindingStats: Map<String, Any>?,
+        val resolvedValues: Map<String, String>
+    ) : OpenFileEffect
+
     /** Показать результат парсинга в диалоге */
     data class ShowParsingResultDialog(
         val title: String,
@@ -43,34 +65,67 @@ internal sealed interface OpenFileEffect : VtbEffect {
         val textStylesCount: Int,
         val colorStylesCount: Int,
         val queriesCount: Int,
-        val componentsCount: Int = 0, // Добавляем счетчик компонентов
-        val hasComponentStructure: Boolean = false
+        val componentsCount: Int = 0,
+        val hasComponentStructure: Boolean = false,
+        val bindingsCount: Int = 0,
+        val resolvedBindingsCount: Int = 0,
+        val jsonFilesCount: Int = 0
+    ) : OpenFileEffect
+
+    /** Показать статистику биндингов */
+    data class ShowBindingStats(
+        val stats: Map<String, Any>?,
+        val resolvedValues: Map<String, String>
+    ) : OpenFileEffect
+
+    /** Показать диалог выбора JSON файлов */
+    data class ShowJsonFileSelectionDialog(
+        val availableFiles: List<String>,
+        val selectedFiles: List<String>
     ) : OpenFileEffect
 }
 
 /**
- * Состояние экрана с поддержкой новой структуры компонентов
+ * Состояние экрана с поддержкой новой структуры компонентов и биндингов
  *
  * @property isUploadFile состояние загрузки файла
  * @property isParsing состояние парсинга файла
  * @property parsingResult результат парсинга с новой структурой
  * @property availableFiles список доступных файлов
+ * @property availableJsonFiles список доступных JSON файлов
  * @property selectedFileName выбранный файл
+ * @property selectedJsonFiles выбранные JSON файлы для биндингов
  * @property errorMessage сообщение об ошибке
+ * @property showJsonSelectionDialog показать диалог выбора JSON файлов
  */
 internal data class OpenFileState(
     val isUploadFile: Boolean = false,
     val isParsing: Boolean = false,
     val parsingResult: SDUIParserNew.ParsedMicroappResult? = null,
     val availableFiles: List<String> = emptyList(),
+    val availableJsonFiles: List<String> = emptyList(),
     val selectedFileName: String? = null,
+    val selectedJsonFiles: List<String> = emptyList(),
     val errorMessage: String? = null,
+    val showJsonSelectionDialog: Boolean = false,
+    val bindingStats: Map<String, Any>? = null,
+    val resolvedValues: Map<String, String> = emptyMap()
 ) : VtbState {
 
     /**
      * Проверяет, есть ли результат парсинга для отображения
      */
     val hasParsingResult: Boolean get() = parsingResult != null
+
+    /**
+     * Проверяет, есть ли JSON файлы для выбора
+     */
+    val hasJsonFiles: Boolean get() = availableJsonFiles.isNotEmpty()
+
+    /**
+     * Проверяет, выбраны ли JSON файлы для биндингов
+     */
+    val hasSelectedJsonFiles: Boolean get() = selectedJsonFiles.isNotEmpty()
 
     /**
      * Получает название микроаппа
@@ -118,6 +173,21 @@ internal data class OpenFileState(
     val layoutsCount: Int get() = parsingResult?.layouts?.size ?: 0
 
     /**
+     * Получает количество биндингов
+     */
+    val bindingsCount: Int get() = parsingResult?.countAllBindings() ?: 0
+
+    /**
+     * Получает количество разрешенных биндингов
+     */
+    val resolvedBindingsCount: Int get() = parsingResult?.getResolvedValues()?.size ?: 0
+
+    /**
+     * Проверяет, есть ли контекст данных
+     */
+    val hasDataContext: Boolean get() = parsingResult?.dataContext != null
+
+    /**
      * Получает общее количество компонентов во всех экранах
      */
     val componentsCount: Int get() {
@@ -151,8 +221,14 @@ internal data class OpenFileState(
         put("widgetsCount", widgetsCount)
         put("layoutsCount", layoutsCount)
         put("componentsCount", componentsCount)
+        put("bindingsCount", bindingsCount)
+        put("resolvedBindingsCount", resolvedBindingsCount)
+        put("hasDataContext", hasDataContext)
         put("hasComponentStructure", hasComponentStructure)
         put("hasData", hasParsingResult)
+        put("hasJsonFiles", hasJsonFiles)
+        put("hasSelectedJsonFiles", hasSelectedJsonFiles)
+        put("selectedJsonFilesCount", selectedJsonFiles.size)
     }
 
     /**
@@ -170,6 +246,7 @@ internal data class OpenFileState(
                 val maxDepth = getMaxDepth(root)
                 builder.append("  Компонентов: $componentCount\n")
                 builder.append("  Глубина: $maxDepth\n")
+                builder.append("  Биндингов: ${countBindings(root)}\n")
                 builder.append("  Типы компонентов:\n")
 
                 val typeStats = getComponentTypeStats(root)
@@ -191,6 +268,17 @@ internal data class OpenFileState(
         var count = 1 // текущий компонент
         component.children.forEach { child ->
             count += countComponents(child)
+        }
+        return count
+    }
+
+    /**
+     * Считает количество биндингов в компоненте рекурсивно
+     */
+    private fun countBindings(component: com.example.drivenui.parser.models.Component): Int {
+        var count = component.bindingProperties.size
+        component.children.forEach { child ->
+            count += countBindings(child)
         }
         return count
     }
@@ -270,11 +358,45 @@ internal data class OpenFileState(
             childrenCount = component.children.size,
             stylesCount = component.styles.size,
             eventsCount = component.events.size,
-            propertiesCount = component.properties.size
+            propertiesCount = component.properties.size,
+            bindingsCount = component.bindingProperties.size
         ))
 
         component.children.forEach { child ->
             collectComponents(child, depth + 1, screenCode, result)
+        }
+    }
+
+    /**
+     * Получает статистику биндингов
+     */
+    fun getBindingStatsInfo(): String {
+        return if (bindingStats != null) {
+            buildString {
+                append("Статистика биндингов:\n")
+                bindingStats.forEach { (key, value) ->
+                    when (key) {
+                        "resolvedValues" -> {
+                            append("  $key: ${(value as Map<*, *>).size} значений\n")
+                        }
+                        "resolutionRate" -> {
+                            val rate = value as Float
+                            append("  $key: ${String.format("%.1f", rate * 100)}%\n")
+                        }
+                        else -> {
+                            append("  $key: $value\n")
+                        }
+                    }
+                }
+                if (resolvedValues.isNotEmpty()) {
+                    append("\nПримеры разрешенных значений:\n")
+                    resolvedValues.entries.take(3).forEach { (key, value) ->
+                        append("  $key = $value\n")
+                    }
+                }
+            }
+        } else {
+            "Статистика биндингов не доступна"
         }
     }
 
@@ -290,7 +412,8 @@ internal data class OpenFileState(
         val childrenCount: Int,
         val stylesCount: Int,
         val eventsCount: Int,
-        val propertiesCount: Int
+        val propertiesCount: Int,
+        val bindingsCount: Int
     ) {
         val typeName: String = when (type) {
             com.example.drivenui.parser.models.ComponentType.LAYOUT -> "Layout"

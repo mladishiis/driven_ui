@@ -1,8 +1,14 @@
 package com.example.drivenui.presentation.openFile.view
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,21 +23,60 @@ import com.example.drivenui.presentation.openFile.model.OpenFileState
 @Composable
 internal fun OpenFileScreen(
     state: OpenFileState,
-    onUploadFile: (OpenFileEvent) -> Unit
+    onEvent: (OpenFileEvent) -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "SDUI Парсер",
+                        "SDUI Парсер с биндингами",
                         fontWeight = FontWeight.Bold
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                actions = {
+                    if (state.hasJsonFiles) {
+                        IconButton(
+                            onClick = { onEvent(OpenFileEvent.OnLoadJsonFiles) },
+                            enabled = !state.isParsing
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Description,
+                                contentDescription = "Загрузить JSON файлы"
+                            )
+                        }
+                    }
+                    if (state.availableJsonFiles.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
+                            },
+                            enabled = !state.isParsing
+                        ) {
+                            BadgedBox(
+                                badge = {
+                                    if (state.selectedJsonFiles.isNotEmpty()) {
+                                        Badge {
+                                            Text(
+                                                text = state.selectedJsonFiles.size.toString(),
+                                                fontSize = 10.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Настройки JSON"
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -53,12 +98,26 @@ internal fun OpenFileScreen(
                         text = if (state.isParsing) "Парсинг файла..." else "Загрузка...",
                         style = MaterialTheme.typography.bodyLarge
                     )
+                    if (state.selectedJsonFiles.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Используются JSON файлы:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = state.selectedJsonFiles.joinToString(", "),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -74,17 +133,71 @@ internal fun OpenFileScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Сервер-driven UI (SDUI)",
-                            fontSize = 28.sp,
+                            text = "SDUI Парсер с биндингами",
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Парсер XML микроаппов Driven UI",
+                            text = "Парсинг XML с поддержкой JSON биндингов",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+
+                    // Информация о JSON файлах
+                    if (state.availableJsonFiles.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Description,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "JSON файлы",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Доступно: ${state.availableJsonFiles.size} файлов",
+                                    fontSize = 14.sp
+                                )
+                                if (state.selectedJsonFiles.isNotEmpty()) {
+                                    Text(
+                                        text = "Выбрано: ${state.selectedJsonFiles.size} файлов",
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = {
+                                            onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                    ) {
+                                        Text("Изменить выбор JSON")
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // Информация о выбранном файле
@@ -107,41 +220,125 @@ internal fun OpenFileScreen(
                         }
                     }
 
-                    // Кнопка загрузки файла
-                    Button(
-                        onClick = { onUploadFile(OpenFileEvent.OnUploadFile) },
+                    // Кнопки загрузки
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isUploadFile
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = if (state.hasParsingResult) "Повторно загрузить файл" else "Загрузить и спарсить файл",
-                            fontSize = 16.sp
-                        )
-                    }
-
-                    // Кнопка показа результата
-                    Button(
-                        onClick = { onUploadFile(OpenFileEvent.OnShowFile) },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = state.hasParsingResult,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    ) {
-                        Text(
-                            text = "Показать результат парсинга",
-                            fontSize = 16.sp
-                        )
-                    }
-
-                    // Кнопка деталей парсинга
-                    if (state.hasParsingResult) {
-                        OutlinedButton(
-                            onClick = { onUploadFile(OpenFileEvent.OnShowParsingDetails) },
-                            modifier = Modifier.fillMaxWidth()
+                        // Основная кнопка загрузки
+                        Button(
+                            onClick = { onEvent(OpenFileEvent.OnUploadFile) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isUploadFile
                         ) {
-                            Text("Детали парсинга")
+                            Text(
+                                text = if (state.hasParsingResult) "Повторно загрузить файл" else "Загрузить и спарсить файл",
+                                fontSize = 16.sp
+                            )
+                        }
+
+                        // Кнопка загрузки с биндингами
+                        if (state.selectedJsonFiles.isNotEmpty()) {
+                            Button(
+                                onClick = { onEvent(OpenFileEvent.OnUploadFileWithBindings) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = !state.isUploadFile,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DataUsage,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "Загрузить с биндингами",
+                                        fontSize = 16.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        // Кнопка парсинга с данными
+                        OutlinedButton(
+                            onClick = { onEvent(OpenFileEvent.OnParseWithData) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isUploadFile
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Build,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text("Парсинг с тестовыми данными")
+                            }
+                        }
+                    }
+
+                    // Кнопки работы с результатом
+                    if (state.hasParsingResult) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { onEvent(OpenFileEvent.OnShowFile) },
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = state.hasParsingResult,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            ) {
+                                Text(
+                                    text = "Показать результат парсинга",
+                                    fontSize = 16.sp
+                                )
+                            }
+
+                            // Кнопка деталей парсинга
+                            OutlinedButton(
+                                onClick = { onEvent(OpenFileEvent.OnShowParsingDetails) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Детали парсинга")
+                            }
+
+                            // Кнопка статистики биндингов
+                            if (state.bindingsCount > 0) {
+                                OutlinedButton(
+                                    onClick = { onEvent(OpenFileEvent.OnShowBindingStats) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f)
+                                    )
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("Статистика биндингов")
+                                        Badge(
+                                            containerColor = MaterialTheme.colorScheme.tertiary
+                                        ) {
+                                            Text(
+                                                text = "${state.resolvedBindingsCount}/${state.bindingsCount}",
+                                                fontSize = 10.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -156,19 +353,69 @@ internal fun OpenFileScreen(
                             Column(
                                 modifier = Modifier.padding(16.dp)
                             ) {
-                                Text(
-                                    text = "✓ Файл успешно спарсен",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "✓ Файл успешно спарсен",
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    if (state.selectedJsonFiles.isNotEmpty()) {
+                                        Badge(
+                                            containerColor = MaterialTheme.colorScheme.tertiary
+                                        ) {
+                                            Text(
+                                                text = "с биндингами",
+                                                fontSize = 10.sp
+                                            )
+                                        }
+                                    }
+                                }
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                                Text("Микроапп: ${state.microappTitle}")
-                                Text("Экранов: ${state.screensCount}")
-                                Text("Стилей текста: ${state.textStylesCount}")
-                                Text("Стилей цвета: ${state.colorStylesCount}")
-                                Text("Запросов API: ${state.queriesCount}")
+                                // Основная статистика
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text("Микроапп: ${state.microappTitle}")
+                                    Text("Экранов: ${state.screensCount}")
+                                    Text("Стилей текста: ${state.textStylesCount}")
+                                    Text("Стилей цвета: ${state.colorStylesCount}")
+                                    Text("Запросов API: ${state.queriesCount}")
+
+                                    if (state.componentsCount > 0) {
+                                        Text("Компонентов: ${state.componentsCount}")
+                                    }
+
+                                    if (state.bindingsCount > 0) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text("Биндинги: ${state.resolvedBindingsCount}/${state.bindingsCount}")
+                                            if (state.bindingsCount > 0) {
+                                                val rate = state.resolvedBindingsCount.toFloat() / state.bindingsCount
+                                                Badge(
+                                                    containerColor = if (rate >= 0.8f) MaterialTheme.colorScheme.primary
+                                                    else if (rate >= 0.5f) MaterialTheme.colorScheme.secondary
+                                                    else MaterialTheme.colorScheme.error
+                                                ) {
+                                                    Text(
+                                                        text = "${String.format("%.0f", rate * 100)}%",
+                                                        fontSize = 10.sp
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (state.selectedJsonFiles.isNotEmpty()) {
+                                        Text("JSON файлов: ${state.selectedJsonFiles.size}")
+                                    }
+                                }
                             }
                         }
                     }
@@ -206,15 +453,17 @@ internal fun OpenFileScreen(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                text = "Информация:",
+                                text = "Возможности парсера:",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("• Парсер поддерживает XML формат Driven UI")
-                            Text("• Автоматически ищет файлы в папке assets")
-                            Text("• Показывает структуру микроаппа")
-                            Text("• Экспортирует результат парсинга")
+                            Text("• Парсинг XML микроаппов Driven UI")
+                            Text("• Поддержка JSON биндингов для данных")
+                            Text("• Автоматический поиск файлов в assets")
+                            Text("• Визуализация структуры компонентов")
+                            Text("• Статистика по биндингам")
+                            Text("• Тестирование с кастомными данными")
                         }
                     }
                 }
