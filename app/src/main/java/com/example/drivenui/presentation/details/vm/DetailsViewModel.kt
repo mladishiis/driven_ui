@@ -5,9 +5,27 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.parser.SDUIParserNew
-import com.example.drivenui.parser.models.*
-import com.example.drivenui.presentation.details.model.*
+import com.example.drivenui.parser.models.Component
+import com.example.drivenui.parser.models.ComponentType
+import com.example.drivenui.parser.models.Microapp
+import com.example.drivenui.presentation.details.model.AlignmentStyleItem
+import com.example.drivenui.presentation.details.model.ColorStyleItem
+import com.example.drivenui.presentation.details.model.ComponentTreeItem
+import com.example.drivenui.presentation.details.model.DetailsEffect
+import com.example.drivenui.presentation.details.model.DetailsEvent
+import com.example.drivenui.presentation.details.model.DetailsState
+import com.example.drivenui.presentation.details.model.EventActionItem
+import com.example.drivenui.presentation.details.model.EventItem
+import com.example.drivenui.presentation.details.model.LayoutItem
+import com.example.drivenui.presentation.details.model.PaddingStyleItem
+import com.example.drivenui.presentation.details.model.QueryItem
+import com.example.drivenui.presentation.details.model.RoundStyleItem
+import com.example.drivenui.presentation.details.model.ScreenItem
+import com.example.drivenui.presentation.details.model.ScreenQueryItem
+import com.example.drivenui.presentation.details.model.TextStyleItem
+import com.example.drivenui.presentation.details.model.WidgetItem
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -624,6 +642,13 @@ internal class DetailsViewModel @Inject constructor(
      */
     fun getComponentStructure(screenCode: String): List<ComponentTreeItem> {
         return uiState.value.getScreenComponents(screenCode)
+    }
+
+    /**
+     * Получает структуру компонентов для экрана TEST
+     */
+    fun getComponentModelForRender(): ComponentModel? {
+        return uiState.value.getUIModelsForRender()
     }
 
     /**
