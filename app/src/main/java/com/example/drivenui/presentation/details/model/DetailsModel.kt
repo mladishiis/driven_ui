@@ -1,5 +1,8 @@
 package com.example.drivenui.presentation.details.model
 
+import com.example.drivenui.engine.mappers.ComposeStyleRegistry
+import com.example.drivenui.engine.mappers.mapParsedScreenToUI
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.parser.SDUIParserNew
 import com.example.drivenui.parser.models.Component
 import com.example.drivenui.utile.VtbEffect
@@ -172,7 +175,8 @@ internal data class DetailsState(
         "События",
         "Виджеты",
         "Лэйауты",
-        "Детали"
+        "Детали",
+        "TEST"
     )
 
     /**
@@ -236,6 +240,13 @@ internal data class DetailsState(
     fun getScreenComponents(screenCode: String): List<ComponentTreeItem> {
         val screen = parsedResult?.screens?.firstOrNull { it.screenCode == screenCode }
         return screen?.rootComponent?.let { convertToTreeItems(it) } ?: emptyList()
+    }
+
+    fun getUIModelsForRender(): ComponentModel? {
+        val registry = ComposeStyleRegistry(parsedResult?.styles)
+        return parsedResult?.screens?.firstOrNull()?.let {
+            mapParsedScreenToUI(it, registry)
+        }
     }
 
     /**

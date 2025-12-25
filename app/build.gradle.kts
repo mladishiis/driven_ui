@@ -78,8 +78,12 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.fragment) // Для Fragment навигации
 
-    // koil
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    // coil
+    api(libs.coil)
+    api(libs.coil.compose)
+    api(libs.coil.core)
+    api(libs.coil.okhttp)
+    api(libs.coil.svg)
 
     // XML Parsing (оставляем если нужно)
     // implementation(libs.tikxml.annotation)
