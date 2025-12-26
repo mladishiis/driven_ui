@@ -10,7 +10,7 @@ import org.json.JSONArray
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
  */
-class SDUIParserNew(private val context: Context) {
+class SDUIParser(private val context: Context) {
 
     private val styleParser = StyleParser()
     private val eventParser = EventParser()
@@ -285,12 +285,12 @@ class SDUIParserNew(private val context: Context) {
      */
     fun parseFromAssetsNew(fileName: String): ParsedMicroappResult {
         return try {
-            Log.d("SDUIParserNew", "Начинаем парсинг файла с новой структурой: $fileName")
+            Log.d("SDUIParser", "Начинаем парсинг файла с новой структурой: $fileName")
             val inputStream = context.assets.open(fileName)
             val xmlContent = inputStream.bufferedReader().use { it.readText() }
             parseFullXmlContentNew(xmlContent)
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при загрузке файла из assets: $fileName", e)
+            Log.e("SDUIParser", "Ошибка при загрузке файла из assets: $fileName", e)
             ParsedMicroappResult()
         }
     }
@@ -306,14 +306,14 @@ class SDUIParserNew(private val context: Context) {
         localVariables: Map<String, Any> = emptyMap()
     ): ParsedMicroappResult {
         return try {
-            Log.d("SDUIParserNew", "Парсинг с data binding: $fileName")
-            Log.d("SDUIParserNew", "JSON файлы: $jsonFileNames")
+            Log.d("SDUIParser", "Парсинг с data binding: $fileName")
+            Log.d("SDUIParser", "JSON файлы: $jsonFileNames")
 
             // Базовый парсинг XML
             val baseResult = parseFromAssetsNew(fileName)
 
             if (baseResult.screens.isEmpty()) {
-                Log.e("SDUIParserNew", "Не найдены экраны в результате парсинга")
+                Log.e("SDUIParser", "Не найдены экраны в результате парсинга")
                 return baseResult
             }
 
@@ -322,9 +322,9 @@ class SDUIParserNew(private val context: Context) {
 
             // Логируем загруженные данные
             jsonData.forEach { (key, value) ->
-                Log.d("SDUIParserNew", "Загружен JSON: $key, элементов: ${value.length()}")
+                Log.d("SDUIParser", "Загружен JSON: $key, элементов: ${value.length()}")
                 if (value.length() > 0) {
-                    Log.d("SDUIParserNew", "  Пример первого элемента: ${value.optJSONObject(0)?.toString()?.take(100)}")
+                    Log.d("SDUIParser", "  Пример первого элемента: ${value.optJSONObject(0)?.toString()?.take(100)}")
                 }
             }
 
@@ -344,24 +344,24 @@ class SDUIParserNew(private val context: Context) {
                     boundScreen.rootComponent?.let { root ->
                         val bindingCount = countBindingsInComponent(root)
                         if (bindingCount > 0) {
-                            Log.d("SDUIParserNew", "Экран ${screen.screenCode}: применено биндингов: $bindingCount")
+                            Log.d("SDUIParser", "Экран ${screen.screenCode}: применено биндингов: $bindingCount")
                         }
                     }
                     boundScreen
                 } catch (e: Exception) {
-                    Log.e("SDUIParserNew", "Ошибка при биндинге экрана ${screen.screenCode}", e)
+                    Log.e("SDUIParser", "Ошибка при биндинге экрана ${screen.screenCode}", e)
                     screen // Возвращаем исходный экран в случае ошибки
                 }
             }
 
-            Log.d("SDUIParserNew", "Биндинг данных завершен: ${boundScreens.size} экранов")
+            Log.d("SDUIParser", "Биндинг данных завершен: ${boundScreens.size} экранов")
 
             baseResult.copy(
                 screens = boundScreens,
                 dataContext = dataContext
             )
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при парсинге с data binding", e)
+            Log.e("SDUIParser", "Ошибка при парсинге с data binding", e)
             ParsedMicroappResult()
         }
     }
@@ -375,29 +375,29 @@ class SDUIParserNew(private val context: Context) {
     ): ParsedScreen {
         return try {
             if (screen.rootComponent == null) {
-                Log.w("SDUIParserNew", "Экран ${screen.screenCode} не имеет корневого компонента")
+                Log.w("SDUIParser", "Экран ${screen.screenCode} не имеет корневого компонента")
                 return screen
             }
 
             // Проверяем, есть ли биндинги в экране
             val bindingCount = countBindingsInComponent(screen.rootComponent)
             if (bindingCount == 0) {
-                Log.d("SDUIParserNew", "Экран ${screen.screenCode}: биндинги не найдены")
+                Log.d("SDUIParser", "Экран ${screen.screenCode}: биндинги не найдены")
                 return screen
             }
 
-            Log.d("SDUIParserNew", "Экран ${screen.screenCode}: найдено $bindingCount биндингов")
+            Log.d("SDUIParser", "Экран ${screen.screenCode}: найдено $bindingCount биндингов")
 
             // Применяем биндинги
             val boundComponent = bindingEngine.bindComponent(screen.rootComponent, context)
 
             // Проверяем результат
             val resolvedBindings = countResolvedBindings(boundComponent)
-            Log.d("SDUIParserNew", "Экран ${screen.screenCode}: разрешено $resolvedBindings из $bindingCount биндингов")
+            Log.d("SDUIParser", "Экран ${screen.screenCode}: разрешено $resolvedBindings из $bindingCount биндингов")
 
             screen.copy(rootComponent = boundComponent)
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при биндинге экрана ${screen.screenCode}", e)
+            Log.e("SDUIParser", "Ошибка при биндинге экрана ${screen.screenCode}", e)
             screen
         }
     }
@@ -428,7 +428,7 @@ class SDUIParserNew(private val context: Context) {
      */
     private fun parseFullXmlContentNew(xmlContent: String): ParsedMicroappResult {
         return try {
-            Log.d("SDUIParserNew", "Начинаем парсинг полного XML с новой структурой")
+            Log.d("SDUIParser", "Начинаем парсинг полного XML с новой структурой")
 
             val microapp = parseMicroappFromFullXml(xmlContent)
             val styles = parseStylesFromFullXml(xmlContent)
@@ -440,24 +440,24 @@ class SDUIParserNew(private val context: Context) {
             val widgets = parseWidgetsFromFullXml(xmlContent)
             val layouts = parseLayoutsFromFullXml(xmlContent)
 
-            Log.d("SDUIParserNew", "Парсинг завершен:")
-            Log.d("SDUIParserNew", "  - microapp: ${microapp?.title ?: "не найден"}")
-            Log.d("SDUIParserNew", "  - styles: ${styles != null}")
-            Log.d("SDUIParserNew", "  - events: ${events?.events?.size ?: 0}")
-            Log.d("SDUIParserNew", "  - eventActions: ${eventActions?.eventActions?.size ?: 0}")
-            Log.d("SDUIParserNew", "  - screens: ${screens.size}")
-            Log.d("SDUIParserNew", "  - queries: ${queries.size}")
-            Log.d("SDUIParserNew", "  - screenQueries: ${screenQueries.size}")
-            Log.d("SDUIParserNew", "  - widgets: ${widgets.size}")
-            Log.d("SDUIParserNew", "  - layouts: ${layouts.size}")
+            Log.d("SDUIParser", "Парсинг завершен:")
+            Log.d("SDUIParser", "  - microapp: ${microapp?.title ?: "не найден"}")
+            Log.d("SDUIParser", "  - styles: ${styles != null}")
+            Log.d("SDUIParser", "  - events: ${events?.events?.size ?: 0}")
+            Log.d("SDUIParser", "  - eventActions: ${eventActions?.eventActions?.size ?: 0}")
+            Log.d("SDUIParser", "  - screens: ${screens.size}")
+            Log.d("SDUIParser", "  - queries: ${queries.size}")
+            Log.d("SDUIParser", "  - screenQueries: ${screenQueries.size}")
+            Log.d("SDUIParser", "  - widgets: ${widgets.size}")
+            Log.d("SDUIParser", "  - layouts: ${layouts.size}")
 
             // Логируем структуру компонентов и биндинги
             screens.forEachIndexed { index, screen ->
-                Log.d("SDUIParserNew", "Экран $index: ${screen.title}")
+                Log.d("SDUIParser", "Экран $index: ${screen.title}")
                 screen.rootComponent?.let {
                     val bindingCount = countBindingsInComponent(it)
-                    Log.d("SDUIParserNew", "  Корневой компонент: ${it.title} с ${it.children.size} детьми")
-                    Log.d("SDUIParserNew", "  Биндингов в компоненте: $bindingCount")
+                    Log.d("SDUIParser", "  Корневой компонент: ${it.title} с ${it.children.size} детьми")
+                    Log.d("SDUIParser", "  Биндингов в компоненте: $bindingCount")
 
                     // Выводим информацию о биндингах для отладки
                     if (bindingCount > 0) {
@@ -484,7 +484,7 @@ class SDUIParserNew(private val context: Context) {
 
             result
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при парсинге полного XML", e)
+            Log.e("SDUIParser", "Ошибка при парсинге полного XML", e)
             ParsedMicroappResult()
         }
     }
@@ -503,13 +503,13 @@ class SDUIParserNew(private val context: Context) {
     private fun logComponentBindings(component: Component, indent: String = "  ") {
         component.properties.forEach { property ->
             if (property.hasBindings) {
-                Log.d("SDUIParserNew", "$indent${component.code}.${property.code}:")
-                Log.d("SDUIParserNew", "$indent  rawValue: ${property.rawValue}")
-                Log.d("SDUIParserNew", "$indent  resolvedValue: ${property.resolvedValue}")
+                Log.d("SDUIParser", "$indent${component.code}.${property.code}:")
+                Log.d("SDUIParser", "$indent  rawValue: ${property.rawValue}")
+                Log.d("SDUIParser", "$indent  resolvedValue: ${property.resolvedValue}")
                 property.bindings.forEachIndexed { index, binding ->
-                    Log.d("SDUIParserNew", "$indent  binding[$index]: ${binding.expression}")
-                    Log.d("SDUIParserNew", "$indent    source: ${binding.sourceName}.${binding.path}")
-                    Log.d("SDUIParserNew", "$indent    type: ${binding.sourceType}")
+                    Log.d("SDUIParser", "$indent  binding[$index]: ${binding.expression}")
+                    Log.d("SDUIParser", "$indent    source: ${binding.sourceName}.${binding.path}")
+                    Log.d("SDUIParser", "$indent    type: ${binding.sourceType}")
                 }
             }
         }
@@ -545,7 +545,7 @@ class SDUIParserNew(private val context: Context) {
 
             bindScreen(screen, updatedContext)
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при обновлении данных экрана", e)
+            Log.e("SDUIParser", "Ошибка при обновлении данных экрана", e)
             screen
         }
     }
@@ -564,17 +564,17 @@ class SDUIParserNew(private val context: Context) {
             val carriersScreen = result.getScreenByCode("carriers")
 
             if (carriersScreen != null) {
-                Log.d("SDUIParserNew", "Найден экран carriers")
+                Log.d("SDUIParser", "Найден экран carriers")
 
                 // Проверяем биндинги
                 carriersScreen.rootComponent?.let { root ->
                     val bindingCount = countBindingsInComponent(root)
-                    Log.d("SDUIParserNew", "Биндингов в экране carriers: $bindingCount")
+                    Log.d("SDUIParser", "Биндингов в экране carriers: $bindingCount")
 
                     // Выводим примеры подставленных значений
                     result.getResolvedValues().forEach { (key, value) ->
                         if (key.contains("carriers_list")) {
-                            Log.d("SDUIParserNew", "Разрешенное значение $key: $value")
+                            Log.d("SDUIParser", "Разрешенное значение $key: $value")
                         }
                     }
                 }
@@ -582,7 +582,7 @@ class SDUIParserNew(private val context: Context) {
 
             carriersScreen
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при парсинге экрана carriers с данными", e)
+            Log.e("SDUIParser", "Ошибка при парсинге экрана carriers с данными", e)
             null
         }
     }
@@ -678,23 +678,23 @@ class SDUIParserNew(private val context: Context) {
 
         val startIndex = xmlContent.indexOf(startTag)
         if (startIndex == -1) {
-            Log.d("SDUIParserNew", "Блок <$blockName> не найден в XML")
+            Log.d("SDUIParser", "Блок <$blockName> не найден в XML")
             return null
         }
 
         val endIndex = xmlContent.indexOf(endTag, startIndex)
         if (endIndex == -1) {
-            Log.w("SDUIParserNew", "Не найден закрывающий тег для блока <$blockName>")
+            Log.w("SDUIParser", "Не найден закрывающий тег для блока <$blockName>")
             return null
         }
 
         val blockContent = xmlContent.substring(startIndex, endIndex + endTag.length)
-        Log.d("SDUIParserNew", "Извлечен блок <$blockName>, размер: ${blockContent.length} символов")
+        Log.d("SDUIParser", "Извлечен блок <$blockName>, размер: ${blockContent.length} символов")
 
         return try {
             parser(blockContent)
         } catch (e: Exception) {
-            Log.e("SDUIParserNew", "Ошибка при парсинге блока <$blockName>", e)
+            Log.e("SDUIParser", "Ошибка при парсинге блока <$blockName>", e)
             null
         }
     }

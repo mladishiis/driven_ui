@@ -693,7 +693,7 @@ private fun ActionButton(
 /**
  * Создает JSON для экспорта
  */
-private fun createExportJson(parsedMicroapp: com.example.drivenui.parser.SDUIParserNew.ParsedMicroappResult): String {
+private fun createExportJson(parsedMicroapp: com.example.drivenui.parser.SDUIParser.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
         appendLine("  \"microapp\": {")
@@ -981,7 +981,7 @@ private fun LayoutCard(
 /**
  * Создает детализированный JSON с полными данными о микроаппе
  */
-private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIParserNew.ParsedMicroappResult): String {
+private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIParser.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
 

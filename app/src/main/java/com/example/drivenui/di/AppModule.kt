@@ -1,7 +1,7 @@
 package com.example.drivenui.di
 
 import android.content.Context
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +24,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSDUIParser(context: Context): SDUIParserNew {
-        return SDUIParserNew(context)
+    fun provideSDUIParser(context: Context): SDUIParser {
+        return SDUIParser(context)
     }
 }

@@ -6,7 +6,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.Component
 import com.example.drivenui.parser.models.ComponentType
 import com.example.drivenui.parser.models.Microapp
@@ -41,7 +41,7 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Устанавливает результат парсинга с новой структурой
      */
-    fun setParsedResult(parsedResult: SDUIParserNew.ParsedMicroappResult?) {
+    fun setParsedResult(parsedResult: SDUIParser.ParsedMicroappResult?) {
         updateState {
             copy(
                 parsedResult = parsedResult
@@ -211,7 +211,7 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Создает детализированный JSON со всеми данными парсинга
      */
-    private fun createDetailedJson(result: SDUIParserNew.ParsedMicroappResult): String {
+    private fun createDetailedJson(result: SDUIParser.ParsedMicroappResult): String {
         return buildString {
             appendLine("{")
 
@@ -310,7 +310,7 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Подсчитывает общее количество элементов
      */
-    private fun calculateTotalElements(result: SDUIParserNew.ParsedMicroappResult): Int {
+    private fun calculateTotalElements(result: SDUIParser.ParsedMicroappResult): Int {
         var total = 0
         total += result.screens.size
         total += result.styles?.textStyles?.size ?: 0
@@ -343,7 +343,7 @@ internal class DetailsViewModel @Inject constructor(
     /**
      * Логирует данные парсинга
      */
-    private fun logParsingData(result: SDUIParserNew.ParsedMicroappResult?) {
+    private fun logParsingData(result: SDUIParser.ParsedMicroappResult?) {
         if (result == null) return
 
         Log.d("DetailsViewModel", "=== Данные парсинга (новая структура) ===")

@@ -1,6 +1,6 @@
 package com.example.drivenui.presentation.openFile.model
 
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.utile.VtbEffect
 import com.example.drivenui.utile.VtbEvent
 import com.example.drivenui.utile.VtbState
@@ -43,7 +43,7 @@ internal sealed interface OpenFileEffect : VtbEffect {
     data object GoBack : OpenFileEffect
 
     /** Навигация к деталям парсинга */
-    data class NavigateToParsingDetails(val result: SDUIParserNew.ParsedMicroappResult) : OpenFileEffect
+    data class NavigateToParsingDetails(val result: SDUIParser.ParsedMicroappResult) : OpenFileEffect
 
     /** Показать сообщение об ошибке */
     data class ShowError(val message: String) : OpenFileEffect
@@ -101,7 +101,7 @@ internal sealed interface OpenFileEffect : VtbEffect {
 internal data class OpenFileState(
     val isUploadFile: Boolean = false,
     val isParsing: Boolean = false,
-    val parsingResult: SDUIParserNew.ParsedMicroappResult? = null,
+    val parsingResult: SDUIParser.ParsedMicroappResult? = null,
     val availableFiles: List<String> = emptyList(),
     val availableJsonFiles: List<String> = emptyList(),
     val selectedFileName: String? = null,

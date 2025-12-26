@@ -3,7 +3,7 @@ package com.example.drivenui.presentation.details.model
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
 import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.Component
 import com.example.drivenui.utile.VtbEffect
 import com.example.drivenui.utile.VtbEvent
@@ -70,7 +70,7 @@ internal sealed interface DetailsEffect : VtbEffect {
  */
 internal data class DetailsState(
     val isLoading: Boolean = false,
-    val parsedResult: SDUIParserNew.ParsedMicroappResult? = null,
+    val parsedResult: SDUIParser.ParsedMicroappResult? = null,
     val selectedTabIndex: Int = 0,
     val expandedSections: Set<String> = emptySet(),
     val errorMessage: String? = null,

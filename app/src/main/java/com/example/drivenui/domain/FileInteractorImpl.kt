@@ -3,7 +3,7 @@ package com.example.drivenui.domain
 import android.content.Context
 import android.util.Log
 import com.example.drivenui.data.FileRepository
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.ParsedScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,10 +17,10 @@ internal class FileInteractorImpl @Inject constructor(
     private val context: Context
 ) : FileInteractor {
 
-    private var lastParsedResult: SDUIParserNew.ParsedMicroappResult? = null
-    private val parserNew = SDUIParserNew(context)
+    private var lastParsedResult: SDUIParser.ParsedMicroappResult? = null
+    private val parserNew = SDUIParser(context)
 
-    override suspend fun parseFileFromAssets(fileName: String): SDUIParserNew.ParsedMicroappResult {
+    override suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroappResult {
         return parseFileFromAssets(fileName, emptyList())
     }
 
@@ -30,7 +30,7 @@ internal class FileInteractorImpl @Inject constructor(
     override suspend fun parseFileFromAssets(
         fileName: String,
         jsonFileNames: List<String>
-    ): SDUIParserNew.ParsedMicroappResult {
+    ): SDUIParser.ParsedMicroappResult {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("FileInteractor", "Начинаем парсинг файла из assets: $fileName")
@@ -111,7 +111,7 @@ internal class FileInteractorImpl @Inject constructor(
         fileName: String,
         jsonData: Map<String, String>,
         queryResults: Map<String, Any>
-    ): SDUIParserNew.ParsedMicroappResult {
+    ): SDUIParser.ParsedMicroappResult {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("FileInteractor", "Парсинг с кастомными данными: $fileName")
@@ -191,7 +191,7 @@ internal class FileInteractorImpl @Inject constructor(
         }
     }
 
-    override fun saveParsedResult(parsedMicroapp: SDUIParserNew.ParsedMicroappResult) {
+    override fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult) {
         lastParsedResult = parsedMicroapp
         Log.d("FileInteractor", "Результат парсинга сохранен")
 
@@ -206,7 +206,7 @@ internal class FileInteractorImpl @Inject constructor(
         Log.d("FileInteractor", "Всего биндингов в результате: $bindingCount")
     }
 
-    override fun getLastParsedResult(): SDUIParserNew.ParsedMicroappResult? {
+    override fun getLastParsedResult(): SDUIParser.ParsedMicroappResult? {
         return lastParsedResult
     }
 
@@ -217,7 +217,7 @@ internal class FileInteractorImpl @Inject constructor(
         return lastParsedResult?.getResolvedValues() ?: emptyMap()
     }
 
-    override suspend fun validateParsingResult(result: SDUIParserNew.ParsedMicroappResult): Boolean {
+    override suspend fun validateParsingResult(result: SDUIParser.ParsedMicroappResult): Boolean {
         return withContext(Dispatchers.IO) {
             // Базовая валидация
             if (result.screens.isEmpty() && result.microapp == null) {
@@ -303,7 +303,7 @@ internal class FileInteractorImpl @Inject constructor(
     /**
      * Логирует результат парсинга с новой структурой
      */
-    private fun logParsingResultNew(result: SDUIParserNew.ParsedMicroappResult, source: String) {
+    private fun logParsingResultNew(result: SDUIParser.ParsedMicroappResult, source: String) {
         Log.d("FileInteractor", "=== Результат парсинга ($source) ===")
         Log.d("FileInteractor", "Микроапп: ${result.microapp?.title ?: "Не найден"}")
         Log.d("FileInteractor", "Количество экранов: ${result.screens.size}")
@@ -325,7 +325,7 @@ internal class FileInteractorImpl @Inject constructor(
     /**
      * Логирует результаты биндингов
      */
-    private fun logBindingResults(result: SDUIParserNew.ParsedMicroappResult) {
+    private fun logBindingResults(result: SDUIParser.ParsedMicroappResult) {
         val bindingCount = result.countAllBindings()
         if (bindingCount == 0) {
             Log.d("FileInteractor", "Биндинги не найдены в результате")

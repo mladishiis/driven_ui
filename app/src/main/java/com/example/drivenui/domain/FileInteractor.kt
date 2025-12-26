@@ -1,6 +1,6 @@
 package com.example.drivenui.domain
 
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.ParsedScreen
 
 /**
@@ -13,7 +13,7 @@ interface FileInteractor {
      * @param fileName Имя файла в папке assets
      * @return Результат парсинга с новой структурой
      */
-    suspend fun parseFileFromAssets(fileName: String): SDUIParserNew.ParsedMicroappResult
+    suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroappResult
 
     /**
      * Парсит файл с поддержкой JSON данных для биндингов
@@ -24,7 +24,7 @@ interface FileInteractor {
     suspend fun parseFileFromAssets(
         fileName: String,
         jsonFileNames: List<String>
-    ): SDUIParserNew.ParsedMicroappResult
+    ): SDUIParser.ParsedMicroappResult
 
     /**
      * Парсит специфичный экран с данными (например, carriers)
@@ -43,7 +43,7 @@ interface FileInteractor {
         fileName: String,
         jsonData: Map<String, String> = emptyMap(),
         queryResults: Map<String, Any> = emptyMap()
-    ): SDUIParserNew.ParsedMicroappResult
+    ): SDUIParser.ParsedMicroappResult
 
     /**
      * Получает список доступных файлов в assets
@@ -75,13 +75,13 @@ interface FileInteractor {
      * Сохраняет результат парсинга
      * @param parsedMicroapp Результат парсинга
      */
-    fun saveParsedResult(parsedMicroapp: SDUIParserNew.ParsedMicroappResult)
+    fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult)
 
     /**
      * Получает последний результат парсинга
      * @return Последний результат или null
      */
-    fun getLastParsedResult(): SDUIParserNew.ParsedMicroappResult?
+    fun getLastParsedResult(): SDUIParser.ParsedMicroappResult?
 
     /**
      * Получает разрешенные значения биндингов
@@ -94,7 +94,7 @@ interface FileInteractor {
      * @param result Результат для валидации
      * @return true если результат валиден
      */
-    suspend fun validateParsingResult(result: SDUIParserNew.ParsedMicroappResult): Boolean
+    suspend fun validateParsingResult(result: SDUIParser.ParsedMicroappResult): Boolean
 
     /**
      * Получает статистику парсинга

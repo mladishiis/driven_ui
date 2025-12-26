@@ -6,7 +6,7 @@ import com.example.drivenui.domain.FileInteractor
 import com.example.drivenui.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.presentation.openFile.model.OpenFileState
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -479,7 +479,7 @@ internal class OpenFileViewModel @Inject constructor(
     /**
      * Логирует результат парсинга с новой структурой
      */
-    private fun logParsingResult(result: SDUIParserNew.ParsedMicroappResult) {
+    private fun logParsingResult(result: SDUIParser.ParsedMicroappResult) {
         Log.d("OpenFileViewModel", "=== Результат парсинга (новая структура) ===")
         Log.d("OpenFileViewModel", "Микроапп: ${result.microapp?.title ?: "Не найден"}")
         Log.d("OpenFileViewModel", "Код: ${result.microapp?.code ?: "Не указан"}")
@@ -522,7 +522,7 @@ internal class OpenFileViewModel @Inject constructor(
     /**
      * Логирует результат парсинга с информацией о биндингах
      */
-    private fun logParsingResultWithBindings(result: SDUIParserNew.ParsedMicroappResult) {
+    private fun logParsingResultWithBindings(result: SDUIParser.ParsedMicroappResult) {
         logParsingResult(result)
 
         // Дополнительная информация о биндингах

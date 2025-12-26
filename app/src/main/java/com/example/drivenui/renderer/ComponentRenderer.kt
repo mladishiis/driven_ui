@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.example.drivenui.parser.SDUIParserNew
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.Component
 import com.example.drivenui.parser.models.Layout
@@ -776,7 +776,7 @@ class ComposeStyleRegistry(
  */
 @Composable
 fun DrivenUIScreen(
-    parsedResult: SDUIParserNew.ParsedMicroappResult,
+    parsedResult: SDUIParser.ParsedMicroappResult,
     onEvent: (String, WidgetEvent) -> Unit = { _, _ -> }
 ) {
     val styleRegistry = remember(parsedResult.styles) {
