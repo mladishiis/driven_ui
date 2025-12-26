@@ -11,10 +11,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.drivenui.navigation.NavigationManager
+import com.example.drivenui.parser.models.AllStyles
+import com.example.drivenui.parser.models.ParsedScreen
 import com.example.drivenui.presentation.details.ui.DetailsFragment
 import com.example.drivenui.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.presentation.openFile.vm.OpenFileViewModel
+import com.example.drivenui.presentation.render.TestRenderFragment
 import com.example.drivenui.theme.DrivenUITheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -65,6 +68,17 @@ internal class OpenFileFragment : Fragment() {
                     navigateToDetails()
                 }
 
+                is OpenFileEffect.NavigateToTestScreen -> {
+                    // Сохраняем данные в NavigationManager
+                    NavigationManager.setDataForNextScreen(effect.result)
+
+                    // Переходим к DetailsFragment
+                    navigateToTestFragment(
+                        effect.result.screens,
+                        effect.result.styles
+                    )
+                }
+
                 is OpenFileEffect.ShowError -> {
                     showErrorDialog(effect.message)
                 }
@@ -96,6 +110,19 @@ internal class OpenFileFragment : Fragment() {
         val detailsFragment = DetailsFragment.newInstance()
         parentFragmentManager.beginTransaction()
             .replace(android.R.id.content, detailsFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun navigateToTestFragment(
+        parsedScreen: List<ParsedScreen>?,
+        styles: AllStyles?,
+    ) {
+        val testFragment = TestRenderFragment.newInstance(
+            parsedScreen, styles
+        )
+        parentFragmentManager.beginTransaction()
+            .replace(android.R.id.content, testFragment)
             .addToBackStack(null)
             .commit()
     }

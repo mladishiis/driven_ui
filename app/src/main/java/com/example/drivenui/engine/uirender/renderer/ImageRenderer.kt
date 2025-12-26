@@ -4,10 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImage
 import com.example.drivenui.R
+import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ImageModel
 
 @Composable
-fun ImageRenderer(model: ImageModel) {
+fun ImageRenderer(model: ImageModel,
+                  onAction: (UiAction) -> Unit,) {
     AsyncImage(
         modifier = model.modifier,
         // TODO доставать из hcms

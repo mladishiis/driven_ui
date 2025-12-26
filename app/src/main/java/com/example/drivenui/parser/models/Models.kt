@@ -1,5 +1,7 @@
 package com.example.drivenui.parser.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import org.json.JSONArray
 
 /**
@@ -15,25 +17,27 @@ enum class ComponentType {
 /**
  * Свойство компонента с поддержкой биндингов
  */
+@Parcelize
 data class ComponentProperty(
     val code: String,
     val rawValue: String,           // Исходное значение (может содержать макросы)
     val bindings: List<DataBinding> = emptyList(),  // Извлеченные биндинги
     val resolvedValue: String = rawValue            // Значение после подстановки
-) {
+): Parcelable {
     val hasBindings: Boolean get() = bindings.isNotEmpty()
 }
 
 /**
  * Описание биндинга данных
  */
+@Parcelize
 data class DataBinding(
     val sourceType: BindingSourceType,
     val sourceName: String,          // Имя источника (например, "carriers_allCarriers")
     val path: String,                // Путь к данным (например, "[0].carrierName")
     val expression: String,          // Полное выражение (например, "${carriers_allCarriers.[0].carrierName}")
     val defaultValue: String = ""
-)
+): Parcelable
 
 /**
  * Тип источника данных
@@ -61,7 +65,8 @@ data class DataContext(
 /**
  * Базовый компонент UI
  */
-sealed class Component {
+@Parcelize
+sealed class Component: Parcelable {
     abstract val title: String
     abstract val code: String
     abstract val properties: List<ComponentProperty>  // Теперь ComponentProperty
@@ -116,10 +121,11 @@ data class WidgetComponent(
  * @property code Код свойства (ключ)
  * @property value Значение свойства
  */
+@Parcelize
 data class EventProperty(
     val code: String,
     val value: String
-)
+): Parcelable
 
 /**
  * Действие, выполняемое при возникновении события
@@ -129,12 +135,13 @@ data class EventProperty(
  * @property order Порядковый номер выполнения действия относительно других действий
  * @property properties Список свойств действия
  */
+@Parcelize
 data class  EventAction(
     val title: String = "",
     val code: String = "",
     val order: Int = 0,
     val properties: List<EventProperty> = emptyList()
-)
+): Parcelable
 
 /**
  * Событие, которое может произойти на экране
@@ -189,13 +196,14 @@ data class Microapp(
 /**
  * Упрощенный экран с компонентами
  */
+@Parcelize
 data class ParsedScreen(
     val title: String,
     val screenCode: String,
     val screenShortCode: String,
     val deeplink: String,
     val rootComponent: Component? = null
-)
+): Parcelable
 
 //queries
 
@@ -340,12 +348,13 @@ data class Screen(
  * @property fontSize Размер шрифта в sp
  * @property fontWeight Толщина шрифта (400 - normal, 500 - medium, 700 - bold)
  */
+@Parcelize
 data class TextStyle(
     val code: String,
     val fontFamily: String,
     val fontSize: Int,
     val fontWeight: Int
-)
+): Parcelable
 
 /**
  * Цветовая тема для светлой или темной темы
@@ -353,10 +362,11 @@ data class TextStyle(
  * @property color Цвет в формате HEX (например, "#1D72FF")
  * @property opacity Прозрачность в процентах (0-100, по умолчанию 100)
  */
+@Parcelize
 data class ColorTheme(
     val color: String,
     val opacity: Int = 100
-)
+): Parcelable
 
 /**
  * Стиль цвета с поддержкой светлой и темной темы
@@ -365,20 +375,22 @@ data class ColorTheme(
  * @property lightTheme Цвет для светлой темы
  * @property darkTheme Цвет для темной темы
  */
+@Parcelize
 data class ColorStyle(
     val code: String,
     val lightTheme: ColorTheme,
     val darkTheme: ColorTheme
-)
+): Parcelable
 
 /**
  * Стиль выравнивания
  *
  * @property code Код выравнивания (например, "AlignLeft", "AlignCenter")
  */
+@Parcelize
 data class AlignmentStyle(
     val code: String
-)
+): Parcelable
 
 /**
  * Стиль отступов
@@ -389,13 +401,14 @@ data class AlignmentStyle(
  * @property paddingRight Отступ справа в пикселях
  * @property paddingBottom Отступ снизу в пикселях
  */
+@Parcelize
 data class PaddingStyle(
     val code: String,
     val paddingLeft: Int,
     val paddingTop: Int,
     val paddingRight: Int,
     val paddingBottom: Int
-)
+): Parcelable
 
 /**
  * Стиль скругления углов
@@ -403,10 +416,11 @@ data class PaddingStyle(
  * @property code Уникальный код скругления в формате "radius[значение]"
  * @property radiusValue Значение радиуса скругления в пикселях
  */
+@Parcelize
 data class RoundStyle(
     val code: String,
     val radiusValue: Int
-)
+): Parcelable
 
 /**
  * Контейнер всех стилей микроаппа
@@ -417,13 +431,14 @@ data class RoundStyle(
  * @property paddingStyles Список стилей отступов
  * @property roundStyles Список стилей скругления
  */
+@Parcelize
 data class AllStyles(
     val textStyles: List<TextStyle>,
     val colorStyles: List<ColorStyle>,
     val alignmentStyles: List<AlignmentStyle>,
     val paddingStyles: List<PaddingStyle>,
     val roundStyles: List<RoundStyle>
-)
+): Parcelable
 
 //widgets
 /**
@@ -432,10 +447,11 @@ data class AllStyles(
  * @property code Тип стиля (textStyle, colorStyle, alignmentStyle, paddingStyle, roundStyle)
  * @property value Значение стиля (код конкретного стиля из реестра)
  */
+@Parcelize
 data class WidgetStyle(
     val code: String = "",
     val value: String = ""
-)
+): Parcelable
 
 /**
  * Событие виджета с привязанными действиями
@@ -444,11 +460,12 @@ data class WidgetStyle(
  * @property order Порядковый номер события
  * @property eventActions Список действий, выполняемых при событии
  */
+@Parcelize
 data class WidgetEvent(
     val eventCode: String = "",
     val order: Int = 0,
     val eventActions: List<EventAction> = emptyList()
-)
+): Parcelable
 
 /**
  * Виджет - нативный или составной UI-компонент

@@ -149,7 +149,9 @@ fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: Co
         enabled = enabledProperty,
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         roundedCornerSize = getRoundStyle(styleRegistry),
-        alignmentStyle = getAlignmentStyle()
+        background = getBackgroundColorFromStyles(styleRegistry),
+        tapAction = getOnTapEvents(events),
+        alignmentStyle = getAlignmentStyle(),
     )
 }
 
@@ -168,6 +170,12 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
 
 private fun WidgetComponent.getColorFromStyles(styleRegistry: ComposeStyleRegistry): Color {
     val colorStyle = styles.find { it.code == "colorStyle" }
+    if (colorStyle == null) return Color.Black
+    return getColorFromCode(colorStyle.value, styleRegistry)
+}
+
+private fun WidgetComponent.getBackgroundColorFromStyles(styleRegistry: ComposeStyleRegistry): Color {
+    val colorStyle = styles.find { it.code == "backgroundColorStyle" }
     if (colorStyle == null) return Color.Black
     return getColorFromCode(colorStyle.value, styleRegistry)
 }

@@ -3,17 +3,16 @@ package com.example.drivenui.presentation.openFile.vm
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.domain.FileInteractor
+import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.presentation.openFile.model.OpenFileState
-import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,6 +47,10 @@ internal class OpenFileViewModel @Inject constructor(
 
             OpenFileEvent.OnShowParsingDetails -> {
                 handleShowParsingDetails()
+            }
+
+            OpenFileEvent.OnShowTestScreen -> {
+                handleShowTestScreen()
             }
 
             OpenFileEvent.OnShowBindingStats -> {
@@ -531,6 +534,18 @@ internal class OpenFileViewModel @Inject constructor(
         val currentResult = uiState.value.parsingResult
         if (currentResult != null) {
             setEffect { OpenFileEffect.NavigateToParsingDetails(currentResult) }
+        } else {
+            setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
+        }
+    }
+
+    /**
+     * Показывает тестовый экран
+     */
+    private fun handleShowTestScreen() {
+        val currentResult = uiState.value.parsingResult
+        if (currentResult != null) {
+            setEffect { OpenFileEffect.NavigateToTestScreen(currentResult) }
         } else {
             setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
         }

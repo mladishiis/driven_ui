@@ -9,11 +9,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextOverflow
+import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBarRenderer(model: AppBarModel) {
+fun AppBarRenderer(model: AppBarModel,
+                   onAction: (UiAction) -> Unit,) {
     CenterAlignedTopAppBar(
         modifier = model.modifier,
         title = {

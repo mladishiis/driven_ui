@@ -170,7 +170,7 @@ internal fun DetailsScreen(
                     5 -> WidgetsTab(state, viewModel, onEvent)
                     6 -> LayoutsTab(state, viewModel, onEvent)
                     7 -> DetailsTab(state, viewModel, onEvent) // Новая вкладка для деталей
-                    8 -> if (renderModel != null ) TestTab(renderModel) // Новая вкладка для деталей
+                    8 -> if (renderModel != null) TestTab(renderModel) // Новая вкладка для деталей
                 }
             }
         }
@@ -810,9 +810,15 @@ private fun DetailsTab(
                         InfoRow("Short Code", microapp.shortCode)
                         InfoRow("Deeplink", microapp.deeplink)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Persistents (${microapp.persistents.size}):", fontWeight = FontWeight.Medium)
+                        Text(
+                            "Persistents (${microapp.persistents.size}):",
+                            fontWeight = FontWeight.Medium
+                        )
                         microapp.persistents.forEach { persistent ->
-                            Text("  • $persistent", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "  • $persistent",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -948,7 +954,9 @@ private fun WidgetCard(
 private fun TestTab(
     model: ComponentModel
 ) {
-    ComponentRenderer(model = model)
+    ComponentRenderer(
+        model = model,
+        onAction = {})
 }
 
 @Composable
@@ -1145,7 +1153,8 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
         try {
             val screenQueriesField = parsedMicroapp::class.java.getDeclaredField("screenQueries")
             screenQueriesField.isAccessible = true
-            val screenQueries = screenQueriesField.get(parsedMicroapp) as? List<*> ?: emptyList<Any>()
+            val screenQueries =
+                screenQueriesField.get(parsedMicroapp) as? List<*> ?: emptyList<Any>()
 
             appendLine("  \"screenQueries\": [")
             screenQueries.forEachIndexed { sqIndex, sq ->
@@ -1166,9 +1175,11 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
 
         // Event Actions (все действия событий микроаппа)
         try {
-            val allEventActionsField = parsedMicroapp::class.java.getDeclaredField("allEventActions")
+            val allEventActionsField =
+                parsedMicroapp::class.java.getDeclaredField("allEventActions")
             allEventActionsField.isAccessible = true
-            val allEventActions = allEventActionsField.get(parsedMicroapp) as? com.example.drivenui.parser.models.AllEventActions
+            val allEventActions =
+                allEventActionsField.get(parsedMicroapp) as? com.example.drivenui.parser.models.AllEventActions
 
             appendLine("  \"allEventActions\": [")
             allEventActions?.eventActions?.forEachIndexed { eaIndex, action ->
@@ -1196,7 +1207,8 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
             try {
                 val eventActionsField = parsedMicroapp::class.java.getDeclaredField("eventActions")
                 eventActionsField.isAccessible = true
-                val eventActions = eventActionsField.get(parsedMicroapp) as? List<com.example.drivenui.parser.models.EventAction>
+                val eventActions =
+                    eventActionsField.get(parsedMicroapp) as? List<com.example.drivenui.parser.models.EventAction>
 
                 appendLine("  \"eventActions\": [")
                 eventActions?.forEachIndexed { eaIndex, action ->

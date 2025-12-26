@@ -6,38 +6,51 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
 @Composable
-fun LayoutRenderer(model: LayoutModel) {
+fun LayoutRenderer(
+    model: LayoutModel,
+    onAction: (UiAction) -> Unit,
+) {
     when (model.type) {
-        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model)
-        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model)
-        LayoutType.LAYER -> BoxRenderer(model)
+        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction)
+        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction)
+        LayoutType.LAYER -> BoxRenderer(model, onAction)
     }
 }
 
 @Composable
-private fun ColumnRenderer(model: LayoutModel) {
+private fun ColumnRenderer(
+    model: LayoutModel,
+    onAction: (UiAction) -> Unit,
+) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(model = child)
+            ComponentRenderer(child, onAction)
         }
     }
 }
 
 @Composable
-private fun RowRenderer(model: LayoutModel) {
+private fun RowRenderer(
+    model: LayoutModel,
+    onAction: (UiAction) -> Unit,
+) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(model = child)
+            ComponentRenderer(child, onAction)
         }
     }
 }
 
 @Composable
-private fun BoxRenderer(model: LayoutModel) {
+private fun BoxRenderer(
+    model: LayoutModel,
+    onAction: (UiAction) -> Unit,
+) {
     Box(
         modifier = model.modifier
     ) {
@@ -61,7 +74,7 @@ private fun BoxRenderer(model: LayoutModel) {
                 else -> Modifier
             }
             Box(modifier = modifier) {
-                ComponentRenderer( child)
+                ComponentRenderer(child, onAction)
             }
         }
     }

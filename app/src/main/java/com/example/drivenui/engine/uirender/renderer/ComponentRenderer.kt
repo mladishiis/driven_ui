@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.runtime.Composable
+import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.CheckboxModel
@@ -12,16 +13,19 @@ import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.SwitcherModel
 
 @Composable
-fun ComponentRenderer(model: ComponentModel) {
+fun ComponentRenderer(
+    model: ComponentModel,
+    onAction: (UiAction) -> Unit,
+) {
     when (model) {
-        is LayoutModel -> LayoutRenderer(model)
-        is InputModel -> InputRenderer(model)
-        is LabelModel -> LabelRenderer(model)
-        is ImageModel -> ImageRenderer(model)
-        is ButtonModel -> ButtonRenderer(model)
-        is CheckboxModel -> CheckboxRenderer(model)
-        is SwitcherModel -> SwitcherRenderer(model)
-        is AppBarModel -> AppBarRenderer(model)
+        is LayoutModel -> LayoutRenderer(model, onAction)
+        is InputModel -> InputRenderer(model, onAction)
+        is LabelModel -> LabelRenderer(model, onAction)
+        is ImageModel -> ImageRenderer(model, onAction)
+        is ButtonModel -> ButtonRenderer(model, onAction)
+        is CheckboxModel -> CheckboxRenderer(model, onAction)
+        is SwitcherModel -> SwitcherRenderer(model, onAction)
+        is AppBarModel -> AppBarRenderer(model, onAction)
         else -> {}
     }
 }

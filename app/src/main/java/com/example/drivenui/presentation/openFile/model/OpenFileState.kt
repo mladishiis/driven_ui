@@ -23,6 +23,9 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Показать детали парсинга */
     data object OnShowParsingDetails : OpenFileEvent
 
+    /** Показать тестовый экран */
+    data object OnShowTestScreen : OpenFileEvent
+
     /** Показать статистику биндингов */
     data object OnShowBindingStats : OpenFileEvent
 
@@ -44,6 +47,9 @@ internal sealed interface OpenFileEffect : VtbEffect {
 
     /** Навигация к деталям парсинга */
     data class NavigateToParsingDetails(val result: SDUIParser.ParsedMicroappResult) : OpenFileEffect
+
+    /** Навигация к деталям парсинга */
+    data class NavigateToTestScreen(val result: SDUIParser.ParsedMicroappResult) : OpenFileEffect
 
     /** Показать сообщение об ошибке */
     data class ShowError(val message: String) : OpenFileEffect
