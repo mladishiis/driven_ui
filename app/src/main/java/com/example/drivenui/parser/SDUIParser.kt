@@ -6,6 +6,10 @@ import com.example.drivenui.parser.binding.*
 import com.example.drivenui.parser.models.*
 import com.example.drivenui.parser.parsers.*
 import org.json.JSONArray
+import org.json.JSONObject
+import org.w3c.dom.Element
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
@@ -15,13 +19,14 @@ class SDUIParser(private val context: Context) {
     private val styleParser = StyleParser()
     private val eventParser = EventParser()
     private val queryParser = QueryParser()
+    private val screenQueryParser = ScreenQueryParser()
     private val microappParser = MicroappParser()
     private val widgetParser = WidgetParser()
     private val layoutParser = LayoutParser()
     private val componentParser = ComponentParser()
     private val bindingEngine = BindingEngine()
     private val jsonDataLoader = JsonDataLoader(context)
-    private val bindingParser = BindingParser()
+    private val dataPathResolver = DataPathResolver()
 
     /**
      * Результат парсинга с новой структурой
@@ -36,7 +41,7 @@ class SDUIParser(private val context: Context) {
         val screenQueries: List<ScreenQuery> = emptyList(),
         val widgets: List<Widget> = emptyList(),
         val layouts: List<Layout> = emptyList(),
-        val dataContext: DataContext? = null  // Добавляем контекст данных
+        val dataContext: DataContext? = null
     ) {
         /**
          * Проверяет, содержит ли результат какие-либо данные
@@ -242,7 +247,7 @@ class SDUIParser(private val context: Context) {
 
             component.properties.forEach { property ->
                 if (property.hasBindings) {
-                    values[component.code + "." + property.code] = property.resolvedValue
+                    values["${component.code}.${property.code}"] = property.resolvedValue
                 }
             }
 
@@ -302,6 +307,7 @@ class SDUIParser(private val context: Context) {
         fileName: String,
         jsonFileNames: List<String> = emptyList(),
         queryResults: Map<String, Any> = emptyMap(),
+        screenQueryResults: Map<String, Any> = emptyMap(),
         appState: Map<String, Any> = emptyMap(),
         localVariables: Map<String, Any> = emptyMap()
     ): ParsedMicroappResult {
@@ -320,32 +326,49 @@ class SDUIParser(private val context: Context) {
             // Загружаем JSON данные
             val jsonData = jsonDataLoader.loadJsonFiles(jsonFileNames)
 
-            // Логируем загруженные данные
+            // Конвертируем Map<String, Any> в Map<String, JSONArray> для DataContext
+            val jsonArrays = mutableMapOf<String, JSONArray>()
             jsonData.forEach { (key, value) ->
-                Log.d("SDUIParser", "Загружен JSON: $key, элементов: ${value.length()}")
-                if (value.length() > 0) {
-                    Log.d("SDUIParser", "  Пример первого элемента: ${value.optJSONObject(0)?.toString()?.take(100)}")
+                when (value) {
+                    is JSONArray -> jsonArrays[key] = value
+                    is JSONObject -> {
+                        // Если это JSONObject, проверяем, есть ли в нем массивы
+                        // и добавляем их как отдельные источники
+                        value.keys().forEach { objKey ->
+                            val objValue = value.get(objKey)
+                            if (objValue is JSONArray) {
+                                // Используем комбинированный ключ: fileName.objectKey
+                                jsonArrays["$key.$objKey"] = objValue
+                            }
+                        }
+                    }
                 }
             }
 
-            // Создаем контекст данных
+            // Логируем screen queries для отладки
+            Log.d("SDUIParser", "ScreenQueries из XML: ${baseResult.screenQueries.size}")
+            baseResult.screenQueries.forEach { screenQuery ->
+                Log.d("SDUIParser", "  - ${screenQuery.code} -> ${screenQuery.queryCode} для экрана ${screenQuery.screenCode}")
+            }
+
+            // Создаем контекст данных с screenQueryResults
             val dataContext = DataContext(
-                jsonSources = jsonData,
+                jsonSources = jsonArrays,
                 queryResults = queryResults,
+                screenQueryResults = screenQueryResults,
                 appState = appState,
                 localVariables = localVariables
             )
 
             // Применяем биндинги ко всем экранам
-            val boundScreens = baseResult.screens.mapNotNull { screen ->
+            val boundScreens = baseResult.screens.map { screen ->
                 try {
                     val boundScreen = bindScreen(screen, dataContext)
                     // Проверяем результат биндинга
                     boundScreen.rootComponent?.let { root ->
                         val bindingCount = countBindingsInComponent(root)
-                        if (bindingCount > 0) {
-                            Log.d("SDUIParser", "Экран ${screen.screenCode}: применено биндингов: $bindingCount")
-                        }
+                        val resolvedCount = countResolvedBindings(root)
+                        Log.d("SDUIParser", "Экран ${screen.screenCode}: применено $resolvedCount из $bindingCount биндингов")
                     }
                     boundScreen
                 } catch (e: Exception) {
@@ -492,7 +515,7 @@ class SDUIParser(private val context: Context) {
     /**
      * Подсчитывает биндинги в компоненте
      */
-    private fun countBindingsInComponent(component: Component): Int {
+    fun countBindingsInComponent(component: Component): Int {
         return component.properties.sumOf { it.bindings.size } +
                 component.children.sumOf { countBindingsInComponent(it) }
     }
@@ -525,7 +548,7 @@ class SDUIParser(private val context: Context) {
     fun updateScreenData(
         screen: ParsedScreen,
         newData: Map<String, Any>,
-        updateType: BindingSourceType = BindingSourceType.QUERY_RESULT
+        updateType: BindingSourceType = BindingSourceType.SCREEN_QUERY_RESULT
     ): ParsedScreen {
         return try {
             // Создаем базовый контекст
@@ -533,10 +556,12 @@ class SDUIParser(private val context: Context) {
 
             // Обновляем контекст в зависимости от типа
             val updatedContext = when (updateType) {
+                BindingSourceType.SCREEN_QUERY_RESULT -> baseContext.copy(screenQueryResults = newData)
                 BindingSourceType.QUERY_RESULT -> baseContext.copy(queryResults = newData)
                 BindingSourceType.JSON_FILE -> {
-                    val jsonData = newData.filterValues { it is JSONArray } as Map<String, JSONArray>
-                    baseContext.copy(jsonSources = jsonData)
+                    // Фильтруем только JSONArray для jsonSources
+                    val jsonArrays = newData.filterValues { it is JSONArray } as Map<String, JSONArray>
+                    baseContext.copy(jsonSources = jsonArrays)
                 }
                 BindingSourceType.APP_STATE -> baseContext.copy(appState = newData)
                 BindingSourceType.LOCAL_VAR -> baseContext.copy(localVariables = newData)
@@ -551,16 +576,29 @@ class SDUIParser(private val context: Context) {
     }
 
     /**
-     * Парсит специфический экран с данными (например, carriers)
+     * Специальный метод для парсинга экрана carriers с mock данными
      */
-    fun parseCarriersScreenWithData(): ParsedScreen? {
+    fun parseCarriersScreenWithMockData(): ParsedScreen? {
         return try {
+            // Создаем mock данные для carriers_allCarriers
+            val mockCarriersData = JSONArray().apply {
+                for (i in 0..4) {
+                    put(JSONObject().apply {
+                        put("carrierName", "Перевозчик ${i + 1}")
+                        put("id", "carrier_$i")
+                        put("status", "active")
+                    })
+                }
+            }
+
+            // Парсим с mock данными
             val result = parseWithDataBinding(
-                fileName = "microapp_tavrida.xml",
-                jsonFileNames = listOf("carriers_list.json")
+                fileName = "microapp.xml",
+                screenQueryResults = mapOf(
+                    "carriers_allCarriers" to mockCarriersData
+                )
             )
 
-            // Находим экран carriers
             val carriersScreen = result.getScreenByCode("carriers")
 
             if (carriersScreen != null) {
@@ -571,7 +609,7 @@ class SDUIParser(private val context: Context) {
                     val bindingCount = countBindingsInComponent(root)
                     Log.d("SDUIParser", "Биндингов в экране carriers: $bindingCount")
 
-                    // Выводим примеры подставленных значений
+                    // Выводим значения
                     result.getResolvedValues().forEach { (key, value) ->
                         if (key.contains("carriers_list")) {
                             Log.d("SDUIParser", "Разрешенное значение $key: $value")
@@ -582,7 +620,7 @@ class SDUIParser(private val context: Context) {
 
             carriersScreen
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге экрана carriers с данными", e)
+            Log.e("SDUIParser", "Ошибка при парсинге экрана carriers с mock данными", e)
             null
         }
     }
@@ -619,125 +657,132 @@ class SDUIParser(private val context: Context) {
         return bindings
     }
 
-    // Существующие методы извлечения блоков
-    private fun parseMicroappFromFullXml(xmlContent: String): Microapp? {
-        return extractAndParseBlock(xmlContent, "microapp") { blockContent ->
-            microappParser.parseMicroapp(blockContent)
-        }
-    }
-
-    private fun parseStylesFromFullXml(xmlContent: String): AllStyles? {
-        return extractAndParseBlock(xmlContent, "allStyles") { blockContent ->
-            styleParser.parseStyles(blockContent)
-        }
-    }
-
-    private fun parseEventsFromFullXml(xmlContent: String): AllEvents? {
-        return extractAndParseBlock(xmlContent, "allEvents") { blockContent ->
-            eventParser.parseEvents(blockContent)
-        }
-    }
-
-    private fun parseEventActionsFromFullXml(xmlContent: String): AllEventActions? {
-        return extractAndParseBlock(xmlContent, "allEventActions") { blockContent ->
-            eventParser.parseEventActions(blockContent)
-        }
-    }
-
+    /**
+     * Парсит список query из XML
+     */
     private fun parseQueriesFromFullXml(xmlContent: String): List<Query> {
-        return extractAndParseBlock(xmlContent, "allQueries") { blockContent ->
-            queryParser.parseQueries(blockContent)
-        } ?: emptyList()
+        return try {
+            queryParser.parseQueries(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге queries", e)
+            emptyList()
+        }
     }
 
+    /**
+     * Парсит screen queries из XML
+     */
     private fun parseScreenQueriesFromFullXml(xmlContent: String): List<ScreenQuery> {
-        return extractAndParseBlock(xmlContent, "screenQueries") { blockContent ->
-            queryParser.parseScreenQueries(blockContent)
-        } ?: emptyList()
+        return try {
+            screenQueryParser.parseScreenQueries(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге screen queries", e)
+            emptyList()
+        }
     }
 
+    /**
+     * Парсит виджеты из XML
+     */
     private fun parseWidgetsFromFullXml(xmlContent: String): List<Widget> {
-        return extractAndParseBlock(xmlContent, "allWidgets") { blockContent ->
-            widgetParser.parseWidgets(blockContent)
-        } ?: emptyList()
+        return try {
+            widgetParser.parseWidgets(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге виджетов", e)
+            emptyList()
+        }
     }
 
+    /**
+     * Парсит лэйауты из XML
+     */
     private fun parseLayoutsFromFullXml(xmlContent: String): List<Layout> {
-        return extractAndParseBlock(xmlContent, "allLayouts") { blockContent ->
-            layoutParser.parseLayouts(blockContent)
-        } ?: emptyList()
+        return try {
+            layoutParser.parseLayouts(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге лэйаутов", e)
+            emptyList()
+        }
     }
 
+    /**
+     * Парсит микроапп из XML
+     */
+    private fun parseMicroappFromFullXml(xmlContent: String): Microapp? {
+        return try {
+            microappParser.parseMicroapp(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге микроаппа", e)
+            null
+        }
+    }
+
+    /**
+     * Парсит стили из XML
+     */
+    private fun parseStylesFromFullXml(xmlContent: String): AllStyles? {
+        return try {
+            styleParser.parseStyles(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге стилей", e)
+            null
+        }
+    }
+
+    /**
+     * Парсит события из XML
+     */
+    private fun parseEventsFromFullXml(xmlContent: String): AllEvents? {
+        return try {
+            eventParser.parseEvents(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге событий", e)
+            null
+        }
+    }
+
+    /**
+     * Парсит действия событий из XML
+     */
+    private fun parseEventActionsFromFullXml(xmlContent: String): AllEventActions? {
+        return try {
+            eventParser.parseEventActions(xmlContent)
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка при парсинге действий событий", e)
+            null
+        }
+    }
+
+    /**
+     * Вспомогательная функция для извлечения блока XML
+     */
     private inline fun <T> extractAndParseBlock(
         xmlContent: String,
         blockName: String,
         parser: (String) -> T
     ): T? {
-        val startTag = "<$blockName>"
-        val endTag = "</$blockName>"
-
-        val startIndex = xmlContent.indexOf(startTag)
-        if (startIndex == -1) {
-            Log.d("SDUIParser", "Блок <$blockName> не найден в XML")
-            return null
-        }
-
-        val endIndex = xmlContent.indexOf(endTag, startIndex)
-        if (endIndex == -1) {
-            Log.w("SDUIParser", "Не найден закрывающий тег для блока <$blockName>")
-            return null
-        }
-
-        val blockContent = xmlContent.substring(startIndex, endIndex + endTag.length)
-        Log.d("SDUIParser", "Извлечен блок <$blockName>, размер: ${blockContent.length} символов")
-
         return try {
+            val startTag = "<$blockName>"
+            val endTag = "</$blockName>"
+
+            val startIndex = xmlContent.indexOf(startTag)
+            if (startIndex == -1) {
+                Log.d("SDUIParser", "Блок <$blockName> не найден в XML")
+                return null
+            }
+
+            val endIndex = xmlContent.indexOf(endTag, startIndex)
+            if (endIndex == -1) {
+                Log.w("SDUIParser", "Не найден закрывающий тег для блока <$blockName>")
+                return null
+            }
+
+            val blockContent = xmlContent.substring(startIndex, endIndex + endTag.length)
+            Log.d("SDUIParser", "Извлечен блок <$blockName>, размер: ${blockContent.length} символов")
+
             parser(blockContent)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге блока <$blockName>", e)
-            null
-        }
-    }
-}
-
-/**
- * Загрузчик JSON данных
- */
-class JsonDataLoader(private val context: Context) {
-
-    /**
-     * Загружает несколько JSON файлов
-     */
-    fun loadJsonFiles(fileNames: List<String>): Map<String, JSONArray> {
-        val jsonData = mutableMapOf<String, JSONArray>()
-
-        fileNames.forEach { fileName ->
-            try {
-                val data = loadJsonData(fileName)
-                if (data != null) {
-                    // Используем имя файла без расширения как ключ
-                    val key = fileName.removeSuffix(".json")
-                    jsonData[key] = data
-                    Log.d("JsonDataLoader", "Загружен JSON файл: $fileName -> $key")
-                }
-            } catch (e: Exception) {
-                Log.e("JsonDataLoader", "Ошибка загрузки файла $fileName", e)
-            }
-        }
-
-        return jsonData
-    }
-
-    /**
-     * Загружает один JSON файл
-     */
-    fun loadJsonData(fileName: String): JSONArray? {
-        return try {
-            val inputStream = context.assets.open(fileName)
-            val jsonString = inputStream.bufferedReader().use { it.readText() }
-            JSONArray(jsonString)
-        } catch (e: Exception) {
-            Log.e("JsonDataLoader", "Ошибка загрузки JSON файла: $fileName", e)
+            Log.e("SDUIParser", "Ошибка при извлечении и парсинге блока <$blockName>", e)
             null
         }
     }

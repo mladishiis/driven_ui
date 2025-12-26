@@ -2,6 +2,7 @@ package com.example.drivenui.domain
 
 import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.ParsedScreen
+import org.json.JSONArray
 
 /**
  * Интерфейс для работы с файлами и парсингом SDUI
@@ -31,19 +32,6 @@ interface FileInteractor {
      * @return Экран carriers с данными или null
      */
     suspend fun parseCarriersScreenWithData(): ParsedScreen?
-
-    /**
-     * Парсит файл с кастомными данными для биндингов
-     * @param fileName Имя файла в папке assets
-     * @param jsonData JSON данные для биндингов
-     * @param queryResults Результаты запросов
-     * @return Результат парсинга с разрешенными биндингами
-     */
-    suspend fun parseWithCustomData(
-        fileName: String,
-        jsonData: Map<String, String> = emptyMap(),
-        queryResults: Map<String, Any> = emptyMap()
-    ): SDUIParser.ParsedMicroappResult
 
     /**
      * Получает список доступных файлов в assets
@@ -112,4 +100,15 @@ interface FileInteractor {
      * Очищает сохраненные данные парсинга
      */
     fun clearParsedData()
+
+    suspend fun parseWithCustomData(
+        fileName: String,
+        jsonData: Map<String, String>,
+        queryResults: Map<String, Any>,
+        screenQueryResults: Map<String, Any>
+    ): SDUIParser.ParsedMicroappResult
+
+    suspend fun parseWithTestData(fileName: String): SDUIParser.ParsedMicroappResult
+
+    suspend fun loadJsonFileAsArray(fileName: String): JSONArray?
 }

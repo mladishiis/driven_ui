@@ -273,14 +273,21 @@ internal data class OpenFileState(
     }
 
     /**
-     * Считает количество биндингов в компоненте рекурсивно
+     * Считает количество биндингов в компоненте (рекурсивно)
      */
     private fun countBindings(component: com.example.drivenui.parser.models.Component): Int {
-        var count = component.bindingProperties.size
+        var count = component.properties.sumOf { it.bindings.size }
         component.children.forEach { child ->
             count += countBindings(child)
         }
         return count
+    }
+
+    /**
+     * Считает количество биндингов в экране
+     */
+    fun countBindingsInScreen(screen: com.example.drivenui.parser.models.ParsedScreen): Int {
+        return screen.rootComponent?.let { countBindings(it) } ?: 0
     }
 
     /**

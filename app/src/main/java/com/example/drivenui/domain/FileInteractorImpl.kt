@@ -7,6 +7,8 @@ import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.parser.models.ParsedScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 
 /**
@@ -79,22 +81,46 @@ internal class FileInteractorImpl @Inject constructor(
             try {
                 Log.d("FileInteractor", "Парсинг экрана carriers с данными JSON")
 
-                val carriersScreen = parserNew.parseCarriersScreenWithData()
+                // Создаем mock данные для carriers_allCarriers
+                val mockCarriersData = JSONArray().apply {
+                    for (i in 0..4) {
+                        put(JSONObject().apply {
+                            put("carrierName", "Перевозчик ${i + 1}")
+                            put("id", "carrier_$i")
+                            put("status", "active")
+                        })
+                    }
+                }
+
+                // Парсим с mock данными
+                val result = parserNew.parseWithDataBinding(
+                    fileName = "microapp.xml",
+                    screenQueryResults = mapOf("carriers_allCarriers" to mockCarriersData)
+                )
+
+                val carriersScreen = result.getScreenByCode("carriers")
 
                 if (carriersScreen != null) {
                     Log.d("FileInteractor", "Экран carriers успешно найден и обработан")
 
-                    // Обновляем последний результат
-                    val currentResult = lastParsedResult
-                    if (currentResult != null) {
-                        val updatedScreens = currentResult.screens.map { screen ->
-                            if (screen.screenCode == "carriers") carriersScreen else screen
+                    // Проверяем биндинги
+                    carriersScreen.rootComponent?.let { root ->
+                        val bindingCount = parserNew.countBindingsInComponent(root)
+                        Log.d("FileInteractor", "Биндингов в экране carriers: $bindingCount")
+
+                        // Выводим значения
+                        result.getResolvedValues().forEach { (key, value) ->
+                            if (key.contains("carriers_list")) {
+                                Log.d("FileInteractor", "Разрешенное значение $key: $value")
+                            }
                         }
-                        lastParsedResult = currentResult.copy(screens = updatedScreens)
                     }
                 } else {
                     Log.w("FileInteractor", "Экран carriers не найден или не удалось обработать")
                 }
+
+                // Обновляем последний результат
+                lastParsedResult = result
 
                 carriersScreen
             } catch (e: Exception) {
@@ -110,18 +136,31 @@ internal class FileInteractorImpl @Inject constructor(
     override suspend fun parseWithCustomData(
         fileName: String,
         jsonData: Map<String, String>,
-        queryResults: Map<String, Any>
+        queryResults: Map<String, Any>,
+        screenQueryResults: Map<String, Any>
     ): SDUIParser.ParsedMicroappResult {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("FileInteractor", "Парсинг с кастомными данными: $fileName")
-                Log.d("FileInteractor", "JSON данных: ${jsonData.size}, Query результатов: ${queryResults.size}")
+                Log.d("FileInteractor", "JSON данных: ${jsonData.size}, Query результатов: ${queryResults.size}, ScreenQuery результатов: ${screenQueryResults.size}")
 
-                // Пока просто используем стандартный метод, можно расширить позже
+                // Преобразуем jsonData в JSONArray для загрузки
+                val jsonArrays = mutableMapOf<String, JSONArray>()
+                jsonData.forEach { (key, jsonString) ->
+                    try {
+                        jsonArrays[key] = JSONArray(jsonString)
+                    } catch (e: Exception) {
+                        Log.e("FileInteractor", "Ошибка преобразования JSON для ключа $key", e)
+                    }
+                }
+
                 val result = parserNew.parseWithDataBinding(
                     fileName = fileName,
-                    jsonFileNames = emptyList(), // Здесь нужно преобразовать Map в JSON файлы
-                    queryResults = queryResults
+                    jsonFileNames = emptyList(), // Используем контекст вместо файлов
+                    queryResults = queryResults,
+                    screenQueryResults = screenQueryResults,
+                    appState = emptyMap(),
+                    localVariables = jsonArrays // Используем localVariables для JSON данных
                 )
 
                 Log.d("FileInteractor", "Парсинг с кастомными данными завершен")
@@ -133,6 +172,67 @@ internal class FileInteractorImpl @Inject constructor(
                 result
             } catch (e: Exception) {
                 Log.e("FileInteractor", "Ошибка при парсинге с кастомными данными", e)
+                throw e
+            }
+        }
+    }
+
+    /**
+     * НОВЫЙ МЕТОД: Парсинг с тестовыми данными для carriers
+     */
+    override suspend fun parseWithTestData(fileName: String): SDUIParser.ParsedMicroappResult {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.d("FileInteractor", "Парсинг с тестовыми данными: $fileName")
+
+                // Создаем тестовые данные для carriers_allCarriers
+                val testCarriersData = JSONArray().apply {
+                    for (i in 0..4) {
+                        put(JSONObject().apply {
+                            put("carrierName", "Тестовый перевозчик ${i + 1}")
+                            put("id", "test_carrier_$i")
+                            put("status", "test")
+                            put("rating", (i + 3).toFloat() / 2)
+                        })
+                    }
+                }
+
+                // Создаем тестовые данные для userProfile
+                val testUserProfile = mapOf(
+                    "name" to "Иван Тестовый",
+                    "email" to "test@example.com",
+                    "userId" to "user_12345"
+                )
+
+                val result = parserNew.parseWithDataBinding(
+                    fileName = fileName,
+                    queryResults = mapOf("userProfile" to testUserProfile),
+                    screenQueryResults = mapOf("carriers_allCarriers" to testCarriersData)
+                )
+
+                Log.d("FileInteractor", "Парсинг с тестовыми данными завершен")
+
+                // Логируем результаты биндингов
+                val carriersScreen = result.getScreenByCode("carriers")
+                if (carriersScreen != null) {
+                    Log.d("FileInteractor", "=== Результаты биндингов для carriers ===")
+                    val components = parserNew.findComponentsWithBindings(carriersScreen)
+                    components.forEach { component ->
+                        val bindings = parserNew.getComponentBindings(component)
+                        if (bindings.isNotEmpty()) {
+                            Log.d("FileInteractor", "Компонент: ${component.code}")
+                            bindings.forEach { (property, value) ->
+                                Log.d("FileInteractor", "  $property = $value")
+                            }
+                        }
+                    }
+                    Log.d("FileInteractor", "=======================================")
+                }
+
+                lastParsedResult = result
+                result
+            } catch (e: Exception) {
+                Log.e("FileInteractor", "Ошибка при парсинге с тестовыми данными", e)
                 throw e
             }
         }
@@ -191,6 +291,21 @@ internal class FileInteractorImpl @Inject constructor(
         }
     }
 
+    /**
+     * НОВЫЙ МЕТОД: Загрузить JSON файл как JSONArray
+     */
+    override suspend fun loadJsonFileAsArray(fileName: String): JSONArray? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val jsonString = loadJsonFile(fileName)
+                JSONArray(jsonString)
+            } catch (e: Exception) {
+                Log.e("FileInteractor", "Ошибка при загрузке JSON файла как массива: $fileName", e)
+                null
+            }
+        }
+    }
+
     override fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult) {
         lastParsedResult = parsedMicroapp
         Log.d("FileInteractor", "Результат парсинга сохранен")
@@ -200,6 +315,9 @@ internal class FileInteractorImpl @Inject constructor(
             Log.d("FileInteractor", "Контекст данных:")
             Log.d("FileInteractor", "  JSON источников: ${context.jsonSources.size}")
             Log.d("FileInteractor", "  Query результатов: ${context.queryResults.size}")
+            Log.d("FileInteractor", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
+            Log.d("FileInteractor", "  AppState: ${context.appState.size}")
+            Log.d("FileInteractor", "  LocalVariables: ${context.localVariables.size}")
         }
 
         val bindingCount = parsedMicroapp.countAllBindings()
@@ -239,6 +357,16 @@ internal class FileInteractorImpl @Inject constructor(
                     Log.w("FileInteractor",
                         "Внимание: ${totalBindings - resolvedCount} биндингов не разрешено"
                     )
+
+                    // Логируем неразрешенные биндинги для отладки
+                    Log.d("FileInteractor", "Неразрешенные биндинги:")
+                    result.screens.forEach { screen ->
+                        screen.rootComponent?.let { root ->
+                            findUnresolvedBindings(root).forEach { binding ->
+                                Log.d("FileInteractor", "  $binding")
+                            }
+                        }
+                    }
                 }
             }
 
@@ -258,6 +386,29 @@ internal class FileInteractorImpl @Inject constructor(
         }
     }
 
+    /**
+     * Вспомогательная функция для поиска неразрешенных биндингов
+     */
+    private fun findUnresolvedBindings(component: com.example.drivenui.parser.models.Component): List<String> {
+        val unresolved = mutableListOf<String>()
+
+        fun searchRecursive(comp: com.example.drivenui.parser.models.Component, path: String) {
+            comp.properties.forEach { property ->
+                if (property.hasBindings && property.resolvedValue == property.rawValue) {
+                    unresolved.add("$path.${property.code}: ${property.rawValue}")
+                }
+            }
+
+            comp.children.forEachIndexed { index, child ->
+                val childPath = if (path.isEmpty()) "child_$index" else "$path.child_$index"
+                searchRecursive(child, childPath)
+            }
+        }
+
+        searchRecursive(component, component.code)
+        return unresolved
+    }
+
     override fun getParsingStats(): Map<String, Any>? {
         return lastParsedResult?.let { result ->
             mapOf(
@@ -267,10 +418,14 @@ internal class FileInteractorImpl @Inject constructor(
                 "colorStyles" to (result.styles?.colorStyles?.size ?: 0),
                 "events" to (result.events?.events?.size ?: 0),
                 "queries" to result.queries.size,
+                "screenQueries" to result.screenQueries.size,
                 "widgets" to result.widgets.size,
                 "layouts" to result.layouts.size,
-                "bindings" to result.countAllBindings(), // ДОБАВЛЕНО: количество биндингов
-                "dataContext" to (result.dataContext != null) // ДОБАВЛЕНО: есть ли контекст данных
+                "bindings" to result.countAllBindings(),
+                "dataContext" to (result.dataContext != null),
+                "screenQueryBindings" to result.screenQueries.count {
+                    it.code in (result.dataContext?.screenQueryResults?.keys ?: emptySet())
+                }
             )
         }
     }
@@ -282,15 +437,20 @@ internal class FileInteractorImpl @Inject constructor(
         return lastParsedResult?.let { result ->
             val resolvedValues = result.getResolvedValues()
             val totalBindings = result.countAllBindings()
+            val screenQueryResolved = result.screenQueries.count {
+                it.code in (result.dataContext?.screenQueryResults?.keys ?: emptySet())
+            }
 
             mapOf(
                 "totalBindings" to totalBindings,
                 "resolvedBindings" to resolvedValues.size,
                 "unresolvedBindings" to (totalBindings - resolvedValues.size),
+                "screenQueryBindings" to screenQueryResolved,
                 "resolutionRate" to if (totalBindings > 0)
                     resolvedValues.size.toFloat() / totalBindings else 0f,
-                "resolvedValues" to resolvedValues.entries.take(5).associate { it.key to it.value }, // Первые 5 значений для примера
-                "hasDataContext" to (result.dataContext != null)
+                "resolvedValues" to resolvedValues.entries.take(5).associate { it.key to it.value },
+                "hasDataContext" to (result.dataContext != null),
+                "hasScreenQueryData" to (!result.dataContext?.screenQueryResults.isNullOrEmpty())
             )
         }
     }
@@ -346,7 +506,7 @@ internal class FileInteractorImpl @Inject constructor(
             }
         } else {
             Log.d("FileInteractor", "Нет разрешенных значений - все биндинги остались макросами")
-            Log.d("FileInteractor", "ВНИМАНИЕ: Возможно JSON файлы не загружены или контекст данных пуст")
+            Log.d("FileInteractor", "ВНИМАНИЕ: Возможно данные не загружены или контекст данных пуст")
         }
 
         result.dataContext?.let { context ->
@@ -356,6 +516,22 @@ internal class FileInteractorImpl @Inject constructor(
                 Log.d("FileInteractor", "    $key: ${value.length()} элементов")
             }
             Log.d("FileInteractor", "  Query результатов: ${context.queryResults.size}")
+            context.queryResults.keys.forEach { key ->
+                Log.d("FileInteractor", "    $key: ${context.queryResults[key]?.javaClass?.simpleName}")
+            }
+            Log.d("FileInteractor", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
+            context.screenQueryResults.keys.forEach { key ->
+                val value = context.screenQueryResults[key]
+                Log.d("FileInteractor", "    $key: ${value?.javaClass?.simpleName}")
+                if (value is JSONArray) {
+                    Log.d("FileInteractor", "      элементов: ${value.length()}")
+                    if (value.length() > 0) {
+                        Log.d("FileInteractor", "      пример: ${value.getJSONObject(0).toString().take(100)}...")
+                    }
+                }
+            }
+            Log.d("FileInteractor", "  AppState: ${context.appState.size}")
+            Log.d("FileInteractor", "  LocalVariables: ${context.localVariables.size}")
         } ?: run {
             Log.d("FileInteractor", "Контекст данных не создан")
         }

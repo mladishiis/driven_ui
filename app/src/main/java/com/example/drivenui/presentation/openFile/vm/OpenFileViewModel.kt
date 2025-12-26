@@ -12,12 +12,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
     private val interactor: FileInteractor
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
+
+    init {
+        // Автоматически загружаем JSON файлы при создании ViewModel
+        loadJsonFilesOnInit()
+    }
 
     override fun createInitialState() = OpenFileState()
 
@@ -61,6 +68,29 @@ internal class OpenFileViewModel @Inject constructor(
         }
     }
 
+    private fun loadJsonFilesOnInit() {
+        viewModelScope.launch {
+            try {
+                val jsonFiles = interactor.getAvailableJsonFiles()
+                updateState { copy(availableJsonFiles = jsonFiles) }
+
+                // Автоматически выбираем первые 2 JSON файла (или все, если меньше)
+                val selectedFiles = if (jsonFiles.size >= 2) {
+                    jsonFiles.take(2)
+                } else {
+                    jsonFiles
+                }
+
+                if (selectedFiles.isNotEmpty()) {
+                    updateState { copy(selectedJsonFiles = selectedFiles) }
+                    Log.d("OpenFileViewModel", "Автоматически выбраны JSON файлы: ${selectedFiles.joinToString(", ")}")
+                }
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка при загрузке JSON файлов", e)
+            }
+        }
+    }
+
     /**
      * Обрабатывает загрузку и парсинг файла
      */
@@ -99,7 +129,7 @@ internal class OpenFileViewModel @Inject constructor(
 
                 Log.d("OpenFileViewModel", "Начинаем парсинг файла: $fileName")
 
-                // Загружаем и парсим файл с новой структурой (старый метод без биндингов)
+                // Загружаем и парсим файл с новой структурой
                 val parsedResult = interactor.parseFileFromAssets(fileName)
 
                 Log.d("OpenFileViewModel", "Результат парсинга: ${parsedResult.screens.size} экранов")
@@ -263,7 +293,9 @@ internal class OpenFileViewModel @Inject constructor(
                     append("• Экран${if (parsedResult.screens.size != 1) "ов" else ""}: ${parsedResult.screens.size}\n")
 
                     if (bindingStats != null) {
-                        append("• Биндинги: ${bindingStats["totalBindings"]} (${bindingStats["resolvedBindings"]} разрешено)\n")
+                        val total = bindingStats["totalBindings"] as? Int ?: 0
+                        val resolved = bindingStats["resolvedBindings"] as? Int ?: 0
+                        append("• Биндинги: $total ($resolved разрешено)\n")
                         append("• JSON файлов: ${selectedJsonFiles.size}\n")
                     }
                 }
@@ -355,7 +387,7 @@ internal class OpenFileViewModel @Inject constructor(
     }
 
     /**
-     * Парсинг с кастомными данными
+     * Парсинг с тестовыми данными
      */
     private fun handleParseWithData() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -367,24 +399,10 @@ internal class OpenFileViewModel @Inject constructor(
                 val files = interactor.getAvailableFiles()
                 val fileName = files.firstOrNull { it.endsWith(".xml") } ?: return@launch
 
-                // Пример кастомных данных
-                val jsonData = mapOf(
-                    "user" to """{"name": "Иван", "email": "ivan@example.com", "age": 30}""",
-                    "settings" to """{"theme": "dark", "notifications": true}"""
-                )
+                Log.d("OpenFileViewModel", "Парсинг с тестовыми данными: $fileName")
 
-                val queryResults = mapOf(
-                    "userProfile" to mapOf("id" to 123, "username" to "test_user"),
-                    "carriers" to listOf("MTS", "Beeline", "Megafon")
-                )
-
-                Log.d("OpenFileViewModel", "Парсинг с кастомными данными: $fileName")
-
-                val result = interactor.parseWithCustomData(
-                    fileName = fileName,
-                    jsonData = jsonData,
-                    queryResults = queryResults
-                )
+                // Используем новый метод для тестовых данных
+                val result = interactor.parseWithTestData(fileName)
 
                 withContext(Dispatchers.Main) {
                     updateState {
@@ -404,15 +422,39 @@ internal class OpenFileViewModel @Inject constructor(
                     Log.d("OpenFileViewModel", "  $key = $value")
                 }
 
+                // Ищем экран carriers и проверяем биндинги
+                val carriersScreen = result.getScreenByCode("carriers")
+                if (carriersScreen != null) {
+                    Log.d("OpenFileViewModel", "=== Результаты биндингов для carriers ===")
+
+                    // Считаем биндинги в экране carriers
+                    val bindingCount = result.countAllBindings()
+                    val carriersBindingCount = countBindingsInScreen(carriersScreen)
+
+                    Log.d("OpenFileViewModel", "Всего биндингов в проекте: $bindingCount")
+                    Log.d("OpenFileViewModel", "Биндингов в экране carriers: $carriersBindingCount")
+
+                    // Получаем примеры разрешенных значений
+                    val carriersResolvedValues = resolvedValues.filterKeys { it.contains("carriers_list") }
+                    Log.d("OpenFileViewModel", "Разрешено для carriers: ${carriersResolvedValues.size}")
+
+                    carriersResolvedValues.forEach { (key, value) ->
+                        Log.d("OpenFileViewModel", "  $key = $value")
+                    }
+
+                    Log.d("OpenFileViewModel", "=======================================")
+                }
+
                 setEffect {
                     OpenFileEffect.ShowSuccess(
-                        "Парсинг с кастомными данными завершен\n" +
-                                "Биндингов разрешено: ${resolvedValues.size}"
+                        "Парсинг с тестовыми данными завершен\n" +
+                                "Биндингов разрешено: ${resolvedValues.size}\n" +
+                                (carriersScreen?.let { "Экран carriers найден и обработан" } ?: "")
                     )
                 }
 
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при парсинге с кастомными данными", e)
+                Log.e("OpenFileViewModel", "Ошибка при парсинге с тестовыми данными", e)
                 updateState { copy(isParsing = false, errorMessage = e.localizedMessage) }
                 setEffect { OpenFileEffect.ShowError("Ошибка: ${e.localizedMessage}") }
             }
@@ -448,6 +490,24 @@ internal class OpenFileViewModel @Inject constructor(
         var count = 1 // текущий компонент
         component.children.forEach { child ->
             count += countComponents(child)
+        }
+        return count
+    }
+
+    /**
+     * Считает количество биндингов в экране
+     */
+    private fun countBindingsInScreen(screen: com.example.drivenui.parser.models.ParsedScreen): Int {
+        return screen.rootComponent?.let { countBindingsInComponent(it) } ?: 0
+    }
+
+    /**
+     * Считает количество биндингов в компоненте (рекурсивно)
+     */
+    private fun countBindingsInComponent(component: com.example.drivenui.parser.models.Component): Int {
+        var count = component.bindingProperties.size
+        component.children.forEach { child ->
+            count += countBindingsInComponent(child)
         }
         return count
     }
@@ -535,6 +595,15 @@ internal class OpenFileViewModel @Inject constructor(
                 Log.d("OpenFileViewModel", "    $key: ${value.length()} байт")
             }
             Log.d("OpenFileViewModel", "  Query результатов: ${context.queryResults.size}")
+            Log.d("OpenFileViewModel", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
+
+            context.screenQueryResults.keys.forEach { key ->
+                val value = context.screenQueryResults[key]
+                Log.d("OpenFileViewModel", "    $key: ${value?.let {
+                    if (it is JSONArray) "JSONArray(${it.length()} элементов)"
+                    else it.javaClass.simpleName
+                }}")
+            }
         } ?: run {
             Log.d("OpenFileViewModel", "Контекст данных не создан")
         }
@@ -576,24 +645,15 @@ internal class OpenFileViewModel @Inject constructor(
         Log.d("OpenFileViewModel", "$indent  Стилей: ${component.styles.size}")
         Log.d("OpenFileViewModel", "$indent  Событий: ${component.events.size}")
 
-        // Исправление: Проверяем наличие поля bindings в Component
-        // Если в вашей модели Component нет поля bindings, нужно использовать другое поле
-        // Например, если есть bindingProperties или что-то подобное
-
-        // Вариант 1: Если есть bindingProperties
-        if (component.bindingProperties.isNotEmpty()) {
-            Log.d("OpenFileViewModel", "$indent  Биндингов: ${component.bindingProperties.size}")
-            component.bindingProperties.take(3).forEach { binding ->
-                Log.d("OpenFileViewModel", "$indent    - $binding")
-            }
-        }
-
-        // Вариант 2: Если нужно искать биндинги в свойствах
-        val bindingsInProperties = component.properties.flatMap { it.bindings }
-        if (bindingsInProperties.isNotEmpty()) {
-            Log.d("OpenFileViewModel", "$indent  Биндингов в свойствах: ${bindingsInProperties.size}")
-            bindingsInProperties.take(3).forEach { binding ->
-                Log.d("OpenFileViewModel", "$indent    - ${binding.expression}")
+        // Логируем свойства с биндингами
+        component.properties.forEach { property ->
+            if (property.hasBindings) {
+                Log.d("OpenFileViewModel", "$indent  Свойство '${property.code}':")
+                Log.d("OpenFileViewModel", "$indent    Исходное: ${property.rawValue}")
+                Log.d("OpenFileViewModel", "$indent    Разрешенное: ${property.resolvedValue}")
+                property.bindings.forEach { binding ->
+                    Log.d("OpenFileViewModel", "$indent    Биндинг: ${binding.expression}")
+                }
             }
         }
 
