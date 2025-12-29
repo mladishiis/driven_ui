@@ -7,16 +7,11 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 /**
  * Парсер событий и действий из XML формата Driven UI
- *
- * Поддерживает парсинг событий (events) и действий (eventActions)
  */
 class EventParser {
 
     /**
      * Парсит все события из XML строки
-     *
-     * @param xmlContent XML строка содержащая блок <allEvents>
-     * @return [AllEvents] контейнер со всеми событиями
      */
     fun parseEvents(xmlContent: String): AllEvents {
         Log.d("EventParser", "Начинаем парсинг событий")
@@ -53,15 +48,9 @@ class EventParser {
         }
 
         Log.d("EventParser", "Найдено событий: ${events.size}")
-        events.forEachIndexed { index, event ->
-            Log.d("EventParser", "  $index: ${event.title} (${event.code}) - ${event.eventActions.size} действий")
-        }
         return AllEvents(events = events)
     }
 
-    /**
-     * Парсит отдельное событие
-     */
     private fun parseEvent(parser: XmlPullParser): Event {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var code = ""
@@ -89,7 +78,6 @@ class EventParser {
                             Log.d("EventParser", "  eventActions: ${eventActions.size}")
                         }
                         else -> {
-                            Log.d("EventParser", "Пропущен тег в event: ${parser.name}")
                             skipCurrentTag(parser)
                         }
                     }
@@ -101,9 +89,6 @@ class EventParser {
         return Event(title, code, order, eventActions)
     }
 
-    /**
-     * Парсит блок eventActions внутри события
-     */
     private fun parseEventActionsBlock(parser: XmlPullParser): List<EventAction> {
         val eventActions = mutableListOf<EventAction>()
 
@@ -139,9 +124,6 @@ class EventParser {
 
     /**
      * Парсит все действия событий из XML строки
-     *
-     * @param xmlContent XML строка содержащая блок <allEventActions>
-     * @return [AllEventActions] контейнер со всеми действиями событий
      */
     fun parseEventActions(xmlContent: String): AllEventActions {
         Log.d("EventParser", "Начинаем парсинг действий событий")
@@ -162,9 +144,6 @@ class EventParser {
                                 val eventAction = parseEventAction(parser)
                                 if (eventAction.code.isNotEmpty()) {
                                     eventActions.add(eventAction)
-                                    Log.d("EventParser", "Успешно распарсен eventAction: ${eventAction.title} (${eventAction.code})")
-                                } else {
-                                    Log.w("EventParser", "Пропущен eventAction с пустым кодом: ${eventAction.title}")
                                 }
                             } catch (e: Exception) {
                                 Log.e("EventParser", "Ошибка при парсинге eventAction в allEventActions", e)
@@ -178,20 +157,14 @@ class EventParser {
         }
 
         Log.d("EventParser", "Найдено действий событий: ${eventActions.size}")
-        eventActions.forEachIndexed { index, eventAction ->
-            Log.d("EventParser", "  $index: ${eventAction.title} (${eventAction.code}) - ${eventAction.properties.size} свойств")
-        }
         return AllEventActions(eventActions)
     }
 
-    /**
-     * Парсит отдельное действие события
-     */
     private fun parseEventAction(parser: XmlPullParser): EventAction {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var code = ""
         var order = 0
-        val properties = mutableListOf<EventProperty>()
+        val propertiesMap = mutableMapOf<String, String>()
 
         Log.d("EventParser", "Парсинг eventAction: $title")
 
@@ -202,19 +175,16 @@ class EventParser {
                     when (parser.name) {
                         "code" -> {
                             code = parser.nextText()
-                            Log.d("EventParser", "  code: $code")
                         }
                         "order" -> {
                             val orderText = parser.nextText()
                             order = orderText.toIntOrNull() ?: 0
-                            Log.d("EventParser", "  order: $order")
                         }
                         "properties" -> {
-                            properties.addAll(parseProperties(parser))
-                            Log.d("EventParser", "  properties: ${properties.size}")
+                            // Парсим свойства в Map
+                            parsePropertiesToMap(parser, propertiesMap)
                         }
                         else -> {
-                            Log.d("EventParser", "Пропущен тег в eventAction: ${parser.name}")
                             skipCurrentTag(parser)
                         }
                     }
@@ -223,15 +193,13 @@ class EventParser {
             eventType = parser.next()
         }
 
-        return EventAction(title, code, order, properties)
+        return EventAction(title, code, order, propertiesMap)
     }
 
     /**
-     * Парсит блок properties
+     * Парсит свойства в Map
      */
-    private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
-        val properties = mutableListOf<EventProperty>()
-
+    private fun parsePropertiesToMap(parser: XmlPullParser, map: MutableMap<String, String>) {
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
             when (eventType) {
@@ -239,16 +207,16 @@ class EventParser {
                     when (parser.name) {
                         "property" -> {
                             try {
-                                val property = parseProperty(parser)
-                                properties.add(property)
-                                Log.d("EventParser", "    property: ${property.code} = ${property.value}")
+                                val property = parsePropertyToMap(parser)
+                                if (property.first.isNotEmpty()) {
+                                    map[property.first] = property.second
+                                }
                             } catch (e: Exception) {
                                 Log.e("EventParser", "Ошибка при парсинге property", e)
                                 skipToEndTag(parser, "property")
                             }
                         }
                         else -> {
-                            Log.d("EventParser", "Пропущен тег в properties: ${parser.name}")
                             skipCurrentTag(parser)
                         }
                     }
@@ -256,14 +224,12 @@ class EventParser {
             }
             eventType = parser.next()
         }
-
-        return properties
     }
 
     /**
-     * Парсит отдельное свойство
+     * Парсит отдельное свойство в пару ключ-значение
      */
-    private fun parseProperty(parser: XmlPullParser): EventProperty {
+    private fun parsePropertyToMap(parser: XmlPullParser): Pair<String, String> {
         var code = ""
         var value = ""
 
@@ -274,14 +240,11 @@ class EventParser {
                     when (parser.name) {
                         "code" -> {
                             code = parser.nextText()
-                            Log.d("EventParser", "      code: $code")
                         }
                         "value" -> {
                             value = parser.nextText()
-                            Log.d("EventParser", "      value: $value")
                         }
                         else -> {
-                            Log.d("EventParser", "Пропущен тег в property: ${parser.name}")
                             skipCurrentTag(parser)
                         }
                     }
@@ -290,12 +253,9 @@ class EventParser {
             eventType = parser.next()
         }
 
-        return EventProperty(code, value)
+        return Pair(code, value)
     }
 
-    /**
-     * Пропускает текущий тег и все его дочерние элементы
-     */
     private fun skipCurrentTag(parser: XmlPullParser) {
         if (parser.eventType != XmlPullParser.START_TAG) {
             return
@@ -310,9 +270,6 @@ class EventParser {
         }
     }
 
-    /**
-     * Пропускает элементы до указанного закрывающего тега
-     */
     private fun skipToEndTag(parser: XmlPullParser, tagName: String) {
         var depth = 1
         while (depth > 0) {

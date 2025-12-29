@@ -115,17 +115,6 @@ data class WidgetComponent(
 ) : Component()
 
 //event
-/**
- * Свойство события или действия
- *
- * @property code Код свойства (ключ)
- * @property value Значение свойства
- */
-@Parcelize
-data class EventProperty(
-    val code: String,
-    val value: String
-): Parcelable
 
 /**
  * Действие, выполняемое при возникновении события
@@ -140,7 +129,7 @@ data class  EventAction(
     val title: String = "",
     val code: String = "",
     val order: Int = 0,
-    val properties: List<EventProperty> = emptyList()
+    val properties: Map<String, String> = emptyMap()
 ): Parcelable
 
 /**
@@ -215,7 +204,7 @@ data class ParsedScreen(
  * @property variableValue Значение переменной (может быть константой или ссылкой на переменную)
  */
 data class QueryProperty(
-    val code: String,
+    val paramType: String,
     val variableName: String,
     val variableValue: String
 )
@@ -239,15 +228,14 @@ data class QueryCondition(
  * @property type HTTP метод (GET, POST, PUT, PATCH, DELETE)
  * @property endpoint Endpoint API
  * @property properties Список свойств запроса
- * @property conditions Список условий выполнения запроса
  */
 data class Query(
     val title: String,
     val code: String,
     val type: String,
     val endpoint: String,
+    val mockFile: String?,
     val properties: List<QueryProperty>,
-    val conditions: List<QueryCondition> = emptyList()
 )
 
 /**
@@ -258,15 +246,13 @@ data class Query(
  * @property queryCode Код запроса из реестра allQueries
  * @property order Порядковый номер выполнения запроса на экране
  * @property properties Список свойств запроса с конкретными значениями
- * @property conditions Список условий выполнения запроса
  */
 data class ScreenQuery(
     val code: String,
     val screenCode: String,
     val queryCode: String,
     val order: Int,
-    val properties: List<QueryProperty>,
-    val conditions: List<QueryCondition> = emptyList()
+    val properties: Map<String, String>,
 )
 
 //screen
@@ -286,7 +272,7 @@ data class ScreenLayoutWidget(
     val title: String,
     val screenLayoutWidgetCode: String,
     val widgetCode: String,
-    val properties: List<EventProperty> = emptyList(),
+    val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val events: List<WidgetEvent> = emptyList(),
     val bindingProperties: List<String> = emptyList()
@@ -311,7 +297,7 @@ data class ScreenLayout(
     val layoutCode: String,
     val screenLayoutIndex: Int,
     val forIndexName: String?,
-    val properties: List<EventProperty> = emptyList(),
+    val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val children: List<ScreenLayout> = emptyList(),
     val widgets: List<ScreenLayoutWidget> = emptyList()
@@ -333,7 +319,7 @@ data class Screen(
     val screenCode: String,
     val screenShortCode: String,
     val deeplink: String,
-    val properties: List<EventProperty> = emptyList(),
+    val properties: Map<String, String> = emptyMap(),
     val events: List<WidgetEvent> = emptyList(),
     val screenLayouts: List<ScreenLayout> = emptyList()
 )
@@ -482,7 +468,7 @@ data class Widget(
     val title: String = "",
     val code: String = "",
     val type: String = "",
-    val properties: List<EventProperty> = emptyList(),
+    val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val events: List<WidgetEvent> = emptyList(),
     val bindingProperties: List<String> = emptyList()
@@ -498,5 +484,5 @@ data class Widget(
 data class Layout(
     val title: String = "",
     val code: String = "",
-    val properties: List<EventProperty> = emptyList()
+    val properties: Map<String, String> = emptyMap(),
 )

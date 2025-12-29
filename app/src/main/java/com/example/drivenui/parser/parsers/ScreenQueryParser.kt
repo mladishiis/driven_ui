@@ -3,7 +3,6 @@ package com.example.drivenui.parser.parsers
 import android.util.Log
 import com.example.drivenui.parser.extensions.getElementsByTagNameAsList
 import com.example.drivenui.parser.extensions.toElementList
-import com.example.drivenui.parser.models.QueryProperty
 import com.example.drivenui.parser.models.ScreenQuery
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
@@ -27,7 +26,6 @@ class ScreenQueryParser {
                     queryCode = element.getElementsByTagNameAsList("queryCode").firstOrNull()?.textContent ?: "",
                     order = element.getElementsByTagNameAsList("order").firstOrNull()?.textContent?.toIntOrNull() ?: 0,
                     properties = parseQueryProperties(element),
-                    conditions = emptyList()
                 )
             }
         } catch (e: Exception) {
@@ -36,13 +34,18 @@ class ScreenQueryParser {
         }
     }
 
-    private fun parseQueryProperties(element: Element): List<QueryProperty> {
-        return element.getElementsByTagNameAsList("property").mapNotNull { propertyElement ->
-            val code = propertyElement.getElementsByTagNameAsList("code").firstOrNull()?.textContent ?: return@mapNotNull null
-            val variableName = propertyElement.getElementsByTagNameAsList("variableName").firstOrNull()?.textContent ?: return@mapNotNull null
-            val variableValue = propertyElement.getElementsByTagNameAsList("variableValue").firstOrNull()?.textContent ?: ""
+    private fun parseQueryProperties(element: Element): Map<String, String> {
+        val map = mutableMapOf<String, String>()
 
-            QueryProperty(code, variableName, variableValue)
+        element.getElementsByTagNameAsList("property").forEach { propertyElement ->
+            val variableName = propertyElement.getElementsByTagNameAsList("variableName")
+                .firstOrNull()?.textContent ?: return@forEach
+            val variableValue = propertyElement.getElementsByTagNameAsList("variableValue")
+                .firstOrNull()?.textContent ?: ""
+
+            map[variableName] = variableValue
         }
+
+        return map
     }
 }

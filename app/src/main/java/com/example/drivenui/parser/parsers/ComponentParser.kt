@@ -11,45 +11,50 @@ class ComponentParser {
     private val bindingParser = BindingParser()
 
     /**
-     * Парсит экран и все его компоненты
+     * Парсит все экраны из XML
      */
-    fun parseScreenWithComponents(xmlContent: String): ParsedScreen? {
-        return try {
+    fun parseAllComponentsFromFullXml(xmlContent: String): List<ParsedScreen> {
+        Log.d("ComponentParser", "Начинаем парсинг всех компонентов")
+
+        try {
+            val screens = mutableListOf<ParsedScreen>()
+
+            // Находим блок screens
+            val screensStart = xmlContent.indexOf("<screens>")
+            if (screensStart == -1) {
+                Log.w("ComponentParser", "Блок <screens> не найден")
+                return emptyList()
+            }
+
+            val screensEnd = xmlContent.indexOf("</screens>", screensStart)
+            if (screensEnd == -1) {
+                Log.w("ComponentParser", "Блок </screens> не найден")
+                return emptyList()
+            }
+
+            val screensXml = xmlContent.substring(screensStart, screensEnd + "</screens>".length)
+            Log.d("ComponentParser", "Блок screens извлечен: ${screensXml.length} символов")
+
+            // Парсим каждый экран
             val factory = XmlPullParserFactory.newInstance()
             factory.isNamespaceAware = true
             val parser = factory.newPullParser()
-            parser.setInput(xmlContent.reader())
-
-            var title = ""
-            var screenCode = ""
-            var screenShortCode = ""
-            var deeplink = ""
-            var rootComponent: Component? = null
+            parser.setInput(screensXml.reader())
 
             var eventType = parser.eventType
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 when (eventType) {
                     XmlPullParser.START_TAG -> {
-                        when (parser.name) {
-                            "screen" -> {
-                                title = parser.getAttributeValue(null, "title") ?: ""
-                                eventType = parser.next()
-                                while (!(eventType == XmlPullParser.END_TAG && parser.name == "screen")) {
-                                    when (eventType) {
-                                        XmlPullParser.START_TAG -> {
-                                            when (parser.name) {
-                                                "screenCode" -> screenCode = parser.nextText()
-                                                "screenShortCode" -> screenShortCode = parser.nextText()
-                                                "deeplink" -> deeplink = parser.nextText()
-                                                "screenLayout" -> {
-                                                    rootComponent = parseScreenLayoutComponent(parser)
-                                                }
-                                                else -> skipCurrentTag(parser)
-                                            }
-                                        }
-                                    }
-                                    eventType = parser.next()
+                        if (parser.name == "screen") {
+                            try {
+                                val screen = parseScreen(parser)
+                                if (screen != null) {
+                                    screens.add(screen)
+                                    Log.d("ComponentParser", "Добавлен экран: ${screen.title}")
                                 }
+                            } catch (e: Exception) {
+                                Log.e("ComponentParser", "Ошибка парсинга экрана", e)
+                                skipCurrentTag(parser)
                             }
                         }
                     }
@@ -57,72 +62,143 @@ class ComponentParser {
                 eventType = parser.next()
             }
 
-            if (screenCode.isNotEmpty()) {
-                ParsedScreen(title, screenCode, screenShortCode, deeplink, rootComponent)
-            } else {
-                null
-            }
+            Log.d("ComponentParser", "Найдено экранов: ${screens.size}")
+            return screens
         } catch (e: Exception) {
-            Log.e("ComponentParser", "Ошибка парсинга экрана", e)
+            Log.e("ComponentParser", "Ошибка при парсинге всех компонентов", e)
+            return emptyList()
+        }
+    }
+
+    /**
+     * Парсит один экран
+     */
+    private fun parseScreen(parser: XmlPullParser): ParsedScreen? {
+        val title = parser.getAttributeValue(null, "title") ?: ""
+        var screenCode = ""
+        var screenShortCode = ""
+        var deeplink = ""
+        var rootComponent: Component? = null
+
+        Log.d("ComponentParser", "Парсинг экрана: $title")
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "screen")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "screenCode" -> {
+                            screenCode = parser.nextText().trim()
+                            Log.d("ComponentParser", "screenCode: $screenCode")
+                        }
+                        "screenShortCode" -> {
+                            screenShortCode = parser.nextText().trim()
+                        }
+                        "deeplink" -> {
+                            deeplink = parser.nextText().trim()
+                        }
+                        "screenLayout" -> {
+                            rootComponent = parseScreenLayout(parser, 0)
+                            if (rootComponent != null) {
+                                Log.d("ComponentParser", "Корневой компонент создан: ${rootComponent.title}")
+                            }
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return if (screenCode.isNotEmpty()) {
+            ParsedScreen(title, screenCode, screenShortCode, deeplink, rootComponent)
+        } else {
             null
         }
     }
 
     /**
-     * Парсит компонент screenLayout
+     * Парсит screenLayout рекурсивно
      */
-    private fun parseScreenLayoutComponent(parser: XmlPullParser): Component? {
-        return try {
-            val title = parser.getAttributeValue(null, "title") ?: ""
-            var screenLayoutCode = ""
-            var layoutCode = ""
-            var screenLayoutIndex = 0
-            var forIndexName: String? = null
-            val properties = mutableListOf<ComponentProperty>()  // Изменено
-            val styles = mutableListOf<WidgetStyle>()
-            val events = mutableListOf<WidgetEvent>()
-            val children = mutableListOf<Component>()
-            val bindingProperties = mutableListOf<String>()
+    private fun parseScreenLayout(parser: XmlPullParser, depth: Int): Component? {
+        val title = parser.getAttributeValue(null, "title") ?: ""
+        var screenLayoutCode = ""
+        var layoutCode = ""
+        var screenLayoutIndex = 0
+        var forIndexName: String? = null
+        val properties = mutableListOf<ComponentProperty>()
+        val styles = mutableListOf<WidgetStyle>()
+        val events = mutableListOf<WidgetEvent>()
+        val children = mutableListOf<Component>()
+        val bindingProperties = mutableListOf<String>()
 
-            var eventType = parser.next()
-            while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenLayout")) {
-                when (eventType) {
-                    XmlPullParser.START_TAG -> {
-                        when (parser.name) {
-                            "screenLayoutCode" -> screenLayoutCode = parser.nextText()
-                            "layoutCode" -> layoutCode = parser.nextText()
-                            "screenLayoutIndex" -> screenLayoutIndex = parser.nextText().toIntOrNull() ?: 0
-                            "forIndexName" -> forIndexName = parser.nextText()
-                            "properties" -> properties.addAll(parseProperties(parser))  // Новый метод
-                            "property" -> parseComponentProperty(parser)?.let { properties.add(it) }  // Новый метод
-                            "styles" -> styles.addAll(parseStyles(parser))
-                            "style" -> parseStyle(parser)?.let { styles.add(it) }
-                            "events" -> events.addAll(parseEvents(parser))
-                            "event" -> parseEvent(parser)?.let { events.add(it) }
-                            "screenLayout" -> {
-                                parseScreenLayoutComponent(parser)?.let { children.add(it) }
-                            }
-                            "screenLayoutWidget" -> {
-                                parseWidgetComponent(parser)?.let { children.add(it) }
-                            }
-                            "bindingProperties" -> {
-                                bindingProperties.addAll(parseBindingProperties(parser))
-                            }
-                            else -> skipCurrentTag(parser)
+        Log.d("ComponentParser", "${"  ".repeat(depth)}Парсинг screenLayout: $title (глубина: $depth)")
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenLayout")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "screenLayoutCode" -> {
+                            screenLayoutCode = parser.nextText().trim()
+                        }
+                        "layoutCode" -> {
+                            layoutCode = parser.nextText().trim()
+                        }
+                        "screenLayoutIndex" -> {
+                            screenLayoutIndex = parser.nextText().trim().toIntOrNull() ?: 0
+                        }
+                        "forIndexName" -> {
+                            forIndexName = parser.nextText().trim()
+                        }
+                        "properties" -> {
+                            properties.addAll(parsePropertiesBlock(parser))
+                        }
+                        "property" -> {
+                            // Отдельное свойство без блока properties
+                            parseComponentProperty(parser)?.let { properties.add(it) }
+                        }
+                        "styles" -> {
+                            styles.addAll(parseStylesBlock(parser))
+                        }
+                        "style" -> {
+                            // Отдельный стиль без блока styles
+                            parseStyle(parser)?.let { styles.add(it) }
+                        }
+                        "events" -> {
+                            events.addAll(parseEventsBlock(parser))
+                        }
+                        "screenLayout" -> {
+                            // Рекурсивный вызов для вложенного layout
+                            parseScreenLayout(parser, depth + 1)?.let { children.add(it) }
+                        }
+                        "screenLayoutWidget" -> {
+                            parseScreenLayoutWidget(parser, depth + 1)?.let { children.add(it) }
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
                         }
                     }
-                    XmlPullParser.TEXT -> {
-                        // Обработка текста между тегами
-                    }
                 }
-                eventType = parser.next()
             }
+            eventType = parser.next()
+        }
 
+        // Автоматически определяем bindingProperties из свойств
+        properties.forEach { property ->
+            if (property.hasBindings) {
+                bindingProperties.add(property.code)
+            }
+        }
+
+        return if (screenLayoutCode.isNotEmpty()) {
             LayoutComponent(
                 title = title,
                 code = screenLayoutCode,
                 layoutCode = layoutCode,
-                properties = properties,  // ComponentProperty
+                properties = properties,
                 styles = styles,
                 events = events,
                 children = children,
@@ -130,86 +206,110 @@ class ComponentParser {
                 index = screenLayoutIndex,
                 forIndexName = forIndexName
             )
-        } catch (e: Exception) {
-            Log.e("ComponentParser", "Ошибка при парсинге screenLayout", e)
+        } else {
             null
         }
     }
 
     /**
-     * Парсит компонент виджета
+     * Парсит виджет внутри layout
      */
-    private fun parseWidgetComponent(parser: XmlPullParser): Component? {
+    private fun parseScreenLayoutWidget(parser: XmlPullParser, depth: Int): Component? {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var screenLayoutWidgetCode = ""
         var widgetCode = ""
-        val properties = mutableListOf<ComponentProperty>()  // Изменено
+        val properties = mutableListOf<ComponentProperty>()
         val styles = mutableListOf<WidgetStyle>()
         val events = mutableListOf<WidgetEvent>()
         val bindingProperties = mutableListOf<String>()
+
+        Log.d("ComponentParser", "${"  ".repeat(depth)}Парсинг widget: $title")
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenLayoutWidget")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "screenLayoutWidgetCode" -> screenLayoutWidgetCode = parser.nextText()
-                        "widgetCode" -> widgetCode = parser.nextText()
-                        "properties" -> properties.addAll(parseProperties(parser))  // Новый метод
-                        "property" -> parseComponentProperty(parser)?.let { properties.add(it) }  // Новый метод
-                        "styles" -> styles.addAll(parseStyles(parser))
-                        "style" -> parseStyle(parser)?.let { styles.add(it) }
-                        "events" -> events.addAll(parseEvents(parser))
-                        "event" -> parseEvent(parser)?.let { events.add(it) }
-                        "bindingProperties" -> {
-                            bindingProperties.addAll(parseBindingProperties(parser))
+                        "screenLayoutWidgetCode" -> {
+                            screenLayoutWidgetCode = parser.nextText().trim()
                         }
-                        else -> skipCurrentTag(parser)
+                        "widgetCode" -> {
+                            widgetCode = parser.nextText().trim()
+                        }
+                        "properties" -> {
+                            properties.addAll(parsePropertiesBlock(parser))
+                        }
+                        "property" -> {
+                            parseComponentProperty(parser)?.let { properties.add(it) }
+                        }
+                        "styles" -> {
+                            styles.addAll(parseStylesBlock(parser))
+                        }
+                        "style" -> {
+                            parseStyle(parser)?.let { styles.add(it) }
+                        }
+                        "events" -> {
+                            events.addAll(parseEventsBlock(parser))
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
+                        }
                     }
-                }
-                XmlPullParser.TEXT -> {
-                    // Обработка текста между тегами
                 }
             }
             eventType = parser.next()
         }
 
-        val actualWidgetCode = when (widgetCode) {
-            "label" -> {
-                if (bindingProperties.any { it.contains("image") || it.contains(".svg") }) {
-                    "image"
-                } else {
-                    widgetCode
-                }
+        // Автоматически определяем bindingProperties
+        properties.forEach { property ->
+            if (property.hasBindings) {
+                bindingProperties.add(property.code)
             }
-            else -> widgetCode
         }
 
-        return WidgetComponent(
-            title = title,
-            code = screenLayoutWidgetCode,
-            widgetCode = actualWidgetCode,
-            widgetType = "native",
-            properties = properties,  // ComponentProperty
-            styles = styles,
-            events = events,
-            bindingProperties = bindingProperties
-        )
+        // Определяем тип виджета на основе кода
+        val widgetType = determineWidgetType(widgetCode)
+
+        return if (screenLayoutWidgetCode.isNotEmpty() && widgetCode.isNotEmpty()) {
+            WidgetComponent(
+                title = title,
+                code = screenLayoutWidgetCode,
+                widgetCode = widgetCode,
+                widgetType = widgetType,
+                properties = properties,
+                styles = styles,
+                events = events,
+                bindingProperties = bindingProperties
+            )
+        } else {
+            null
+        }
     }
 
     /**
-     * Парсит свойства компонента (новый метод)
+     * Определяет тип виджета
      */
-    private fun parseProperties(parser: XmlPullParser): List<ComponentProperty> {
+    private fun determineWidgetType(widgetCode: String): String {
+        return when (widgetCode) {
+            "label", "button", "image", "checkbox", "switcher", "input", "appbar" -> "native"
+            else -> "composite"
+        }
+    }
+
+    /**
+     * Парсит блок свойств
+     */
+    private fun parsePropertiesBlock(parser: XmlPullParser): List<ComponentProperty> {
         val properties = mutableListOf<ComponentProperty>()
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "property" -> parseComponentProperty(parser)?.let { properties.add(it) }
-                        else -> skipCurrentTag(parser)
+                    if (parser.name == "property") {
+                        parseComponentProperty(parser)?.let { properties.add(it) }
+                    } else {
+                        skipCurrentTag(parser)
                     }
                 }
             }
@@ -220,7 +320,7 @@ class ComponentParser {
     }
 
     /**
-     * Парсит одно свойство компонента с извлечением макросов (новый метод)
+     * Парсит одно свойство с макросами
      */
     private fun parseComponentProperty(parser: XmlPullParser): ComponentProperty? {
         var code = ""
@@ -231,8 +331,8 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "value" -> value = parser.nextText()
+                        "code" -> code = parser.nextText().trim()
+                        "value" -> value = parser.nextText().trim()
                         else -> skipCurrentTag(parser)
                     }
                 }
@@ -243,47 +343,32 @@ class ComponentParser {
         return if (code.isNotEmpty()) {
             // Извлекаем макросы из значения
             val bindings = bindingParser.parseBindings(value)
-            ComponentProperty(code, value, bindings)
+
+            ComponentProperty(
+                code = code,
+                rawValue = value,
+                bindings = bindings,
+                resolvedValue = value // Пока без подстановки
+            )
         } else {
             null
         }
     }
 
     /**
-     * Парсит EventProperty (для обратной совместимости)
+     * Парсит блок стилей
      */
-    private fun parseEventProperty(parser: XmlPullParser): EventProperty? {
-        var code = ""
-        var value = ""
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "value" -> value = parser.nextText()
-                        else -> skipCurrentTag(parser)
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return if (code.isNotEmpty()) EventProperty(code, value) else null
-    }
-
-    // Остальные методы остаются без изменений...
-    private fun parseStyles(parser: XmlPullParser): List<WidgetStyle> {
+    private fun parseStylesBlock(parser: XmlPullParser): List<WidgetStyle> {
         val styles = mutableListOf<WidgetStyle>()
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "styles")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "style" -> parseStyle(parser)?.let { styles.add(it) }
-                        else -> skipCurrentTag(parser)
+                    if (parser.name == "style") {
+                        parseStyle(parser)?.let { styles.add(it) }
+                    } else {
+                        skipCurrentTag(parser)
                     }
                 }
             }
@@ -293,6 +378,9 @@ class ComponentParser {
         return styles
     }
 
+    /**
+     * Парсит один стиль
+     */
     private fun parseStyle(parser: XmlPullParser): WidgetStyle? {
         var code = ""
         var value = ""
@@ -302,8 +390,8 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "value" -> value = parser.nextText()
+                        "code" -> code = parser.nextText().trim()
+                        "value" -> value = parser.nextText().trim()
                         else -> skipCurrentTag(parser)
                     }
                 }
@@ -311,19 +399,27 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        return if (code.isNotEmpty()) WidgetStyle(code, value) else null
+        return if (code.isNotEmpty() && value.isNotEmpty()) {
+            WidgetStyle(code, value)
+        } else {
+            null
+        }
     }
 
-    private fun parseEvents(parser: XmlPullParser): List<WidgetEvent> {
+    /**
+     * Парсит блок событий
+     */
+    private fun parseEventsBlock(parser: XmlPullParser): List<WidgetEvent> {
         val events = mutableListOf<WidgetEvent>()
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "events")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "event" -> parseEvent(parser)?.let { events.add(it) }
-                        else -> skipCurrentTag(parser)
+                    if (parser.name == "event") {
+                        parseEvent(parser)?.let { events.add(it) }
+                    } else {
+                        skipCurrentTag(parser)
                     }
                 }
             }
@@ -333,115 +429,23 @@ class ComponentParser {
         return events
     }
 
+    /**
+     * Парсит одно событие
+     */
     private fun parseEvent(parser: XmlPullParser): WidgetEvent? {
-        var eventCode = ""
-        var order = 0
-        val eventActions = mutableListOf<EventAction>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "event")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "event_code" -> eventCode = parser.nextText()
-                        "order" -> order = parser.nextText().toIntOrNull() ?: 0
-                        "eventActions" -> eventActions.addAll(parseEventActions(parser))
-                        "eventAction" -> parseEventAction(parser)?.let { eventActions.add(it) }
-                        else -> skipCurrentTag(parser)
-                    }
-                }
+        // В простых виджетах события указаны как <event>onTap</event>
+        // Просто читаем текст между тегами
+        return try {
+            val eventCode = parser.nextText().trim()
+            if (eventCode.isNotEmpty()) {
+                WidgetEvent(eventCode = eventCode)
+            } else {
+                null
             }
-            eventType = parser.next()
+        } catch (e: Exception) {
+            Log.e("ComponentParser", "Ошибка парсинга события", e)
+            null
         }
-
-        return if (eventCode.isNotEmpty()) WidgetEvent(eventCode, order, eventActions) else null
-    }
-
-    private fun parseEventActions(parser: XmlPullParser): List<EventAction> {
-        val eventActions = mutableListOf<EventAction>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "eventActions")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "eventAction" -> parseEventAction(parser)?.let { eventActions.add(it) }
-                        else -> skipCurrentTag(parser)
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return eventActions
-    }
-
-    private fun parseEventAction(parser: XmlPullParser): EventAction? {
-        var code = ""
-        var order = 0
-        val properties = mutableListOf<EventProperty>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "eventAction")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "order" -> order = parser.nextText().toIntOrNull() ?: 0
-                        "properties" -> properties.addAll(parseEventProperties(parser))
-                        "property" -> parseEventProperty(parser)?.let { properties.add(it) }
-                        else -> skipCurrentTag(parser)
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return if (code.isNotEmpty()) EventAction("", code, order, properties) else null
-    }
-
-    private fun parseEventProperties(parser: XmlPullParser): List<EventProperty> {
-        val properties = mutableListOf<EventProperty>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "property" -> parseEventProperty(parser)?.let { properties.add(it) }
-                        else -> skipCurrentTag(parser)
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return properties
-    }
-
-    private fun parseBindingProperties(parser: XmlPullParser): List<String> {
-        val bindingProperties = mutableListOf<String>()
-
-        var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "bindingProperties")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "value" -> bindingProperties.add(parser.nextText())
-                        else -> skipCurrentTag(parser)
-                    }
-                }
-                XmlPullParser.TEXT -> {
-                    val text = parser.text.trim()
-                    if (text.isNotEmpty()) {
-                        bindingProperties.add(text)
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return bindingProperties
     }
 
     private fun skipCurrentTag(parser: XmlPullParser) {
@@ -457,47 +461,43 @@ class ComponentParser {
     }
 
     /**
-     * Парсит все компоненты из полного XML микроаппа
+     * Вспомогательная функция для отладки
      */
-    fun parseAllComponentsFromFullXml(xmlContent: String): List<ParsedScreen> {
-        val screens = mutableListOf<ParsedScreen>()
+    fun logComponentTree(component: Component?, indent: String = "") {
+        if (component == null) return
 
-        val startTag = "<screens>"
-        val endTag = "</screens>"
+        when (component) {
+            is LayoutComponent -> {
+                Log.d("ComponentTree", "$indent[LAYOUT] ${component.title} (${component.code})")
+                Log.d("ComponentTree", "$indent  layoutCode: ${component.layoutCode}")
+                Log.d("ComponentTree", "$indent  children: ${component.children.size}")
 
-        val startIndex = xmlContent.indexOf(startTag)
-        if (startIndex == -1) {
-            Log.d("ComponentParser", "Блок <screens> не найден")
-            return emptyList()
-        }
-
-        val endIndex = xmlContent.indexOf(endTag, startIndex)
-        if (endIndex == -1) {
-            Log.d("ComponentParser", "Закрывающий тег </screens> не найден")
-            return emptyList()
-        }
-
-        val screensXml = xmlContent.substring(startIndex, endIndex + endTag.length)
-        Log.d("ComponentParser", "Извлечен блок screens, размер: ${screensXml.length} символов")
-
-        val screenPattern = "<screen[^>]*>.*?</screen>"
-        val regex = Regex(screenPattern, RegexOption.DOT_MATCHES_ALL)
-
-        val matches = regex.findAll(screensXml)
-        matches.forEachIndexed { index, matchResult ->
-            val screenXml = matchResult.value
-            Log.d("ComponentParser", "Парсинг экрана $index, размер: ${screenXml.length} символов")
-            try {
-                parseScreenWithComponents(screenXml)?.let { screen ->
-                    screens.add(screen)
-                    Log.d("ComponentParser", "Экран добавлен: ${screen.title}")
+                component.properties.forEach { prop ->
+                    if (prop.hasBindings) {
+                        Log.d("ComponentTree", "$indent  PROP ${prop.code}: ${prop.rawValue}")
+                        prop.bindings.forEach { binding ->
+                            Log.d("ComponentTree", "$indent    BINDING: ${binding.expression}")
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("ComponentParser", "Ошибка при парсинге экрана $index", e)
+
+                component.children.forEach { child ->
+                    logComponentTree(child, "$indent  ")
+                }
+            }
+            is WidgetComponent -> {
+                Log.d("ComponentTree", "$indent[WIDGET] ${component.title} (${component.code})")
+                Log.d("ComponentTree", "$indent  widgetCode: ${component.widgetCode}")
+
+                component.properties.forEach { prop ->
+                    if (prop.hasBindings) {
+                        Log.d("ComponentTree", "$indent  PROP ${prop.code}: ${prop.rawValue}")
+                        prop.bindings.forEach { binding ->
+                            Log.d("ComponentTree", "$indent    BINDING: ${binding.expression}")
+                        }
+                    }
+                }
             }
         }
-
-        Log.d("ComponentParser", "Найдено экранов: ${screens.size}")
-        return screens
     }
 }

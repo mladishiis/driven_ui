@@ -1,27 +1,18 @@
 package com.example.drivenui.parser.parsers
 
-import com.example.drivenui.parser.models.*
+import android.util.Log
+import com.example.drivenui.parser.models.Query
+import com.example.drivenui.parser.models.QueryProperty
+import com.example.drivenui.parser.models.ScreenQuery
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
-/**
- * Парсер запросов API из XML формата Driven UI
- *
- * Поддерживает парсинг:
- * - Общих запросов (allQueries)
- * - Запросов экранов (screenQueries)
- * - Свойств и условий запросов
- */
 class QueryParser {
 
-    /**
-     * Парсит все запросы API из XML строки
-     *
-     * @param xmlContent XML строка содержащая блок <allQueries>
-     * @return Список [Query] объектов
-     */
-    fun parseQueries(xmlContent: String): List<Query> {
+    fun parseAllQueries(xmlContent: String): List<Query> {
+        Log.d("QueryParser", "Начинаем парсинг allQueries")
         val factory = XmlPullParserFactory.newInstance()
+        factory.isNamespaceAware = true
         val parser = factory.newPullParser()
         parser.setInput(xmlContent.reader())
 
@@ -33,7 +24,16 @@ class QueryParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "query" -> {
-                            queries.add(parseQuery(parser))
+                            try {
+                                val query = parseQuery(parser)
+                                if (query.code.isNotEmpty()) {
+                                    queries.add(query)
+                                    Log.d("QueryParser", "Успешно распарсен query: ${query.title} (${query.code})")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("QueryParser", "Ошибка при парсинге query", e)
+                                skipCurrentTag(parser)
+                            }
                         }
                     }
                 }
@@ -41,17 +41,94 @@ class QueryParser {
             eventType = parser.next()
         }
 
+        Log.d("QueryParser", "Найдено запросов: ${queries.size}")
         return queries
     }
 
-    /**
-     * Парсит запросы экранов из XML строки
-     *
-     * @param xmlContent XML строка содержащая блок <screenQueries>
-     * @return Список [ScreenQuery] объектов
-     */
+    private fun parseQuery(parser: XmlPullParser): Query {
+        val title = parser.getAttributeValue(null, "title") ?: ""
+        var code = ""
+        var type = ""
+        var endpoint = ""
+        var mockFile: String? = null
+        val properties = mutableListOf<QueryProperty>()
+
+        Log.d("QueryParser", "Парсинг query: $title")
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "query")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "code" -> code = parser.nextText()
+                        "type" -> type = parser.nextText()
+                        "endpoint" -> endpoint = parser.nextText()
+                        "mockFile" -> mockFile = parser.nextText()
+                        "properties" -> parseQueryProperties(parser, properties)
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return Query(
+            title = title,
+            code = code,
+            type = type,
+            endpoint = endpoint,
+            mockFile = mockFile,
+            properties = properties
+        )
+    }
+
+    private fun parseQueryProperties(parser: XmlPullParser, properties: MutableList<QueryProperty>) {
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "property" -> {
+                            val property = parseQueryProperty(parser)
+                            if (property.paramType.isNotEmpty()) {
+                                properties.add(property)
+                            }
+                        }
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+    }
+
+    private fun parseQueryProperty(parser: XmlPullParser): QueryProperty {
+        var paramType = ""
+        var variableName = ""
+        var variableValue = ""
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "code" -> paramType = parser.nextText()
+                        "variableName" -> variableName = parser.nextText()
+                        "variableValue" -> variableValue = parser.nextText()
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return QueryProperty(paramType, variableName, variableValue)
+    }
+
     fun parseScreenQueries(xmlContent: String): List<ScreenQuery> {
+        Log.d("QueryParser", "Начинаем парсинг screenQueries")
         val factory = XmlPullParserFactory.newInstance()
+        factory.isNamespaceAware = true
         val parser = factory.newPullParser()
         parser.setInput(xmlContent.reader())
 
@@ -63,7 +140,16 @@ class QueryParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "screenQuery" -> {
-                            screenQueries.add(parseScreenQuery(parser))
+                            try {
+                                val screenQuery = parseScreenQuery(parser)
+                                if (screenQuery.code.isNotEmpty()) {
+                                    screenQueries.add(screenQuery)
+                                    Log.d("QueryParser", "Успешно распарсен screenQuery: ${screenQuery.code}")
+                                }
+                            } catch (e: Exception) {
+                                Log.e("QueryParser", "Ошибка при парсинге screenQuery", e)
+                                skipCurrentTag(parser)
+                            }
                         }
                     }
                 }
@@ -71,148 +157,97 @@ class QueryParser {
             eventType = parser.next()
         }
 
+        Log.d("QueryParser", "Найдено screenQueries: ${screenQueries.size}")
         return screenQueries
     }
 
-    /**
-     * Парсит отдельный запрос API из XML
-     *
-     * @param parser XmlPullParser позиционированный на теге <query>
-     * @return [Query] объект запроса
-     */
-    private fun parseQuery(parser: XmlPullParser): Query {
-        val title = parser.getAttributeValue(null, "title") ?: ""
-        var code = ""
-        var type = ""
-        var endpoint = ""
-        val properties = mutableListOf<QueryProperty>()
-        val conditions = mutableListOf<QueryCondition>()
-
-        var eventType = parser.eventType
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "query")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "type" -> type = parser.nextText()
-                        "endpoint" -> endpoint = parser.nextText()
-                        "property" -> properties.add(parseQueryProperty(parser))
-                        "condition" -> conditions.add(parseQueryCondition(parser))
-                    }
-                }
-            }
-            eventType = parser.next()
-        }
-
-        return Query(title, code, type, endpoint, properties, conditions)
-    }
-
-    /**
-     * Парсит отдельный экранный запрос из XML
-     *
-     * @param parser XmlPullParser позиционированный на теге <screenQuery>
-     * @return [ScreenQuery] объект экранного запроса
-     */
     private fun parseScreenQuery(parser: XmlPullParser): ScreenQuery {
         var code = ""
         var screenCode = ""
         var queryCode = ""
         var order = 0
-        val properties = mutableListOf<QueryProperty>()
-        val conditions = mutableListOf<QueryCondition>()
+        val propertiesMap = mutableMapOf<String, String>()
 
-        var eventType = parser.eventType
+        var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenQuery")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "code" -> code = parser.nextText()
-                        "screenСode" -> screenCode = parser.nextText()
+                        "screenCode" -> screenCode = parser.nextText()
+                        "screenСode" -> screenCode = parser.nextText() // Для обработки опечатки
                         "queryCode" -> queryCode = parser.nextText()
-                        "order" -> order = parser.nextText().toIntOrNull() ?: 0
-                        "property" -> properties.add(parseQueryProperty(parser))
-                        "condition" -> conditions.add(parseQueryCondition(parser))
+                        "order" -> {
+                            val orderText = parser.nextText()
+                            order = orderText.toIntOrNull() ?: 0
+                        }
+                        "properties" -> parseScreenQueryPropertiesToMap(parser, propertiesMap)
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
             eventType = parser.next()
         }
 
-        return ScreenQuery(code, screenCode, queryCode, order, properties, conditions)
+        return ScreenQuery(
+            code = code,
+            screenCode = screenCode,
+            queryCode = queryCode,
+            properties = propertiesMap,
+            order = order
+        )
     }
 
-    /**
-     * Парсит свойство запроса из XML
-     *
-     * @param parser XmlPullParser позиционированный на теге <property> внутри запроса
-     * @return [QueryProperty] объект свойства запроса
-     */
-    private fun parseQueryProperty(parser: XmlPullParser): QueryProperty {
-        var code = ""
+    private fun parseScreenQueryPropertiesToMap(parser: XmlPullParser, map: MutableMap<String, String>) {
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "property" -> {
+                            val (variableName, variableValue) = parseScreenQueryPropertyToMap(parser)
+                            if (variableName.isNotEmpty()) {
+                                map[variableName] = variableValue
+                            }
+                        }
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+    }
+
+    private fun parseScreenQueryPropertyToMap(parser: XmlPullParser): Pair<String, String> {
         var variableName = ""
         var variableValue = ""
 
-        var eventType = parser.eventType
+        var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> code = parser.nextText()
                         "variableName" -> variableName = parser.nextText()
                         "variableValue" -> variableValue = parser.nextText()
+                        else -> skipCurrentTag(parser)
                     }
                 }
             }
             eventType = parser.next()
         }
 
-        return QueryProperty(code, variableName, variableValue)
+        return Pair(variableName, variableValue)
     }
 
-    /**
-     * Парсит условие запроса из XML
-     *
-     * @param parser XmlPullParser позиционированный на теге <condition>
-     * @return [QueryCondition] объект условия запроса
-     */
-    private fun parseQueryCondition(parser: XmlPullParser): QueryCondition {
-        var code = ""
-        var value = ""
-
-        var eventType = parser.eventType
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "condition")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "value" -> value = parser.nextText()
-                    }
-                }
+    private fun skipCurrentTag(parser: XmlPullParser) {
+        if (parser.eventType != XmlPullParser.START_TAG) return
+        var depth = 1
+        while (depth > 0) {
+            when (parser.next()) {
+                XmlPullParser.START_TAG -> depth++
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.END_DOCUMENT -> return
             }
-            eventType = parser.next()
-        }
-
-        return QueryCondition(code, value)
-    }
-
-    /**
-     * Парсит весь блок screenQueries из полного XML микроаппа
-     *
-     * @param xmlContent Полное XML содержимое микроаппа
-     * @return Список [ScreenQuery] объектов
-     */
-    fun parseScreenQueriesFromFullXml(xmlContent: String): List<ScreenQuery> {
-        return try {
-            val start = xmlContent.indexOf("<screenQueries>")
-            val end = xmlContent.indexOf("</screenQueries>") + "</screenQueries>".length
-            if (start != -1 && end != -1) {
-                val screenQueriesXml = xmlContent.substring(start, end)
-                parseScreenQueries(screenQueriesXml)
-            } else {
-                emptyList()
-            }
-        } catch (e: Exception) {
-            emptyList()
         }
     }
 }

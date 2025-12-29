@@ -1017,7 +1017,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
             appendLine("      \"title\": \"${escapeJson(screen.title)}\",")
             appendLine("      \"code\": \"${escapeJson(screen.screenCode)}\",")
             appendLine("      \"shortCode\": \"${escapeJson(screen.screenShortCode)}\",")
-            appendLine("      \"deeplink\": \"${escapeJson(screen.deeplink)}\",")
+            appendLine("      \"deeplink\": \"${escapeJson(screen.deeplink)}\"")
             append("    }")
             if (screenIndex < parsedMicroapp.screens.size - 1) append(",")
             appendLine()
@@ -1029,9 +1029,9 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
         parsedMicroapp.styles?.textStyles?.forEachIndexed { styleIndex, style ->
             appendLine("    {")
             appendLine("      \"code\": \"${escapeJson(style.code)}\",")
-            appendLine("      \"fontFamily\": \"${escapeJson(style.fontFamily)}\",")
-            appendLine("      \"fontSize\": \"${escapeJson(style.fontSize.toString())}\",")
-            appendLine("      \"fontWeight\": \"${escapeJson(style.fontWeight.toString())}\"")
+            appendLine("      \"fontFamily\": \"${escapeJson(style.fontFamily ?: "")}\",")
+            appendLine("      \"fontSize\": \"${escapeJson(style.fontSize?.toString() ?: "")}\",")
+            appendLine("      \"fontWeight\": \"${escapeJson(style.fontWeight?.toString() ?: "")}\"")
             append("    }")
             if (styleIndex < (parsedMicroapp.styles.textStyles?.size ?: 0) - 1) append(",")
             appendLine()
@@ -1043,8 +1043,8 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
         parsedMicroapp.styles?.colorStyles?.forEachIndexed { colorIndex, colorStyle ->
             appendLine("    {")
             appendLine("      \"code\": \"${escapeJson(colorStyle.code)}\",")
-            appendLine("      \"lightColor\": \"${escapeJson(colorStyle.lightTheme.color)}\",")
-            appendLine("      \"darkColor\": \"${escapeJson(colorStyle.darkTheme.color)}\"")
+            appendLine("      \"lightColor\": \"${escapeJson(colorStyle.lightTheme?.color ?: "")}\",")
+            appendLine("      \"darkColor\": \"${escapeJson(colorStyle.darkTheme?.color ?: "")}\"")
             append("    }")
             if (colorIndex < (parsedMicroapp.styles.colorStyles?.size ?: 0) - 1) append(",")
             appendLine()
@@ -1059,7 +1059,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
             appendLine("      \"code\": \"${escapeJson(query.code)}\",")
             appendLine("      \"type\": \"${escapeJson(query.type)}\",")
             appendLine("      \"endpoint\": \"${escapeJson(query.endpoint)}\",")
-            appendLine("      \"propertiesCount\": ${query.properties}")
+            appendLine("      \"propertiesCount\": ${query.properties.size}")
             append("    }")
             if (queryIndex < parsedMicroapp.queries.size - 1) append(",")
             appendLine()
@@ -1079,16 +1079,15 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
                 appendLine("          \"title\": \"${escapeJson(action.title)}\",")
                 appendLine("          \"code\": \"${escapeJson(action.code)}\",")
                 appendLine("          \"order\": ${action.order},")
-                appendLine("          \"properties\": [")
-                action.properties.forEachIndexed { propIndex, property ->
-                    appendLine("            {")
-                    appendLine("              \"code\": \"${escapeJson(property.code)}\",")
-                    appendLine("              \"value\": \"${escapeJson(property.value)}\"")
-                    append("            }")
-                    if (propIndex < action.properties.size - 1) append(",")
+                // Для EventAction.properties используется Map<String, String>
+                appendLine("          \"properties\": {")
+                val actionProps = action.properties.entries.toList()
+                actionProps.forEachIndexed { propIndex, entry ->
+                    append("            \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                    if (propIndex < actionProps.size - 1) append(",")
                     appendLine()
                 }
-                appendLine("          ]")
+                appendLine("          }")
                 append("        }")
                 if (actionIndex < event.eventActions.size - 1) append(",")
                 appendLine()
@@ -1108,14 +1107,22 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
 
             appendLine("  \"widgets\": [")
             widgets.forEachIndexed { widgetIndex, widget ->
-                if (widget is com.example.drivenui.presentation.details.model.WidgetItem) {
+                if (widget is com.example.drivenui.parser.models.Widget) {
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(widget.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(widget.code)}\",")
                     appendLine("      \"type\": \"${escapeJson(widget.type)}\",")
-                    appendLine("      \"propertiesCount\": ${widget.propertiesCount},")
-                    appendLine("      \"stylesCount\": ${widget.stylesCount},")
-                    appendLine("      \"eventsCount\": ${widget.eventsCount}")
+                    // Для Widget.properties используется Map<String, String>
+                    appendLine("      \"properties\": {")
+                    val widgetProps = widget.properties.entries.toList()
+                    widgetProps.forEachIndexed { propIndex, entry ->
+                        append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                        if (propIndex < widgetProps.size - 1) append(",")
+                        appendLine()
+                    }
+                    appendLine("      },")
+                    appendLine("      \"stylesCount\": ${widget.styles.size},")
+                    appendLine("      \"eventsCount\": ${widget.events.size}")
                     append("    }")
                     if (widgetIndex < widgets.size - 1) append(",")
                     appendLine()
@@ -1134,11 +1141,19 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
 
             appendLine("  \"layouts\": [")
             layouts.forEachIndexed { layoutIndex, layout ->
-                if (layout is com.example.drivenui.presentation.details.model.LayoutItem) {
+                if (layout is com.example.drivenui.parser.models.Layout) {
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(layout.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(layout.code)}\",")
-                    appendLine("      \"propertiesCount\": ${layout.propertiesCount}")
+                    // Для Layout.properties используется Map<String, String>
+                    appendLine("      \"properties\": {")
+                    val layoutProps = layout.properties.entries.toList()
+                    layoutProps.forEachIndexed { propIndex, entry ->
+                        append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                        if (propIndex < layoutProps.size - 1) append(",")
+                        appendLine()
+                    }
+                    appendLine("      }")
                     append("    }")
                     if (layoutIndex < layouts.size - 1) append(",")
                     appendLine()
@@ -1158,11 +1173,21 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
 
             appendLine("  \"screenQueries\": [")
             screenQueries.forEachIndexed { sqIndex, sq ->
-                if (sq is com.example.drivenui.presentation.details.model.ScreenQueryItem) {
+                if (sq is com.example.drivenui.parser.models.ScreenQuery) {
                     appendLine("    {")
+                    appendLine("      \"code\": \"${escapeJson(sq.code)}\",")
                     appendLine("      \"screenCode\": \"${escapeJson(sq.screenCode)}\",")
                     appendLine("      \"queryCode\": \"${escapeJson(sq.queryCode)}\",")
-                    appendLine("      \"order\": ${sq.order}")
+                    appendLine("      \"order\": ${sq.order},")
+                    // Для ScreenQuery.properties используется Map<String, String>
+                    appendLine("      \"properties\": {")
+                    val screenQueryProps = sq.properties.entries.toList()
+                    screenQueryProps.forEachIndexed { propIndex, entry ->
+                        append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                        if (propIndex < screenQueryProps.size - 1) append(",")
+                        appendLine()
+                    }
+                    appendLine("      }")
                     append("    }")
                     if (sqIndex < screenQueries.size - 1) append(",")
                     appendLine()
@@ -1187,16 +1212,15 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
                 appendLine("      \"title\": \"${escapeJson(action.title)}\",")
                 appendLine("      \"code\": \"${escapeJson(action.code)}\",")
                 appendLine("      \"order\": ${action.order},")
-                appendLine("      \"properties\": [")
-                action.properties.forEachIndexed { propIndex, property ->
-                    appendLine("        {")
-                    appendLine("          \"code\": \"${escapeJson(property.code)}\",")
-                    appendLine("          \"value\": \"${escapeJson(property.value)}\"")
-                    append("        }")
-                    if (propIndex < action.properties.size - 1) append(",")
+                // Для EventAction.properties используется Map<String, String>
+                appendLine("      \"properties\": {")
+                val actionProps = action.properties.entries.toList()
+                actionProps.forEachIndexed { propIndex, entry ->
+                    append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                    if (propIndex < actionProps.size - 1) append(",")
                     appendLine()
                 }
-                appendLine("      ]")
+                appendLine("      }")
                 append("    }")
                 if (eaIndex < (allEventActions.eventActions.size) - 1) append(",")
                 appendLine()
@@ -1216,16 +1240,15 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.parser.SDUIP
                     appendLine("      \"title\": \"${escapeJson(action.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(action.code)}\",")
                     appendLine("      \"order\": ${action.order},")
-                    appendLine("      \"properties\": [")
-                    action.properties.forEachIndexed { propIndex, property ->
-                        appendLine("        {")
-                        appendLine("          \"code\": \"${escapeJson(property.code)}\",")
-                        appendLine("          \"value\": \"${escapeJson(property.value)}\"")
-                        append("        }")
-                        if (propIndex < action.properties.size - 1) append(",")
+                    // Для EventAction.properties используется Map<String, String>
+                    appendLine("      \"properties\": {")
+                    val actionProps = action.properties.entries.toList()
+                    actionProps.forEachIndexed { propIndex, entry ->
+                        append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
+                        if (propIndex < actionProps.size - 1) append(",")
                         appendLine()
                     }
-                    appendLine("      ]")
+                    appendLine("      }")
                     append("    }")
                     if (eaIndex < (eventActions.size) - 1) append(",")
                     appendLine()

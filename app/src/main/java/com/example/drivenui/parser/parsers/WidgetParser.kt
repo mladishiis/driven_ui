@@ -1,7 +1,6 @@
 package com.example.drivenui.parser.parsers
 
 import android.util.Log
-import com.example.drivenui.parser.models.EventProperty
 import com.example.drivenui.parser.models.Widget
 import com.example.drivenui.parser.models.WidgetEvent
 import com.example.drivenui.parser.models.WidgetStyle
@@ -27,11 +26,11 @@ class WidgetParser {
                         "widget" -> {
                             try {
                                 val widget = parseWidget(parser)
-                                if (widget.code.isNotEmpty() && widget.type.isNotEmpty()) {
+                                if (widget.isValid()) {
                                     widgets.add(widget)
                                     Log.d("WidgetParser", "Успешно распарсен виджет: ${widget.title} (${widget.code})")
                                 } else {
-                                    Log.w("WidgetParser", "Пропущен виджет с пустыми кодом или типом: ${widget.title}")
+                                    Log.w("WidgetParser", "Пропущен невалидный виджет: ${widget.title}")
                                 }
                             } catch (e: Exception) {
                                 Log.e("WidgetParser", "Ошибка при парсинге widget", e)
@@ -52,9 +51,10 @@ class WidgetParser {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var code = ""
         var type = ""
-        val properties = mutableListOf<EventProperty>()
+        val propertiesMap = mutableMapOf<String, String>()
         val styles = mutableListOf<WidgetStyle>()
         val events = mutableListOf<WidgetEvent>()
+        val bindingProperties = mutableListOf<String>()
 
         Log.d("WidgetParser", "Парсинг widget: $title")
 
@@ -64,29 +64,20 @@ class WidgetParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "code" -> {
-                            code = parser.nextText()
-                            Log.d("WidgetParser", "  code: $code")
+                            code = parser.nextText().trim()
                         }
                         "type" -> {
-                            type = parser.nextText()
-                            Log.d("WidgetParser", "  type: $type")
+                            type = parser.nextText().trim()
                         }
                         "properties" -> {
-                            properties.addAll(parseProperties(parser))
-                        }
-                        "property" -> {
-                            val property = parseProperty(parser)
-                            // Добавляем только если код не пустой
-                            if (property.code.isNotEmpty()) {
-                                properties.add(property)
-                            }
+                            parsePropertiesToMap(parser, propertiesMap, bindingProperties)
                         }
                         "events" -> {
-                            events.addAll(parseEventsSimple(parser))
+                            events.addAll(parseWidgetEvents(parser))
                         }
-                        "event" -> {
-                            val event = parseWidgetEventSimple(parser)
-                            events.add(event)
+                        "styles" -> {
+                            // Если в будущем добавятся стили для виджетов
+                            styles.addAll(parseWidgetStyles(parser))
                         }
                         else -> {
                             skipCurrentTag(parser)
@@ -97,13 +88,84 @@ class WidgetParser {
             eventType = parser.next()
         }
 
-        return Widget(title, code, type, properties, styles, events, emptyList())
+        return Widget(
+            title = title,
+            code = code,
+            type = type,
+            properties = propertiesMap,
+            styles = styles,
+            events = events,
+            bindingProperties = bindingProperties
+        )
     }
 
     /**
-     * Парсит упрощенную структуру events (только тег event с текстом)
+     * Парсинг свойств с выявлением биндинг-свойств
      */
-    private fun parseEventsSimple(parser: XmlPullParser): List<WidgetEvent> {
+    private fun parsePropertiesToMap(
+        parser: XmlPullParser,
+        map: MutableMap<String, String>,
+        bindingProperties: MutableList<String>
+    ) {
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "property" -> {
+                            val (propertyCode, propertyValue) = parsePropertyToPair(parser)
+                            if (propertyCode.isNotEmpty()) {
+                                map[propertyCode] = propertyValue
+
+                                // Проверяем, является ли свойство биндинговым
+                                if (isBindingProperty(propertyValue)) {
+                                    bindingProperties.add(propertyCode)
+                                    Log.d("WidgetParser", "Обнаружено биндинг-свойство: $propertyCode")
+                                }
+                            }
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+    }
+
+    /**
+     * Определяет, содержит ли значение макросы для биндинга
+     */
+    private fun isBindingProperty(value: String): Boolean {
+        return value.contains(Regex("""\$\{.+?\}"""))
+    }
+
+    private fun parsePropertyToPair(parser: XmlPullParser): Pair<String, String> {
+        var code = ""
+        var value = ""
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "code" -> code = parser.nextText().trim()
+                        "value" -> value = parser.nextText().trim()
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return Pair(code, value)
+    }
+
+    /**
+     * Улучшенный парсинг событий виджета
+     */
+    private fun parseWidgetEvents(parser: XmlPullParser): List<WidgetEvent> {
         val events = mutableListOf<WidgetEvent>()
 
         var eventType = parser.next()
@@ -112,9 +174,15 @@ class WidgetParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "event" -> {
-                            val eventCode = parser.nextText()
+                            // Более сложная структура может быть в будущем
+                            val eventCode = parser.nextText().trim()
                             if (eventCode.isNotEmpty()) {
-                                events.add(WidgetEvent(eventCode, 0, emptyList()))
+                                val event = WidgetEvent(
+                                    eventCode = eventCode,
+                                    order = 0, // по умолчанию
+                                    eventActions = emptyList() // TODO: парсить actions если будут
+                                )
+                                events.add(event)
                             }
                         }
                         else -> {
@@ -129,24 +197,20 @@ class WidgetParser {
         return events
     }
 
-    private fun parseWidgetEventSimple(parser: XmlPullParser): WidgetEvent {
-        val eventCode = parser.nextText()
-        return WidgetEvent(eventCode, 0, emptyList())
-    }
-
-    private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
-        val properties = mutableListOf<EventProperty>()
+    /**
+     * Парсинг стилей виджета (если будут в будущем)
+     */
+    private fun parseWidgetStyles(parser: XmlPullParser): List<WidgetStyle> {
+        val styles = mutableListOf<WidgetStyle>()
 
         var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "styles")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "property" -> {
-                            val property = parseProperty(parser)
-                            if (property.code.isNotEmpty()) {
-                                properties.add(property)
-                            }
+                        "style" -> {
+                            val style = parseWidgetStyle(parser)
+                            styles.add(style)
                         }
                         else -> {
                             skipCurrentTag(parser)
@@ -157,20 +221,20 @@ class WidgetParser {
             eventType = parser.next()
         }
 
-        return properties
+        return styles
     }
 
-    private fun parseProperty(parser: XmlPullParser): EventProperty {
+    private fun parseWidgetStyle(parser: XmlPullParser): WidgetStyle {
         var code = ""
         var value = ""
 
         var eventType = parser.next()
-        while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "style")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "value" -> value = parser.nextText()
+                        "code" -> code = parser.nextText().trim()
+                        "value" -> value = parser.nextText().trim()
                         else -> skipCurrentTag(parser)
                     }
                 }
@@ -178,7 +242,7 @@ class WidgetParser {
             eventType = parser.next()
         }
 
-        return EventProperty(code, value)
+        return WidgetStyle(code, value)
     }
 
     private fun skipCurrentTag(parser: XmlPullParser) {
@@ -191,5 +255,14 @@ class WidgetParser {
                 XmlPullParser.END_DOCUMENT -> return
             }
         }
+    }
+
+    /**
+     * Вспомогательная функция для валидации виджета
+     */
+    private fun Widget.isValid(): Boolean {
+        return code.isNotEmpty() &&
+                type.isNotEmpty() &&
+                (code != "unknown" || title.isNotEmpty())
     }
 }

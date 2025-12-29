@@ -1,7 +1,6 @@
 package com.example.drivenui.parser.parsers
 
 import android.util.Log
-import com.example.drivenui.parser.models.EventProperty
 import com.example.drivenui.parser.models.Layout
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -47,7 +46,7 @@ class LayoutParser {
     private fun parseLayout(parser: XmlPullParser): Layout {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var code = ""
-        val properties = mutableListOf<EventProperty>()
+        val propertiesMap = mutableMapOf<String, String>()
 
         Log.d("LayoutParser", "Парсинг layout: $title")
 
@@ -57,13 +56,7 @@ class LayoutParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "code" -> code = parser.nextText()
-                        "properties" -> properties.addAll(parseProperties(parser))
-                        "property" -> {
-                            val property = parseProperty(parser)
-                            if (property.code.isNotEmpty()) {
-                                properties.add(property)
-                            }
-                        }
+                        "properties" -> parsePropertiesToMap(parser, propertiesMap)
                         else -> skipCurrentTag(parser)
                     }
                 }
@@ -71,21 +64,19 @@ class LayoutParser {
             eventType = parser.next()
         }
 
-        return Layout(title, code, properties)
+        return Layout(title, code, propertiesMap)
     }
 
-    private fun parseProperties(parser: XmlPullParser): List<EventProperty> {
-        val properties = mutableListOf<EventProperty>()
-
+    private fun parsePropertiesToMap(parser: XmlPullParser, map: MutableMap<String, String>) {
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "property" -> {
-                            val property = parseProperty(parser)
-                            if (property.code.isNotEmpty()) {
-                                properties.add(property)
+                            val property = parsePropertyToMap(parser)
+                            if (property.first.isNotEmpty()) {
+                                map[property.first] = property.second
                             }
                         }
                         else -> skipCurrentTag(parser)
@@ -94,11 +85,9 @@ class LayoutParser {
             }
             eventType = parser.next()
         }
-
-        return properties
     }
 
-    private fun parseProperty(parser: XmlPullParser): EventProperty {
+    private fun parsePropertyToMap(parser: XmlPullParser): Pair<String, String> {
         var code = ""
         var value = ""
 
@@ -116,7 +105,7 @@ class LayoutParser {
             eventType = parser.next()
         }
 
-        return EventProperty(code, value)
+        return Pair(code, value)
     }
 
     private fun skipCurrentTag(parser: XmlPullParser) {

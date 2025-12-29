@@ -26,7 +26,6 @@ class SDUIParser(private val context: Context) {
     private val componentParser = ComponentParser()
     private val bindingEngine = BindingEngine()
     private val jsonDataLoader = JsonDataLoader(context)
-    private val dataPathResolver = DataPathResolver()
 
     /**
      * Результат парсинга с новой структурой
@@ -662,7 +661,7 @@ class SDUIParser(private val context: Context) {
      */
     private fun parseQueriesFromFullXml(xmlContent: String): List<Query> {
         return try {
-            queryParser.parseQueries(xmlContent)
+            queryParser.parseAllQueries(xmlContent)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге queries", e)
             emptyList()
