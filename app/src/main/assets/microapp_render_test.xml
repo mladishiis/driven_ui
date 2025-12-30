@@ -181,16 +181,6 @@
                 </property>
             </properties>
         </eventAction>
-        <eventAction title="Возврат назад">
-            <code>previousScreen</code>
-            <order></order>
-            <properties>
-                <property>
-                    <code>screenCode</code>
-                    <value></value>
-                </property>
-            </properties>
-        </eventAction>
         <eventAction title="Обновление текущего экрана">
             <code>refreshScreen</code>
             <order></order>
@@ -644,24 +634,6 @@
                                     <value>alignCenter</value>
                                 </style>
                             </styles>
-                            <events>
-                                <event>
-                                    <event_code>onTap</event_code>
-                                    <order>1</order>
-                                    <eventActions>
-                                        <eventAction>
-                                            <code>navigateBack</code>
-                                            <order>1</order>
-                                            <properties>
-                                                <property>
-                                                    <code>screenCode</code>
-                                                    <value>cardActivate</value>
-                                                </property>
-                                            </properties>
-                                        </eventAction>
-                                    </eventActions>
-                                </event>
-                            </events>
                         </screenLayoutWidget>
                     </screenLayout>
                     <screenLayout title="Перевозчики. Список">
@@ -1022,7 +994,7 @@
                                         <order>1</order>
                                         <properties>
                                             <property>
-                                                <code>screenCode</code>
+                                                <code>screenСode</code>
                                                 <value>cardActivate</value>
                                             </property>
                                         </properties>
@@ -1084,8 +1056,8 @@
                         <value>surface</value>
                     </style>
                 </styles>
-                <screenLayout title="Карта активации. Заголовок. Аппбар виджет">
-                    <screenLayoutCode>carriers_appbar</screenLayoutCode>
+                <screenLayout title="Карта активации. Заголовок">
+                    <screenLayoutCode>cardActivate_headline</screenLayoutCode>
                     <layoutCode>horizontal</layoutCode>
                     <screenLayoutIndex>1</screenLayoutIndex>
                     <properties>
@@ -1104,22 +1076,10 @@
                             <value>alignTop</value>
                         </style>
                     </styles>
-                    <screenLayoutWidget title="Карта активации. Заголовок. Аппбар виджет">
-                        <screenLayoutWidgetCode>carriers_appbar_widget</screenLayoutWidgetCode>
-                        <widgetCode>appbar</widgetCode>
+                    <screenLayoutWidget title="Карта активации. Заголовок. Текст виджет">
+                        <screenLayoutWidgetCode>cardActivate_headline_label_widget</screenLayoutWidgetCode>
+                        <widgetCode>label</widgetCode>
                         <properties>
-                            <property>
-                                <code>title</code>
-                                <value>Карта активации</value>
-                            </property>
-                            <property>
-                                <code>leftIconUrl</code>
-                                <value>previousScreen.svg</value>
-                            </property>
-                            <property>
-                                <code>scrollBehavior</code>
-                                <value>pinned</value>
-                            </property>
                             <property>
                                 <code>width</code>
                                 <value>fillMax</value>
@@ -1140,27 +1100,12 @@
                             </style>
                             <style>
                                 <code>alignmentStyle</code>
-                                <value>alignCenter</value>
+                                <value>alignLeft</value>
                             </style>
                         </styles>
-                        <events>
-                            <event>
-                                <event_code>onTap</event_code>
-                                <order>1</order>
-                                <eventActions>
-                                    <eventAction>
-                                        <code>previousScreen</code>
-                                        <order>1</order>
-                                        <properties>
-                                            <property>
-                                                <code>screenCode</code>
-                                                <value>cardActivate</value>
-                                            </property>
-                                        </properties>
-                                    </eventAction>
-                                </eventActions>
-                            </event>
-                        </events>
+                        <bindingProperties>
+                            <value>Карта активации</value>
+                        </bindingProperties>
                     </screenLayoutWidget>
                 </screenLayout>
                 <screenLayout title="Карта активации.  Меню действий">
@@ -1233,18 +1178,6 @@
                                     <code>alignmentStyle</code>
                                     <value>alignCenter</value>
                                 </style>
-                                <style>
-                                    <code>paddingStyle</code>
-                                    <value>padding16-12-16-12</value>
-                                </style>
-                                <style>
-                                    <code>roundStyle</code>
-                                    <value>radius16</value>
-                                </style>
-                                <style>
-                                    <code>backgroundColorStyle</code>
-                                    <value>secondary-container</value>
-                                </style>
                             </styles>
                         </screenLayoutWidget>
                     </screenLayout>
@@ -1297,18 +1230,6 @@
                                 <style>
                                     <code>alignmentStyle</code>
                                     <value>alignCenter</value>
-                                </style>
-                                <style>
-                                    <code>paddingStyle</code>
-                                    <value>padding16-12-16-12</value>
-                                </style>
-                                <style>
-                                    <code>roundStyle</code>
-                                    <value>radius16</value>
-                                </style>
-                                <style>
-                                    <code>backgroundColorStyle</code>
-                                    <value>secondary-container</value>
                                 </style>
                             </styles>
                         </screenLayoutWidget>

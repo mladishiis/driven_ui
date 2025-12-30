@@ -87,6 +87,7 @@ fun EventAction.mapToUiAction(): UiAction {
                 UiAction.Empty
             }
         }
+        "previousscreen" -> UiAction.Back
         else -> UiAction.Empty
     }
 }

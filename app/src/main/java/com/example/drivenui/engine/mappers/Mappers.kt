@@ -160,10 +160,11 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
     val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
     val textColor = getColorFromStyles(styleRegistry)
     return AppBarModel(
-        modifier = Modifier,
+        modifier = modifier,
         title = titleProperty,
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         iconLeftUrl = iconProperty,
+        tapAction = getOnTapEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
 }
