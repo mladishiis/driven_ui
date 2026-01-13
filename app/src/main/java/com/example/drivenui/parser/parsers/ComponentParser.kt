@@ -483,8 +483,10 @@ class ComponentParser {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
                         }
                         "eventActions" -> {
-                            // Пропускаем сложные action для простоты
-                            skipCurrentTag(parser)
+                            // Парсим блок eventActions
+                            val actions = parseEventActionsBlock(parser)
+                            eventActions.addAll(actions)
+                            Log.d("ComponentParser", "Добавлено действий: ${actions.size}")
                         }
                         else -> {
                             // Если это не тег event_code, возможно это просто текст события
@@ -520,6 +522,125 @@ class ComponentParser {
                 order = order,
                 eventActions = eventActions
             )
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Парсит блок eventActions с содержащимися в нем eventAction элементами
+     */
+    private fun parseEventActionsBlock(parser: XmlPullParser): List<EventAction> {
+        val eventActions = mutableListOf<EventAction>()
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "eventActions")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    if (parser.name == "eventAction") {
+                        parseEventAction(parser)?.let { eventActions.add(it) }
+                    } else {
+                        skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        Log.d("ComponentParser", "Всего eventActions в блоке: ${eventActions.size}")
+        return eventActions
+    }
+
+    /**
+     * Парсит один eventAction элемент
+     */
+    private fun parseEventAction(parser: XmlPullParser): EventAction? {
+        var code = ""
+        var order = 0
+        val properties = mutableMapOf<String, String>()
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "eventAction")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "code" -> {
+                            code = parser.nextText().trim()
+                            Log.d("ComponentParser", "Найден код действия: $code")
+                        }
+                        "order" -> {
+                            order = parser.nextText().trim().toIntOrNull() ?: 0
+                        }
+                        "properties" -> {
+                            // Парсим блок свойств действия
+                            parseEventActionProperties(parser, properties)
+                        }
+                        else -> {
+                            skipCurrentTag(parser)
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return if (code.isNotEmpty()) {
+            EventAction(
+                code = code,
+                order = order,
+                properties = properties
+            )
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Парсит свойства eventAction
+     */
+    private fun parseEventActionProperties(parser: XmlPullParser, properties: MutableMap<String, String>) {
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    if (parser.name == "property") {
+                        parseEventActionProperty(parser)?.let { (key, value) ->
+                            properties[key] = value
+                            Log.d("ComponentParser", "        Добавлено свойство действия: $key = $value")
+                        }
+                    } else {
+                        skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+        Log.d("ComponentParser", "        Всего свойств действия: ${properties.size}")
+    }
+
+    /**
+     * Парсит одно свойство eventAction
+     */
+    private fun parseEventActionProperty(parser: XmlPullParser): Pair<String, String>? {
+        var code = ""
+        var value = ""
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "property")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "code" -> code = parser.nextText().trim()
+                        "value" -> value = parser.nextText().trim()
+                        else -> skipCurrentTag(parser)
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return if (code.isNotEmpty()) {
+            Pair(code, value)
         } else {
             null
         }
@@ -569,7 +690,21 @@ class ComponentParser {
                 Log.d("ComponentTree", "$indent  событий: ${component.events.size}")
 
                 component.events.forEach { event ->
-                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}")
+                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}, order: ${event.order}")
+                    if (event.eventActions.isNotEmpty()) {
+                        Log.d("ComponentTree", "$indent      Действий: ${event.eventActions.size}")
+                        event.eventActions.forEach { action ->
+                            Log.d("ComponentTree", "$indent        Действие: ${action.code}, order: ${action.order}")
+                            if (action.properties.isNotEmpty()) {
+                                Log.d("ComponentTree", "$indent          Свойства: ${action.properties.size}")
+                                action.properties.forEach { (key, value) ->
+                                    Log.d("ComponentTree", "$indent            $key = $value")
+                                }
+                            } else {
+                                Log.d("ComponentTree", "$indent          Свойства: нет")
+                            }
+                        }
+                    }
                 }
 
                 component.properties.forEach { prop ->
@@ -588,10 +723,24 @@ class ComponentParser {
             is WidgetComponent -> {
                 Log.d("ComponentTree", "$indent[WIDGET] ${component.title} (${component.code})")
                 Log.d("ComponentTree", "$indent  widgetCode: ${component.widgetCode}")
-                Log.d("ComponentTree", "$indent  событий: ${component.events.size}") // Добавлено
+                Log.d("ComponentTree", "$indent  событий: ${component.events.size}")
 
                 component.events.forEach { event ->
-                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}") // Добавлено
+                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}, order: ${event.order}")
+                    if (event.eventActions.isNotEmpty()) {
+                        Log.d("ComponentTree", "$indent      Действий: ${event.eventActions.size}")
+                        event.eventActions.forEach { action ->
+                            Log.d("ComponentTree", "$indent        Действие: ${action.code}, order: ${action.order}")
+                            if (action.properties.isNotEmpty()) {
+                                Log.d("ComponentTree", "$indent          Свойства: ${action.properties.size}")
+                                action.properties.forEach { (key, value) ->
+                                    Log.d("ComponentTree", "$indent            $key = $value")
+                                }
+                            } else {
+                                Log.d("ComponentTree", "$indent          Свойства: нет")
+                            }
+                        }
+                    }
                 }
 
                 component.properties.forEach { prop ->
