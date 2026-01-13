@@ -10,7 +10,8 @@ import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigation
 class ActionHandler(
     private val navigationManager: ScreenNavigationManager,
     private val screenProvider: ScreenProvider,
-    private val contextManager: ScreenContextManager
+    private val contextManager: ScreenContextManager,
+    private val externalDeeplinkHandler: ExternalDeeplinkHandler
 ) {
 
     suspend fun handleAction(action: UiAction): ActionResult {
@@ -53,10 +54,17 @@ class ActionHandler(
 
     private suspend fun handleOpenDeeplink(deeplink: String): ActionResult {
         val screenModel = screenProvider.findScreenByDeeplink(deeplink)
-            ?: return ActionResult.Error("Screen not found for deeplink: $deeplink")
+        if (screenModel != null) {
+            navigationManager.pushScreen(ScreenState.fromDefinition(screenModel))
+            return ActionResult.Success
+        }
 
-        navigationManager.pushScreen(ScreenState.fromDefinition(screenModel))
-        return ActionResult.Success
+        val handled = externalDeeplinkHandler.handleExternalDeeplink(deeplink)
+        return if (handled) {
+            ActionResult.Success
+        } else {
+            ActionResult.Error("Deeplink not found: $deeplink")
+        }
     }
 
     private suspend fun handleRefreshScreen(screenCode: String): ActionResult {

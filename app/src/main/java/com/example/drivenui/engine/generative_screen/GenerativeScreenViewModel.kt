@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
+import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
 import com.example.drivenui.engine.generative_screen.action.ScreenProvider
 import com.example.drivenui.engine.generative_screen.context.ScreenContextManager
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
@@ -15,11 +16,16 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class GenerativeScreenViewModel() : ViewModel() {
+@HiltViewModel
+class GenerativeScreenViewModel @Inject constructor(
+    private val externalDeeplinkHandler: ExternalDeeplinkHandler
+) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
     private var allStyles: AllStyles? = null
@@ -47,7 +53,12 @@ class GenerativeScreenViewModel() : ViewModel() {
 
         screenMapper = ScreenMapper.create(allStyles, contextManager)
         screenProvider = ScreenProviderImpl(parsedScreens, screenMapper!!)
-        actionHandler = ActionHandler(navigationManager, screenProvider!!, contextManager)
+        actionHandler = ActionHandler(
+            navigationManager,
+            screenProvider!!,
+            contextManager,
+            externalDeeplinkHandler
+        )
 
         loadInitialScreen()
     }

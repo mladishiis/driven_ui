@@ -1,6 +1,8 @@
 package com.example.drivenui.di
 
 import android.content.Context
+import com.example.drivenui.engine.generative_screen.action.DefaultExternalDeeplinkHandler
+import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
 import com.example.drivenui.parser.SDUIParser
 import dagger.Module
 import dagger.Provides
@@ -27,4 +29,10 @@ object AppModule {
     fun provideSDUIParser(context: Context): SDUIParser {
         return SDUIParser(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideExternalDeeplinkHandler(
+        defaultHandler: DefaultExternalDeeplinkHandler
+    ): ExternalDeeplinkHandler = defaultHandler
 }
