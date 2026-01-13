@@ -534,7 +534,7 @@
     </allWidgets>
     <microapp title="Микроапп Таврида">
         <code>microappTavrida</code>
-        <shortСode>maT</shortСode>
+        <shortCode>maT</shortCode>
         <deeplink>https://www.online.vtb.ru/i/ma/maT/</deeplink>
         <persistents>
             <persistent></persistent>

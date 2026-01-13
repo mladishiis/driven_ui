@@ -174,7 +174,8 @@ class WidgetParser {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "event" -> {
-                            // Более сложная структура может быть в будущем
+                            // Важное исправление: используем nextText() только один раз
+                            // и не вызываем parser.next() внутри
                             val eventCode = parser.nextText().trim()
                             if (eventCode.isNotEmpty()) {
                                 val event = WidgetEvent(
@@ -183,6 +184,7 @@ class WidgetParser {
                                     eventActions = emptyList() // TODO: парсить actions если будут
                                 )
                                 events.add(event)
+                                Log.d("WidgetParser", "Добавлено событие: $eventCode")
                             }
                         }
                         else -> {
@@ -190,8 +192,59 @@ class WidgetParser {
                         }
                     }
                 }
+                XmlPullParser.TEXT -> {
+                    // Игнорируем текст между событиями (пробелы, переносы строк)
+                    val text = parser.text?.trim()
+                    if (text?.isNotEmpty() == true && !text.matches(Regex("\\s+"))) {
+                        Log.d("WidgetParser", "Найден неожиданный текст в events: $text")
+                    }
+                }
             }
             eventType = parser.next()
+        }
+
+        Log.d("WidgetParser", "Всего событий распарсено: ${events.size}")
+        return events
+    }
+
+    /**
+     * Альтернативный метод парсинга событий (более надежный)
+     */
+    private fun parseWidgetEventsAlternative(parser: XmlPullParser): List<WidgetEvent> {
+        val events = mutableListOf<WidgetEvent>()
+
+        // Читаем весь текст внутри events и разбиваем по строкам
+        var eventsText = ""
+        var eventType = parser.next()
+
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "events")) {
+            when (eventType) {
+                XmlPullParser.TEXT -> {
+                    eventsText += parser.text
+                }
+                XmlPullParser.START_TAG -> {
+                    if (parser.name == "event") {
+                        // Если события оформлены как отдельные теги
+                        val eventCode = parser.nextText().trim()
+                        if (eventCode.isNotEmpty()) {
+                            events.add(WidgetEvent(eventCode = eventCode, order = 0))
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        // Если не нашли событий в тегах, пытаемся найти в тексте
+        if (events.isEmpty() && eventsText.isNotEmpty()) {
+            val eventCodes = eventsText.trim()
+                .split('\n', '\r', ',')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.matches(Regex("\\s+")) }
+
+            eventCodes.forEachIndexed { index, eventCode ->
+                events.add(WidgetEvent(eventCode = eventCode, order = index))
+            }
         }
 
         return events

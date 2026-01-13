@@ -278,7 +278,7 @@ class ComponentParser {
                 widgetType = widgetType,
                 properties = properties,
                 styles = styles,
-                events = events,
+                events = events, // События виджета
                 bindingProperties = bindingProperties
             )
         } else {
@@ -407,7 +407,7 @@ class ComponentParser {
     }
 
     /**
-     * Парсит блок событий
+     * Парсит блок событий - ИСПРАВЛЕННАЯ ВЕРСИЯ
      */
     private fun parseEventsBlock(parser: XmlPullParser): List<WidgetEvent> {
         val events = mutableListOf<WidgetEvent>()
@@ -417,24 +417,119 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     if (parser.name == "event") {
-                        parseEvent(parser)?.let { events.add(it) }
+                        // Здесь нужно сначала проверить структуру события
+                        try {
+                            val event = parseEventWithComplexStructure(parser)
+                            if (event != null) {
+                                events.add(event)
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ComponentParser", "Ошибка при парсинге события со сложной структурой", e)
+                            // Попробуем простой вариант
+                            try {
+                                val eventCode = parser.nextText().trim()
+                                if (eventCode.isNotEmpty()) {
+                                    events.add(WidgetEvent(eventCode = eventCode))
+                                }
+                            } catch (e2: Exception) {
+                                Log.e("ComponentParser", "Ошибка при простом парсинге события", e2)
+                                skipCurrentTag(parser)
+                            }
+                        }
                     } else {
                         skipCurrentTag(parser)
+                    }
+                }
+                XmlPullParser.TEXT -> {
+                    // Если события представлены как текст между тегами
+                    val text = parser.text?.trim()
+                    if (text?.isNotEmpty() == true && !text.matches(Regex("\\s+"))) {
+                        Log.d("ComponentParser", "Найден текст в событиях: $text")
+                        // Разделяем по запятым или новым строкам
+                        text.split(',', '\n').forEach { eventText ->
+                            val trimmed = eventText.trim()
+                            if (trimmed.isNotEmpty()) {
+                                events.add(WidgetEvent(eventCode = trimmed))
+                            }
+                        }
                     }
                 }
             }
             eventType = parser.next()
         }
 
+        Log.d("ComponentParser", "Всего событий распарсено: ${events.size}")
         return events
     }
 
     /**
-     * Парсит одно событие
+     * Парсит сложную структуру события (с тегами внутри)
      */
-    private fun parseEvent(parser: XmlPullParser): WidgetEvent? {
-        // В простых виджетах события указаны как <event>onTap</event>
-        // Просто читаем текст между тегами
+    private fun parseEventWithComplexStructure(parser: XmlPullParser): WidgetEvent? {
+        var eventCode = ""
+        var order = 0
+        val eventActions = mutableListOf<EventAction>()
+
+        var eventType = parser.next()
+        while (!(eventType == XmlPullParser.END_TAG && parser.name == "event")) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (parser.name) {
+                        "event_code" -> {
+                            eventCode = parser.nextText().trim()
+                            Log.d("ComponentParser", "Найден event_code: $eventCode")
+                        }
+                        "order" -> {
+                            order = parser.nextText().trim().toIntOrNull() ?: 0
+                        }
+                        "eventActions" -> {
+                            // Пропускаем сложные action для простоты
+                            skipCurrentTag(parser)
+                        }
+                        else -> {
+                            // Если это не тег event_code, возможно это просто текст события
+                            if (eventCode.isEmpty()) {
+                                try {
+                                    eventCode = parser.nextText().trim()
+                                    Log.d("ComponentParser", "Найден текст события: $eventCode")
+                                } catch (e: Exception) {
+                                    Log.e("ComponentParser", "Ошибка чтения текста события", e)
+                                }
+                            } else {
+                                skipCurrentTag(parser)
+                            }
+                        }
+                    }
+                }
+                XmlPullParser.TEXT -> {
+                    val text = parser.text?.trim()
+                    if (text?.isNotEmpty() == true && !text.matches(Regex("\\s+"))) {
+                        if (eventCode.isEmpty()) {
+                            eventCode = text
+                            Log.d("ComponentParser", "Найден текст события из TEXT: $eventCode")
+                        }
+                    }
+                }
+            }
+            eventType = parser.next()
+        }
+
+        return if (eventCode.isNotEmpty()) {
+            WidgetEvent(
+                eventCode = eventCode,
+                order = order,
+                eventActions = eventActions
+            )
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Альтернативная версия - простое чтение события как текста
+     * Для формата: <event>onTap</event>
+     */
+    private fun parseSimpleEvent(parser: XmlPullParser): WidgetEvent? {
         return try {
             val eventCode = parser.nextText().trim()
             if (eventCode.isNotEmpty()) {
@@ -443,7 +538,7 @@ class ComponentParser {
                 null
             }
         } catch (e: Exception) {
-            Log.e("ComponentParser", "Ошибка парсинга события", e)
+            Log.e("ComponentParser", "Ошибка парсинга простого события", e)
             null
         }
     }
@@ -471,6 +566,11 @@ class ComponentParser {
                 Log.d("ComponentTree", "$indent[LAYOUT] ${component.title} (${component.code})")
                 Log.d("ComponentTree", "$indent  layoutCode: ${component.layoutCode}")
                 Log.d("ComponentTree", "$indent  children: ${component.children.size}")
+                Log.d("ComponentTree", "$indent  событий: ${component.events.size}")
+
+                component.events.forEach { event ->
+                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}")
+                }
 
                 component.properties.forEach { prop ->
                     if (prop.hasBindings) {
@@ -488,6 +588,11 @@ class ComponentParser {
             is WidgetComponent -> {
                 Log.d("ComponentTree", "$indent[WIDGET] ${component.title} (${component.code})")
                 Log.d("ComponentTree", "$indent  widgetCode: ${component.widgetCode}")
+                Log.d("ComponentTree", "$indent  событий: ${component.events.size}") // Добавлено
+
+                component.events.forEach { event ->
+                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}") // Добавлено
+                }
 
                 component.properties.forEach { prop ->
                     if (prop.hasBindings) {
