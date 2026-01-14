@@ -61,10 +61,6 @@ internal class OpenFileViewModel @Inject constructor(
                 handleLoadJsonFiles()
             }
 
-            OpenFileEvent.OnParseWithData -> {
-                handleParseWithData()
-            }
-
             is OpenFileEvent.OnSelectJsonFiles -> {
                 handleSelectJsonFiles(event.files)
             }
@@ -390,81 +386,6 @@ internal class OpenFileViewModel @Inject constructor(
     }
 
     /**
-     * Парсинг с тестовыми данными
-     */
-    private fun handleParseWithData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                withContext(Dispatchers.Main) {
-                    updateState { copy(isParsing = true, errorMessage = null) }
-                }
-
-                val files = interactor.getAvailableFiles()
-                val fileName = files.firstOrNull { it.endsWith(".xml") } ?: return@launch
-
-                Log.d("OpenFileViewModel", "Парсинг с тестовыми данными: $fileName")
-
-                // Используем новый метод для тестовых данных
-                val result = interactor.parseWithTestData(fileName)
-
-                withContext(Dispatchers.Main) {
-                    updateState {
-                        copy(
-                            isParsing = false,
-                            parsingResult = result,
-                            errorMessage = null
-                        )
-                    }
-                }
-
-                // Получаем разрешенные значения
-                val resolvedValues = interactor.getResolvedValues()
-
-                Log.d("OpenFileViewModel", "Разрешено значений: ${resolvedValues.size}")
-                resolvedValues.entries.take(3).forEach { (key, value) ->
-                    Log.d("OpenFileViewModel", "  $key = $value")
-                }
-
-                // Ищем экран carriers и проверяем биндинги
-                val carriersScreen = result.getScreenByCode("carriers")
-                if (carriersScreen != null) {
-                    Log.d("OpenFileViewModel", "=== Результаты биндингов для carriers ===")
-
-                    // Считаем биндинги в экране carriers
-                    val bindingCount = result.countAllBindings()
-                    val carriersBindingCount = countBindingsInScreen(carriersScreen)
-
-                    Log.d("OpenFileViewModel", "Всего биндингов в проекте: $bindingCount")
-                    Log.d("OpenFileViewModel", "Биндингов в экране carriers: $carriersBindingCount")
-
-                    // Получаем примеры разрешенных значений
-                    val carriersResolvedValues = resolvedValues.filterKeys { it.contains("carriers_list") }
-                    Log.d("OpenFileViewModel", "Разрешено для carriers: ${carriersResolvedValues.size}")
-
-                    carriersResolvedValues.forEach { (key, value) ->
-                        Log.d("OpenFileViewModel", "  $key = $value")
-                    }
-
-                    Log.d("OpenFileViewModel", "=======================================")
-                }
-
-                setEffect {
-                    OpenFileEffect.ShowSuccess(
-                        "Парсинг с тестовыми данными завершен\n" +
-                                "Биндингов разрешено: ${resolvedValues.size}\n" +
-                                (carriersScreen?.let { "Экран carriers найден и обработан" } ?: "")
-                    )
-                }
-
-            } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при парсинге с тестовыми данными", e)
-                updateState { copy(isParsing = false, errorMessage = e.localizedMessage) }
-                setEffect { OpenFileEffect.ShowError("Ошибка: ${e.localizedMessage}") }
-            }
-        }
-    }
-
-    /**
      * Показывает статистику по биндингам
      */
     private fun handleShowBindingStats() {
@@ -493,24 +414,6 @@ internal class OpenFileViewModel @Inject constructor(
         var count = 1 // текущий компонент
         component.children.forEach { child ->
             count += countComponents(child)
-        }
-        return count
-    }
-
-    /**
-     * Считает количество биндингов в экране
-     */
-    private fun countBindingsInScreen(screen: com.example.drivenui.parser.models.ParsedScreen): Int {
-        return screen.rootComponent?.let { countBindingsInComponent(it) } ?: 0
-    }
-
-    /**
-     * Считает количество биндингов в компоненте (рекурсивно)
-     */
-    private fun countBindingsInComponent(component: com.example.drivenui.parser.models.Component): Int {
-        var count = component.bindingProperties.size
-        component.children.forEach { child ->
-            count += countBindingsInComponent(child)
         }
         return count
     }

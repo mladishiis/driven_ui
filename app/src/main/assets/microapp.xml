@@ -706,7 +706,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>Крымтроллейбус</value>
+                                        <value>${carriers_list[0].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -765,7 +765,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>Авангард</value>
+                                        <value>${carriers_list[1].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -824,7 +824,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>АТП-2008</value>
+                                        <value>${carriers_list[2].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -883,7 +883,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>Бахчисарайское АТП №14340</value>
+                                        <value>${carriers_list[3].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -942,7 +942,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>Большой мир</value>
+                                        <value>${carriers_list[4].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>

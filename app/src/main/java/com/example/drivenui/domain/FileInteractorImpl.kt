@@ -177,67 +177,6 @@ internal class FileInteractorImpl @Inject constructor(
         }
     }
 
-    /**
-     * НОВЫЙ МЕТОД: Парсинг с тестовыми данными для carriers
-     */
-    override suspend fun parseWithTestData(fileName: String): SDUIParser.ParsedMicroappResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d("FileInteractor", "Парсинг с тестовыми данными: $fileName")
-
-                // Создаем тестовые данные для carriers_allCarriers
-                val testCarriersData = JSONArray().apply {
-                    for (i in 0..4) {
-                        put(JSONObject().apply {
-                            put("carrierName", "Тестовый перевозчик ${i + 1}")
-                            put("id", "test_carrier_$i")
-                            put("status", "test")
-                            put("rating", (i + 3).toFloat() / 2)
-                        })
-                    }
-                }
-
-                // Создаем тестовые данные для userProfile
-                val testUserProfile = mapOf(
-                    "name" to "Иван Тестовый",
-                    "email" to "test@example.com",
-                    "userId" to "user_12345"
-                )
-
-                val result = parserNew.parseWithDataBinding(
-                    fileName = fileName,
-                    queryResults = mapOf("userProfile" to testUserProfile),
-                    screenQueryResults = mapOf("carriers_allCarriers" to testCarriersData)
-                )
-
-                Log.d("FileInteractor", "Парсинг с тестовыми данными завершен")
-
-                // Логируем результаты биндингов
-                val carriersScreen = result.getScreenByCode("carriers")
-                if (carriersScreen != null) {
-                    Log.d("FileInteractor", "=== Результаты биндингов для carriers ===")
-                    val components = parserNew.findComponentsWithBindings(carriersScreen)
-                    components.forEach { component ->
-                        val bindings = parserNew.getComponentBindings(component)
-                        if (bindings.isNotEmpty()) {
-                            Log.d("FileInteractor", "Компонент: ${component.code}")
-                            bindings.forEach { (property, value) ->
-                                Log.d("FileInteractor", "  $property = $value")
-                            }
-                        }
-                    }
-                    Log.d("FileInteractor", "=======================================")
-                }
-
-                lastParsedResult = result
-                result
-            } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при парсинге с тестовыми данными", e)
-                throw e
-            }
-        }
-    }
-
     override fun getAvailableFiles(): List<String> {
         return try {
             // Получаем список файлов из assets

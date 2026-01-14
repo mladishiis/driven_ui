@@ -288,25 +288,6 @@ internal fun OpenFileScreen(
                                 }
                             }
                         }
-
-                        // Кнопка парсинга с данными
-                        OutlinedButton(
-                            onClick = { onEvent(OpenFileEvent.OnParseWithData) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isUploadFile
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Build,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text("Парсинг с тестовыми данными")
-                            }
-                        }
                     }
 
                     // Кнопки работы с результатом

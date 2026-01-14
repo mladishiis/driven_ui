@@ -2,14 +2,31 @@ package com.example.drivenui.parser
 
 import android.content.Context
 import android.util.Log
-import com.example.drivenui.parser.binding.*
-import com.example.drivenui.parser.models.*
-import com.example.drivenui.parser.parsers.*
+import com.example.drivenui.parser.binding.BindingEngine
+import com.example.drivenui.parser.binding.JsonDataLoader
+import com.example.drivenui.parser.models.AllEventActions
+import com.example.drivenui.parser.models.AllEvents
+import com.example.drivenui.parser.models.AllStyles
+import com.example.drivenui.parser.models.ColorStyle
+import com.example.drivenui.parser.models.Component
+import com.example.drivenui.parser.models.DataContext
+import com.example.drivenui.parser.models.Layout
+import com.example.drivenui.parser.models.Microapp
+import com.example.drivenui.parser.models.ParsedScreen
+import com.example.drivenui.parser.models.Query
+import com.example.drivenui.parser.models.ScreenQuery
+import com.example.drivenui.parser.models.TextStyle
+import com.example.drivenui.parser.models.Widget
+import com.example.drivenui.parser.parsers.ComponentParser
+import com.example.drivenui.parser.parsers.EventParser
+import com.example.drivenui.parser.parsers.LayoutParser
+import com.example.drivenui.parser.parsers.MicroappParser
+import com.example.drivenui.parser.parsers.QueryParser
+import com.example.drivenui.parser.parsers.ScreenQueryParser
+import com.example.drivenui.parser.parsers.StyleParser
+import com.example.drivenui.parser.parsers.WidgetParser
 import org.json.JSONArray
 import org.json.JSONObject
-import org.w3c.dom.Element
-import java.io.StringReader
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
@@ -58,41 +75,11 @@ class SDUIParser(private val context: Context) {
         }
 
         /**
-         * Проверяет, есть ли в результате микроапп
-         */
-        fun hasMicroapp(): Boolean = microapp != null
-
-        /**
-         * Проверяет, есть ли в результате экраны
-         */
-        fun hasScreens(): Boolean = screens.isNotEmpty()
-
-        /**
-         * Проверяет, есть ли в результате стили
-         */
-        fun hasStyles(): Boolean = styles != null
-
-        /**
-         * Проверяет, есть ли в результате события
-         */
-        fun hasEvents(): Boolean = events?.events?.isNotEmpty() == true
-
-        /**
-         * Проверяет, есть ли в результате действия событий
-         */
-        fun hasEventActions(): Boolean = eventActions?.eventActions?.isNotEmpty() == true
-
-        /**
          * Получает экран по коду
          */
         fun getScreenByCode(screenCode: String): ParsedScreen? {
             return screens.firstOrNull { it.screenCode == screenCode }
         }
-
-        /**
-         * Получает первый экран
-         */
-        fun getFirstScreen(): ParsedScreen? = screens.firstOrNull()
 
         /**
          * Получает текстовые стили
@@ -103,21 +90,6 @@ class SDUIParser(private val context: Context) {
          * Получает цветовые стили
          */
         fun getColorStyles(): List<ColorStyle> = styles?.colorStyles ?: emptyList()
-
-        /**
-         * Получает скругления
-         */
-        fun getRoundStyles(): List<RoundStyle> = styles?.roundStyles ?: emptyList()
-
-        /**
-         * Получает отступы
-         */
-        fun getPaddingStyles(): List<PaddingStyle> = styles?.paddingStyles ?: emptyList()
-
-        /**
-         * Получает выравнивания
-         */
-        fun getAlignmentStyles(): List<AlignmentStyle> = styles?.alignmentStyles ?: emptyList()
 
         /**
          * Подсчитывает общее количество компонентов во всех экранах
@@ -253,34 +225,6 @@ class SDUIParser(private val context: Context) {
             component.children.forEach { child ->
                 collectResolvedValues(child, values)
             }
-        }
-
-        /**
-         * Находит компонент по коду
-         */
-        fun findComponent(screenCode: String, componentCode: String): Component? {
-            val screen = getScreenByCode(screenCode) ?: return null
-            return findComponentRecursive(screen.rootComponent, componentCode)
-        }
-
-        private fun findComponentRecursive(component: Component?, targetCode: String): Component? {
-            if (component == null) return null
-            if (component.code == targetCode) return component
-            return component.children.firstNotNullOfOrNull {
-                findComponentRecursive(it, targetCode)
-            }
-        }
-
-        /**
-         * Получает разрешенное значение свойства
-         */
-        fun getResolvedPropertyValue(
-            screenCode: String,
-            componentCode: String,
-            propertyCode: String
-        ): String {
-            val component = findComponent(screenCode, componentCode) ?: return ""
-            return component.properties.find { it.code == propertyCode }?.resolvedValue ?: ""
         }
     }
 
@@ -542,121 +486,6 @@ class SDUIParser(private val context: Context) {
     }
 
     /**
-     * Динамическое обновление данных экрана
-     */
-    fun updateScreenData(
-        screen: ParsedScreen,
-        newData: Map<String, Any>,
-        updateType: BindingSourceType = BindingSourceType.SCREEN_QUERY_RESULT
-    ): ParsedScreen {
-        return try {
-            // Создаем базовый контекст
-            val baseContext = DataContext()
-
-            // Обновляем контекст в зависимости от типа
-            val updatedContext = when (updateType) {
-                BindingSourceType.SCREEN_QUERY_RESULT -> baseContext.copy(screenQueryResults = newData)
-                BindingSourceType.QUERY_RESULT -> baseContext.copy(queryResults = newData)
-                BindingSourceType.JSON_FILE -> {
-                    // Фильтруем только JSONArray для jsonSources
-                    val jsonArrays = newData.filterValues { it is JSONArray } as Map<String, JSONArray>
-                    baseContext.copy(jsonSources = jsonArrays)
-                }
-                BindingSourceType.APP_STATE -> baseContext.copy(appState = newData)
-                BindingSourceType.LOCAL_VAR -> baseContext.copy(localVariables = newData)
-                else -> baseContext
-            }
-
-            bindScreen(screen, updatedContext)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при обновлении данных экрана", e)
-            screen
-        }
-    }
-
-    /**
-     * Специальный метод для парсинга экрана carriers с mock данными
-     */
-    fun parseCarriersScreenWithMockData(): ParsedScreen? {
-        return try {
-            // Создаем mock данные для carriers_allCarriers
-            val mockCarriersData = JSONArray().apply {
-                for (i in 0..4) {
-                    put(JSONObject().apply {
-                        put("carrierName", "Перевозчик ${i + 1}")
-                        put("id", "carrier_$i")
-                        put("status", "active")
-                    })
-                }
-            }
-
-            // Парсим с mock данными
-            val result = parseWithDataBinding(
-                fileName = "microapp.xml",
-                screenQueryResults = mapOf(
-                    "carriers_allCarriers" to mockCarriersData
-                )
-            )
-
-            val carriersScreen = result.getScreenByCode("carriers")
-
-            if (carriersScreen != null) {
-                Log.d("SDUIParser", "Найден экран carriers")
-
-                // Проверяем биндинги
-                carriersScreen.rootComponent?.let { root ->
-                    val bindingCount = countBindingsInComponent(root)
-                    Log.d("SDUIParser", "Биндингов в экране carriers: $bindingCount")
-
-                    // Выводим значения
-                    result.getResolvedValues().forEach { (key, value) ->
-                        if (key.contains("carriers_list")) {
-                            Log.d("SDUIParser", "Разрешенное значение $key: $value")
-                        }
-                    }
-                }
-            }
-
-            carriersScreen
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге экрана carriers с mock данными", e)
-            null
-        }
-    }
-
-    /**
-     * Находит все компоненты с биндингами в экране
-     */
-    fun findComponentsWithBindings(screen: ParsedScreen): List<Component> {
-        val components = mutableListOf<Component>()
-
-        fun searchComponents(component: Component) {
-            if (component.properties.any { it.hasBindings }) {
-                components.add(component)
-            }
-            component.children.forEach { child ->
-                searchComponents(child)
-            }
-        }
-
-        screen.rootComponent?.let { searchComponents(it) }
-        return components
-    }
-
-    /**
-     * Получает значения биндингов для компонента
-     */
-    fun getComponentBindings(component: Component): Map<String, String> {
-        val bindings = mutableMapOf<String, String>()
-        component.properties.forEach { property ->
-            if (property.hasBindings) {
-                bindings[property.code] = property.resolvedValue
-            }
-        }
-        return bindings
-    }
-
-    /**
      * Парсит список query из XML
      */
     private fun parseQueriesFromFullXml(xmlContent: String): List<Query> {
@@ -748,40 +577,6 @@ class SDUIParser(private val context: Context) {
             eventParser.parseEventActions(xmlContent)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге действий событий", e)
-            null
-        }
-    }
-
-    /**
-     * Вспомогательная функция для извлечения блока XML
-     */
-    private inline fun <T> extractAndParseBlock(
-        xmlContent: String,
-        blockName: String,
-        parser: (String) -> T
-    ): T? {
-        return try {
-            val startTag = "<$blockName>"
-            val endTag = "</$blockName>"
-
-            val startIndex = xmlContent.indexOf(startTag)
-            if (startIndex == -1) {
-                Log.d("SDUIParser", "Блок <$blockName> не найден в XML")
-                return null
-            }
-
-            val endIndex = xmlContent.indexOf(endTag, startIndex)
-            if (endIndex == -1) {
-                Log.w("SDUIParser", "Не найден закрывающий тег для блока <$blockName>")
-                return null
-            }
-
-            val blockContent = xmlContent.substring(startIndex, endIndex + endTag.length)
-            Log.d("SDUIParser", "Извлечен блок <$blockName>, размер: ${blockContent.length} символов")
-
-            parser(blockContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при извлечении и парсинге блока <$blockName>", e)
             null
         }
     }

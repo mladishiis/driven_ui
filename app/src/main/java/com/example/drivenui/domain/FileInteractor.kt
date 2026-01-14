@@ -108,7 +108,5 @@ interface FileInteractor {
         screenQueryResults: Map<String, Any>
     ): SDUIParser.ParsedMicroappResult
 
-    suspend fun parseWithTestData(fileName: String): SDUIParser.ParsedMicroappResult
-
     suspend fun loadJsonFileAsArray(fileName: String): JSONArray?
 }

@@ -32,9 +32,6 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Загрузить JSON файлы */
     data object OnLoadJsonFiles : OpenFileEvent
 
-    /** Парсить с данными */
-    data object OnParseWithData : OpenFileEvent
-
     /** Выбрать JSON файлы */
     data class OnSelectJsonFiles(val files: List<String>) : OpenFileEvent
 }
