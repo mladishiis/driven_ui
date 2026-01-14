@@ -106,18 +106,4 @@ class BindingParser {
             expression.trim() to ""
         }
     }
-
-    /**
-     * Проверяет, содержит ли строка биндинги
-     */
-    fun hasBindings(value: String): Boolean {
-        return value.contains("\${")
-    }
-
-    /**
-     * Извлекает имена всех источников из строки
-     */
-    fun extractSourceNames(value: String): List<String> {
-        return parseBindings(value).map { it.sourceName }.distinct()
-    }
 }

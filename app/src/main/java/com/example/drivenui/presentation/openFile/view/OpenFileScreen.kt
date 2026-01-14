@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
@@ -259,34 +257,6 @@ internal fun OpenFileScreen(
                                 text = if (state.hasParsingResult) "Повторно загрузить файл" else "Загрузить и спарсить файл",
                                 fontSize = 16.sp
                             )
-                        }
-
-                        // Кнопка загрузки с биндингами
-                        if (state.selectedJsonFiles.isNotEmpty()) {
-                            Button(
-                                onClick = { onEvent(OpenFileEvent.OnUploadFileWithBindings) },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !state.isUploadFile,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.DataUsage,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = "Загрузить с биндингами",
-                                        fontSize = 16.sp
-                                    )
-                                }
-                            }
                         }
                     }
 

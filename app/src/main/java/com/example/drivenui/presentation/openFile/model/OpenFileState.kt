@@ -14,9 +14,6 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Жмак по кнопке Загрузить файл */
     data object OnUploadFile : OpenFileEvent
 
-    /** Жмак по кнопке Загрузить файл с биндингами */
-    data object OnUploadFileWithBindings : OpenFileEvent
-
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
 

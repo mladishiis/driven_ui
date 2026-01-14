@@ -2,8 +2,6 @@ package com.example.drivenui.parser
 
 import android.content.Context
 import android.util.Log
-import com.example.drivenui.parser.binding.BindingEngine
-import com.example.drivenui.parser.binding.JsonDataLoader
 import com.example.drivenui.parser.models.AllEventActions
 import com.example.drivenui.parser.models.AllEvents
 import com.example.drivenui.parser.models.AllStyles
@@ -25,8 +23,6 @@ import com.example.drivenui.parser.parsers.QueryParser
 import com.example.drivenui.parser.parsers.ScreenQueryParser
 import com.example.drivenui.parser.parsers.StyleParser
 import com.example.drivenui.parser.parsers.WidgetParser
-import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
@@ -41,8 +37,6 @@ class SDUIParser(private val context: Context) {
     private val widgetParser = WidgetParser()
     private val layoutParser = LayoutParser()
     private val componentParser = ComponentParser()
-    private val bindingEngine = BindingEngine()
-    private val jsonDataLoader = JsonDataLoader(context)
 
     /**
      * Результат парсинга с новой структурой
@@ -241,152 +235,6 @@ class SDUIParser(private val context: Context) {
             Log.e("SDUIParser", "Ошибка при загрузке файла из assets: $fileName", e)
             ParsedMicroappResult()
         }
-    }
-
-    /**
-     * Парсит микроапп с поддержкой данных и макросов (исправленная версия)
-     */
-    fun parseWithDataBinding(
-        fileName: String,
-        jsonFileNames: List<String> = emptyList(),
-        queryResults: Map<String, Any> = emptyMap(),
-        screenQueryResults: Map<String, Any> = emptyMap(),
-        appState: Map<String, Any> = emptyMap(),
-        localVariables: Map<String, Any> = emptyMap()
-    ): ParsedMicroappResult {
-        return try {
-            Log.d("SDUIParser", "Парсинг с data binding: $fileName")
-            Log.d("SDUIParser", "JSON файлы: $jsonFileNames")
-
-            // Базовый парсинг XML
-            val baseResult = parseFromAssetsNew(fileName)
-
-            if (baseResult.screens.isEmpty()) {
-                Log.e("SDUIParser", "Не найдены экраны в результате парсинга")
-                return baseResult
-            }
-
-            // Загружаем JSON данные
-            val jsonData = jsonDataLoader.loadJsonFiles(jsonFileNames)
-
-            // Конвертируем Map<String, Any> в Map<String, JSONArray> для DataContext
-            val jsonArrays = mutableMapOf<String, JSONArray>()
-            jsonData.forEach { (key, value) ->
-                when (value) {
-                    is JSONArray -> jsonArrays[key] = value
-                    is JSONObject -> {
-                        // Если это JSONObject, проверяем, есть ли в нем массивы
-                        // и добавляем их как отдельные источники
-                        value.keys().forEach { objKey ->
-                            val objValue = value.get(objKey)
-                            if (objValue is JSONArray) {
-                                // Используем комбинированный ключ: fileName.objectKey
-                                jsonArrays["$key.$objKey"] = objValue
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Логируем screen queries для отладки
-            Log.d("SDUIParser", "ScreenQueries из XML: ${baseResult.screenQueries.size}")
-            baseResult.screenQueries.forEach { screenQuery ->
-                Log.d("SDUIParser", "  - ${screenQuery.code} -> ${screenQuery.queryCode} для экрана ${screenQuery.screenCode}")
-            }
-
-            // Создаем контекст данных с screenQueryResults
-            val dataContext = DataContext(
-                jsonSources = jsonArrays,
-                queryResults = queryResults,
-                screenQueryResults = screenQueryResults,
-                appState = appState,
-                localVariables = localVariables
-            )
-
-            // Применяем биндинги ко всем экранам
-            val boundScreens = baseResult.screens.map { screen ->
-                try {
-                    val boundScreen = bindScreen(screen, dataContext)
-                    // Проверяем результат биндинга
-                    boundScreen.rootComponent?.let { root ->
-                        val bindingCount = countBindingsInComponent(root)
-                        val resolvedCount = countResolvedBindings(root)
-                        Log.d("SDUIParser", "Экран ${screen.screenCode}: применено $resolvedCount из $bindingCount биндингов")
-                    }
-                    boundScreen
-                } catch (e: Exception) {
-                    Log.e("SDUIParser", "Ошибка при биндинге экрана ${screen.screenCode}", e)
-                    screen // Возвращаем исходный экран в случае ошибки
-                }
-            }
-
-            Log.d("SDUIParser", "Биндинг данных завершен: ${boundScreens.size} экранов")
-
-            baseResult.copy(
-                screens = boundScreens,
-                dataContext = dataContext
-            )
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге с data binding", e)
-            ParsedMicroappResult()
-        }
-    }
-
-    /**
-     * Биндит данные к экрану (улучшенная версия с отладкой)
-     */
-    private fun bindScreen(
-        screen: ParsedScreen,
-        context: DataContext
-    ): ParsedScreen {
-        return try {
-            if (screen.rootComponent == null) {
-                Log.w("SDUIParser", "Экран ${screen.screenCode} не имеет корневого компонента")
-                return screen
-            }
-
-            // Проверяем, есть ли биндинги в экране
-            val bindingCount = countBindingsInComponent(screen.rootComponent)
-            if (bindingCount == 0) {
-                Log.d("SDUIParser", "Экран ${screen.screenCode}: биндинги не найдены")
-                return screen
-            }
-
-            Log.d("SDUIParser", "Экран ${screen.screenCode}: найдено $bindingCount биндингов")
-
-            // Применяем биндинги
-            val boundComponent = bindingEngine.bindComponent(screen.rootComponent, context)
-
-            // Проверяем результат
-            val resolvedBindings = countResolvedBindings(boundComponent)
-            Log.d("SDUIParser", "Экран ${screen.screenCode}: разрешено $resolvedBindings из $bindingCount биндингов")
-
-            screen.copy(rootComponent = boundComponent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при биндинге экрана ${screen.screenCode}", e)
-            screen
-        }
-    }
-
-    /**
-     * Подсчитывает разрешенные биндинги в компоненте
-     */
-    private fun countResolvedBindings(component: Component): Int {
-        var resolved = 0
-
-        fun countRecursive(comp: Component) {
-            comp.properties.forEach { property ->
-                if (property.hasBindings && property.resolvedValue != property.rawValue) {
-                    resolved++
-                }
-            }
-            comp.children.forEach { child ->
-                countRecursive(child)
-            }
-        }
-
-        countRecursive(component)
-        return resolved
     }
 
     /**

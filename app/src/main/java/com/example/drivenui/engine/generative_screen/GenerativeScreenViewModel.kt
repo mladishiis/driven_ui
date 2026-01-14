@@ -24,7 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GenerativeScreenViewModel @Inject constructor(
-    private val externalDeeplinkHandler: ExternalDeeplinkHandler
+    private val externalDeeplinkHandler: ExternalDeeplinkHandler,
+    //private val requestInteractor: RequestInteractor,
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
@@ -68,7 +69,10 @@ class GenerativeScreenViewModel @Inject constructor(
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
+            // получили данные
             val screenModel = mapper.mapToScreenModel(firstScreen)
+            // биндинг данных
+            //val goodData = requestInteractor. (screenModel)
             navigateToScreen(screenModel)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")

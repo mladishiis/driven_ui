@@ -4,11 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.example.drivenui.data.FileRepository
 import com.example.drivenui.parser.SDUIParser
-import com.example.drivenui.parser.models.ParsedScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONObject
 import javax.inject.Inject
 
 /**
@@ -23,36 +21,15 @@ internal class FileInteractorImpl @Inject constructor(
     private val parserNew = SDUIParser(context)
 
     override suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroappResult {
-        return parseFileFromAssets(fileName, emptyList())
-    }
-
-    /**
-     * НОВЫЙ МЕТОД: Парсинг с поддержкой JSON данных для биндингов
-     */
-    override suspend fun parseFileFromAssets(
-        fileName: String,
-        jsonFileNames: List<String>
-    ): SDUIParser.ParsedMicroappResult {
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("FileInteractor", "Начинаем парсинг файла из assets: $fileName")
-                Log.d("FileInteractor", "JSON файлы для биндингов: $jsonFileNames")
 
-                // Вариант 1: Если есть JSON файлы - используем parseWithDataBinding
-                val result = if (jsonFileNames.isNotEmpty()) {
-                    parserNew.parseWithDataBinding(
-                        fileName = fileName,
-                        jsonFileNames = jsonFileNames
-                    ).also {
-                        Log.d("FileInteractor", "Использован parseWithDataBinding с биндингами")
-                        logBindingResults(it)
-                    }
-                } else {
-                    // Вариант 2: Если нет JSON файлов - обычный парсинг
+                val result =
                     parserNew.parseFromAssetsNew(fileName).also {
                         Log.d("FileInteractor", "Использован parseFromAssetsNew (без биндингов)")
                     }
-                }
+
 
                 // Проверяем результат парсинга
                 if (result.screens.isEmpty() && result.microapp == null) {
@@ -68,110 +45,6 @@ internal class FileInteractorImpl @Inject constructor(
                 result
             } catch (e: Exception) {
                 Log.e("FileInteractor", "Ошибка при парсинге файла $fileName", e)
-                throw e
-            }
-        }
-    }
-
-    /**
-     * НОВЫЙ МЕТОД: Парсинг специфичного экрана с данными (например, carriers)
-     */
-    override suspend fun parseCarriersScreenWithData(): ParsedScreen? {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d("FileInteractor", "Парсинг экрана carriers с данными JSON")
-
-                // Создаем mock данные для carriers_allCarriers
-                val mockCarriersData = JSONArray().apply {
-                    for (i in 0..4) {
-                        put(JSONObject().apply {
-                            put("carrierName", "Перевозчик ${i + 1}")
-                            put("id", "carrier_$i")
-                            put("status", "active")
-                        })
-                    }
-                }
-
-                // Парсим с mock данными
-                val result = parserNew.parseWithDataBinding(
-                    fileName = "microapp.xml",
-                    screenQueryResults = mapOf("carriers_allCarriers" to mockCarriersData)
-                )
-
-                val carriersScreen = result.getScreenByCode("carriers")
-
-                if (carriersScreen != null) {
-                    Log.d("FileInteractor", "Экран carriers успешно найден и обработан")
-
-                    // Проверяем биндинги
-                    carriersScreen.rootComponent?.let { root ->
-                        val bindingCount = parserNew.countBindingsInComponent(root)
-                        Log.d("FileInteractor", "Биндингов в экране carriers: $bindingCount")
-
-                        // Выводим значения
-                        result.getResolvedValues().forEach { (key, value) ->
-                            if (key.contains("carriers_list")) {
-                                Log.d("FileInteractor", "Разрешенное значение $key: $value")
-                            }
-                        }
-                    }
-                } else {
-                    Log.w("FileInteractor", "Экран carriers не найден или не удалось обработать")
-                }
-
-                // Обновляем последний результат
-                lastParsedResult = result
-
-                carriersScreen
-            } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при парсинге экрана carriers", e)
-                null
-            }
-        }
-    }
-
-    /**
-     * НОВЫЙ МЕТОД: Парсинг с кастомными данными для биндингов
-     */
-    override suspend fun parseWithCustomData(
-        fileName: String,
-        jsonData: Map<String, String>,
-        queryResults: Map<String, Any>,
-        screenQueryResults: Map<String, Any>
-    ): SDUIParser.ParsedMicroappResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                Log.d("FileInteractor", "Парсинг с кастомными данными: $fileName")
-                Log.d("FileInteractor", "JSON данных: ${jsonData.size}, Query результатов: ${queryResults.size}, ScreenQuery результатов: ${screenQueryResults.size}")
-
-                // Преобразуем jsonData в JSONArray для загрузки
-                val jsonArrays = mutableMapOf<String, JSONArray>()
-                jsonData.forEach { (key, jsonString) ->
-                    try {
-                        jsonArrays[key] = JSONArray(jsonString)
-                    } catch (e: Exception) {
-                        Log.e("FileInteractor", "Ошибка преобразования JSON для ключа $key", e)
-                    }
-                }
-
-                val result = parserNew.parseWithDataBinding(
-                    fileName = fileName,
-                    jsonFileNames = emptyList(), // Используем контекст вместо файлов
-                    queryResults = queryResults,
-                    screenQueryResults = screenQueryResults,
-                    appState = emptyMap(),
-                    localVariables = jsonArrays // Используем localVariables для JSON данных
-                )
-
-                Log.d("FileInteractor", "Парсинг с кастомными данными завершен")
-                logBindingResults(result)
-
-                // Сохраняем результат
-                lastParsedResult = result
-
-                result
-            } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при парсинге с кастомными данными", e)
                 throw e
             }
         }
