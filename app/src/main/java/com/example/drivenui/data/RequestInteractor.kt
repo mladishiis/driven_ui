@@ -6,9 +6,15 @@ import com.example.drivenui.engine.generative_screen.binding.DataBinder
 import com.example.drivenui.engine.generative_screen.binding.DataBindingParser
 import com.example.drivenui.engine.generative_screen.binding.DataContextProvider
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.uirender.models.AppBarModel
+import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.parser.models.Component
-import com.example.drivenui.parser.models.ComponentProperty
+import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
+import com.example.drivenui.engine.uirender.models.LabelModel
+import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.parser.models.BindingSourceType
+import com.google.gson.JsonElement
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,173 +35,133 @@ class RequestInteractor @Inject constructor(
     ): ScreenModel {
         Log.d(TAG, "Processing screen: ${screenModel.id}")
 
-        // 1. Загружаем необходимые JSON файлы из assets
-        loadRequiredJsonFiles(screenModel)
+        // Очищаем предыдущий контекст
+        dataContextProvider.clear()
 
-        // 2. Добавляем предзагруженные данные
+        // 1. Загружаем необходимые JSON файлы из ScreenQuery
+        loadScreenQueryJsonFiles(screenModel)
+
+        // 2. Также загружаем JSON файлы из биндингов компонентов
+        loadComponentBindingsJsonFiles(screenModel)
+
+        // 3. Добавляем предзагруженные данные
         preloadedData.forEach { (key, value) ->
-            dataContextProvider.addQueryResult(key, value)
+            when (value) {
+                is JsonElement -> dataContextProvider.addScreenQueryResult(key, value)
+                is String -> dataContextProvider.addScreenQueryResult(key, value)
+                else -> dataContextProvider.addQueryResult(key, value)
+            }
         }
 
-        // 3. Получаем контекст и логируем его
-        val dataContext = dataContextProvider.getDataContext()
-        Log.d(TAG, "DataContext: ${dataContext.jsonSources.keys}")
+        // 4. Отладочная информация
+        dataContextProvider.debugInfo()
 
-        // 4. Применяем биндинги данных
-        return dataBinder.applyBindings(screenModel, dataContext)
+        // 5. Применяем биндинги данных
+        return dataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
     }
 
     /**
-     * Обрабатывает компонент парсера для извлечения биндингов
+     * Загружает JSON файлы из ScreenQuery
      */
-    fun processParsedComponent(component: Component): Component {
-        return when (component) {
-            is com.example.drivenui.parser.models.LayoutComponent -> {
-                processParsedLayoutComponent(component)
+    private fun loadScreenQueryJsonFiles(screenModel: ScreenModel) {
+        screenModel.requests.forEach { screenQuery ->
+            // Используем mockFile из ScreenQuery для загрузки данных
+            screenQuery.mockFile?.let { fileName ->
+                Log.d(TAG, "Loading mock file from ScreenQuery: $fileName for query: ${screenQuery.code}")
+
+                try {
+                    val jsonString = appContext.assets.open(fileName).bufferedReader().use { it.readText() }
+                    Log.d(TAG, "Loaded JSON string (${jsonString.length} chars) for: ${screenQuery.code}")
+
+                    // Парсим JSON
+                    val jsonData = com.google.gson.JsonParser.parseString(jsonString)
+
+                    // Добавляем как SCREEN_QUERY_RESULT
+                    dataContextProvider.addScreenQueryResult(screenQuery.code, jsonData)
+
+                    Log.d(TAG, "Successfully loaded mock data for: ${screenQuery.code}")
+                    Log.d(TAG, "Data structure: $jsonData (${jsonData::class.simpleName})")
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to load mock file: $fileName for query: ${screenQuery.code}", e)
+                }
             }
-            is com.example.drivenui.parser.models.WidgetComponent -> {
-                processParsedWidgetComponent(component)
-            }
-            else -> component
         }
     }
 
     /**
-     * Загружает необходимые JSON файлы, упомянутые в биндингах
+     * Загружает JSON файлы из биндингов компонентов
      */
-    private fun loadRequiredJsonFiles(screenModel: ScreenModel) {
-        Log.d(TAG, "Loading required JSON files")
-
-        val jsonSources = extractJsonSourceNames(screenModel.rootComponent)
-        Log.d(TAG, "Found JSON sources: $jsonSources")
+    private fun loadComponentBindingsJsonFiles(screenModel: ScreenModel) {
+        val jsonSources = extractJsonSourceNamesFromBindings(screenModel.rootComponent)
+        Log.d(TAG, "Found JSON sources from bindings: $jsonSources")
 
         jsonSources.forEach { sourceName ->
-            Log.d(TAG, "Processing source: $sourceName")
+            // Проверяем, не загрузили ли мы уже этот источник
+            val dataContext = dataContextProvider.getDataContext()
+            val alreadyLoaded = dataContext.jsonSources.containsKey(sourceName) ||
+                    dataContext.screenQueryResults.containsKey(sourceName)
 
-            // Если источник заканчивается на _list (например, carriers_list)
-            // ищем базовое имя (carriers) для загрузки файла
-            val baseSourceName = if (sourceName.endsWith("_list")) {
-                sourceName.removeSuffix("_list")
+            if (!alreadyLoaded) {
+                // Пробуем загрузить как JSON файл
+                val fileName = "$sourceName.json"
+                Log.d(TAG, "Looking for binding JSON file: $fileName")
+
+                val jsonData = dataContextProvider.loadJsonFromAssets(fileName)
+                if (jsonData != null) {
+                    dataContextProvider.addJsonSource(sourceName, jsonData)
+                    Log.d(TAG, "Successfully loaded JSON data for: $sourceName")
+                } else {
+                    Log.w(TAG, "Failed to load JSON file for binding: $fileName")
+                }
             } else {
-                sourceName
-            }
-
-            Log.d(TAG, "Base source name: $baseSourceName")
-
-            // Пробуем загрузить как JSON файл
-            val fileName = "$baseSourceName.json"
-            Log.d(TAG, "Looking for file: $fileName")
-
-            val jsonData = dataContextProvider.loadJsonFromAssets(fileName)
-            if (jsonData != null) {
-                Log.d(TAG, "Successfully loaded JSON data for: $baseSourceName")
-                dataContextProvider.addJsonSource(baseSourceName, jsonData)
-            } else {
-                Log.e(TAG, "Failed to load JSON file: $fileName")
+                Log.d(TAG, "Source $sourceName already loaded from ScreenQuery or other source")
             }
         }
     }
 
     /**
-     * Рекурсивно извлекает имена JSON источников из компонентов
+     * Извлекает имена JSON источников из биндингов компонентов
      */
-    private fun extractJsonSourceNames(component: ComponentModel?): Set<String> {
+    private fun extractJsonSourceNamesFromBindings(component: ComponentModel?): Set<String> {
         val sources = mutableSetOf<String>()
 
         fun extractFromText(text: String) {
             val bindings = DataBindingParser.parseBindings(text)
             bindings.forEach { binding ->
-                if (binding.sourceType == com.example.drivenui.parser.models.BindingSourceType.JSON_FILE) {
-                    sources.add(binding.sourceName)
+                when (binding.sourceType) {
+                    BindingSourceType.JSON_FILE -> {
+                        sources.add(binding.sourceName)
+                        Log.d(TAG, "Found JSON_FILE binding: ${binding.sourceName}")
+                    }
+                    BindingSourceType.SCREEN_QUERY_RESULT -> {
+                        Log.d(TAG, "Found SCREEN_QUERY_RESULT binding: ${binding.sourceName}")
+                        // Эти источники уже должны быть загружены из ScreenQuery
+                    }
+                    else -> {
+                        Log.d(TAG, "Found binding type: ${binding.sourceType} for source: ${binding.sourceName}")
+                    }
                 }
             }
         }
 
         fun processComponent(comp: ComponentModel?) {
             when (comp) {
-                is com.example.drivenui.engine.uirender.models.LabelModel -> {
-                    extractFromText(comp.text)
+                is LabelModel -> extractFromText(comp.text)
+                is ButtonModel -> extractFromText(comp.text)
+                is AppBarModel -> comp.title?.let { extractFromText(it) }
+                is InputModel -> {
+                    comp.text?.let { extractFromText(it) }
+                    comp.hint?.let { extractFromText(it) }
                 }
-                is com.example.drivenui.engine.uirender.models.ButtonModel -> {
-                    extractFromText(comp.text)
-                }
-                is com.example.drivenui.engine.uirender.models.AppBarModel -> {
-                    comp.title?.let { extractFromText(it) }
-                }
-                is com.example.drivenui.engine.uirender.models.InputModel -> {
-                    extractFromText(comp.text)
-                    extractFromText(comp.hint)
-                }
-                is com.example.drivenui.engine.uirender.models.ImageModel -> {
-                    comp.url?.let { extractFromText(it) }
-                }
-                is com.example.drivenui.engine.uirender.models.LayoutModel -> {
-                    comp.children.forEach { child ->
-                        processComponent(child)
-                    }
-                }
-                else -> {}
+                is ImageModel -> comp.url?.let { extractFromText(it) }
+                is LayoutModel -> comp.children.forEach { child -> processComponent(child) }
+                else -> Unit
             }
         }
 
         processComponent(component)
         return sources
-    }
-
-    private fun processParsedLayoutComponent(
-        component: com.example.drivenui.parser.models.LayoutComponent
-    ): com.example.drivenui.parser.models.LayoutComponent {
-        val processedProperties = component.properties.map { property ->
-            processComponentProperty(property)
-        }
-
-        val processedChildren = component.children.map { child ->
-            processParsedComponent(child)
-        }
-
-        return component.copy(
-            properties = processedProperties,
-            children = processedChildren
-        )
-    }
-
-    private fun processParsedWidgetComponent(
-        component: com.example.drivenui.parser.models.WidgetComponent
-    ): com.example.drivenui.parser.models.WidgetComponent {
-        val processedProperties = component.properties.map { property ->
-            processComponentProperty(property)
-        }
-
-        return component.copy(
-            properties = processedProperties
-        )
-    }
-
-    private fun processComponentProperty(property: ComponentProperty): ComponentProperty {
-        val bindings = com.example.drivenui.engine.generative_screen.binding.DataBindingParser.parseBindings(property.rawValue)
-
-        return if (bindings.isNotEmpty()) {
-            property.copy(bindings = bindings)
-        } else {
-            property
-        }
-    }
-
-    /**
-     * Очищает кэш данных
-     */
-    fun clearCache() {
-        dataContextProvider.clear()
-    }
-
-    /**
-     * Получает данные по имени источника
-     */
-    fun getData(sourceName: String): Any? {
-        val context = dataContextProvider.getDataContext()
-        return context.jsonSources[sourceName]
-            ?: context.queryResults[sourceName]
-            ?: context.screenQueryResults[sourceName]
     }
 
     companion object {

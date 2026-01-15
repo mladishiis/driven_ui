@@ -123,11 +123,6 @@ internal data class OpenFileState(
     val hasJsonFiles: Boolean get() = availableJsonFiles.isNotEmpty()
 
     /**
-     * Проверяет, выбраны ли JSON файлы для биндингов
-     */
-    val hasSelectedJsonFiles: Boolean get() = selectedJsonFiles.isNotEmpty()
-
-    /**
      * Получает название микроаппа
      */
     val microappTitle: String get() = parsingResult?.microapp?.title ?: "Неизвестный микроапп"
@@ -153,39 +148,9 @@ internal data class OpenFileState(
     val queriesCount: Int get() = parsingResult?.queries?.size ?: 0
 
     /**
-     * Получает количество событий
-     */
-    val eventsCount: Int get() = parsingResult?.events?.events?.size ?: 0
-
-    /**
-     * Получает количество действий событий
-     */
-    val eventActionsCount: Int get() = parsingResult?.eventActions?.eventActions?.size ?: 0
-
-    /**
-     * Получает количество виджетов в реестре
-     */
-    val widgetsCount: Int get() = parsingResult?.widgets?.size ?: 0
-
-    /**
-     * Получает количество лэйаутов в реестре
-     */
-    val layoutsCount: Int get() = parsingResult?.layouts?.size ?: 0
-
-    /**
-     * Получает количество биндингов
-     */
-    val bindingsCount: Int get() = parsingResult?.countAllBindings() ?: 0
-
-    /**
      * Получает количество разрешенных биндингов
      */
     val resolvedBindingsCount: Int get() = parsingResult?.getResolvedValues()?.size ?: 0
-
-    /**
-     * Проверяет, есть ли контекст данных
-     */
-    val hasDataContext: Boolean get() = parsingResult?.dataContext != null
 
     /**
      * Получает общее количество компонентов во всех экранах
@@ -201,67 +166,6 @@ internal data class OpenFileState(
     }
 
     /**
-     * Проверяет, имеет ли структура компонентов (новая структура)
-     */
-    val hasComponentStructure: Boolean get() {
-        return parsingResult?.screens?.any { it.rootComponent != null } == true
-    }
-
-    /**
-     * Получает статистику парсинга для отображения
-     */
-    fun getParsingStats(): Map<String, Any> = buildMap {
-        put("microappTitle", microappTitle)
-        put("screensCount", screensCount)
-        put("textStylesCount", textStylesCount)
-        put("colorStylesCount", colorStylesCount)
-        put("queriesCount", queriesCount)
-        put("eventsCount", eventsCount)
-        put("eventActionsCount", eventActionsCount)
-        put("widgetsCount", widgetsCount)
-        put("layoutsCount", layoutsCount)
-        put("componentsCount", componentsCount)
-        put("bindingsCount", bindingsCount)
-        put("resolvedBindingsCount", resolvedBindingsCount)
-        put("hasDataContext", hasDataContext)
-        put("hasComponentStructure", hasComponentStructure)
-        put("hasData", hasParsingResult)
-        put("hasJsonFiles", hasJsonFiles)
-        put("hasSelectedJsonFiles", hasSelectedJsonFiles)
-        put("selectedJsonFilesCount", selectedJsonFiles.size)
-    }
-
-    /**
-     * Получает информацию о структуре компонентов для лога
-     */
-    fun getComponentStructureInfo(): String {
-        val builder = StringBuilder()
-
-        parsingResult?.screens?.forEachIndexed { index, screen ->
-            builder.append("Экран ${index + 1}: ${screen.title}\n")
-            builder.append("  Код: ${screen.screenCode}\n")
-
-            screen.rootComponent?.let { root ->
-                val componentCount = countComponents(root)
-                val maxDepth = getMaxDepth(root)
-                builder.append("  Компонентов: $componentCount\n")
-                builder.append("  Глубина: $maxDepth\n")
-                builder.append("  Биндингов: ${countBindings(root)}\n")
-                builder.append("  Типы компонентов:\n")
-
-                val typeStats = getComponentTypeStats(root)
-                typeStats.forEach { (type, count) ->
-                    builder.append("    - $type: $count\n")
-                }
-            } ?: builder.append("  Корневой компонент: отсутствует\n")
-
-            builder.append("\n")
-        }
-
-        return builder.toString()
-    }
-
-    /**
      * Считает количество компонентов рекурсивно
      */
     private fun countComponents(component: com.example.drivenui.parser.models.Component): Int {
@@ -270,165 +174,5 @@ internal data class OpenFileState(
             count += countComponents(child)
         }
         return count
-    }
-
-    /**
-     * Считает количество биндингов в компоненте (рекурсивно)
-     */
-    private fun countBindings(component: com.example.drivenui.parser.models.Component): Int {
-        var count = component.properties.sumOf { it.bindings.size }
-        component.children.forEach { child ->
-            count += countBindings(child)
-        }
-        return count
-    }
-
-    /**
-     * Считает количество биндингов в экране
-     */
-    fun countBindingsInScreen(screen: com.example.drivenui.parser.models.ParsedScreen): Int {
-        return screen.rootComponent?.let { countBindings(it) } ?: 0
-    }
-
-    /**
-     * Получает максимальную глубину дерева компонентов
-     */
-    private fun getMaxDepth(component: com.example.drivenui.parser.models.Component): Int {
-        if (component.children.isEmpty()) return 1
-
-        var maxChildDepth = 0
-        component.children.forEach { child ->
-            val childDepth = getMaxDepth(child)
-            if (childDepth > maxChildDepth) {
-                maxChildDepth = childDepth
-            }
-        }
-
-        return maxChildDepth + 1
-    }
-
-    /**
-     * Получает статистику по типам компонентов
-     */
-    private fun getComponentTypeStats(component: com.example.drivenui.parser.models.Component): Map<String, Int> {
-        val stats = mutableMapOf<String, Int>()
-
-        fun countType(comp: com.example.drivenui.parser.models.Component) {
-            val typeName = when (comp.type) {
-                com.example.drivenui.parser.models.ComponentType.LAYOUT -> "Layout"
-                com.example.drivenui.parser.models.ComponentType.WIDGET -> "Widget"
-                com.example.drivenui.parser.models.ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
-                com.example.drivenui.parser.models.ComponentType.SCREEN -> "Screen"
-            }
-
-            stats[typeName] = stats.getOrDefault(typeName, 0) + 1
-
-            comp.children.forEach { child ->
-                countType(child)
-            }
-        }
-
-        countType(component)
-        return stats
-    }
-
-    /**
-     * Получает плоский список всех компонентов для отображения
-     */
-    fun getAllComponents(): List<ComponentInfo> {
-        val components = mutableListOf<ComponentInfo>()
-
-        parsingResult?.screens?.forEach { screen ->
-            screen.rootComponent?.let { root ->
-                collectComponents(root, 0, screen.screenCode, components)
-            }
-        }
-
-        return components
-    }
-
-    /**
-     * Рекурсивно собирает информацию о компонентах
-     */
-    private fun collectComponents(
-        component: com.example.drivenui.parser.models.Component,
-        depth: Int,
-        screenCode: String,
-        result: MutableList<ComponentInfo>
-    ) {
-        result.add(ComponentInfo(
-            title = component.title,
-            code = component.code,
-            type = component.type,
-            depth = depth,
-            screenCode = screenCode,
-            childrenCount = component.children.size,
-            stylesCount = component.styles.size,
-            eventsCount = component.events.size,
-            propertiesCount = component.properties.size,
-            bindingsCount = component.bindingProperties.size
-        ))
-
-        component.children.forEach { child ->
-            collectComponents(child, depth + 1, screenCode, result)
-        }
-    }
-
-    /**
-     * Получает статистику биндингов
-     */
-    fun getBindingStatsInfo(): String {
-        return if (bindingStats != null) {
-            buildString {
-                append("Статистика биндингов:\n")
-                bindingStats.forEach { (key, value) ->
-                    when (key) {
-                        "resolvedValues" -> {
-                            append("  $key: ${(value as Map<*, *>).size} значений\n")
-                        }
-                        "resolutionRate" -> {
-                            val rate = value as Float
-                            append("  $key: ${String.format("%.1f", rate * 100)}%\n")
-                        }
-                        else -> {
-                            append("  $key: $value\n")
-                        }
-                    }
-                }
-                if (resolvedValues.isNotEmpty()) {
-                    append("\nПримеры разрешенных значений:\n")
-                    resolvedValues.entries.take(3).forEach { (key, value) ->
-                        append("  $key = $value\n")
-                    }
-                }
-            }
-        } else {
-            "Статистика биндингов не доступна"
-        }
-    }
-
-    /**
-     * Информация о компоненте для отображения
-     */
-    data class ComponentInfo(
-        val title: String,
-        val code: String,
-        val type: com.example.drivenui.parser.models.ComponentType,
-        val depth: Int,
-        val screenCode: String,
-        val childrenCount: Int,
-        val stylesCount: Int,
-        val eventsCount: Int,
-        val propertiesCount: Int,
-        val bindingsCount: Int
-    ) {
-        val typeName: String = when (type) {
-            com.example.drivenui.parser.models.ComponentType.LAYOUT -> "Layout"
-            com.example.drivenui.parser.models.ComponentType.WIDGET -> "Widget"
-            com.example.drivenui.parser.models.ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
-            com.example.drivenui.parser.models.ComponentType.SCREEN -> "Screen"
-        }
-
-        val indent: String = "  ".repeat(depth)
     }
 }

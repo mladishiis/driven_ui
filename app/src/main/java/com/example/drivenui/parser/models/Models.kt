@@ -1,8 +1,8 @@
 package com.example.drivenui.parser.models
 
 import android.os.Parcelable
+import com.google.gson.JsonElement
 import kotlinx.parcelize.Parcelize
-import org.json.JSONArray
 
 /**
  * Тип компонента
@@ -21,11 +21,8 @@ enum class ComponentType {
 data class ComponentProperty(
     val code: String,
     val rawValue: String,           // Исходное значение (может содержать макросы)
-    val bindings: List<DataBinding> = emptyList(),  // Извлеченные биндинги
     val resolvedValue: String = rawValue            // Значение после подстановки
-): Parcelable {
-    val hasBindings: Boolean get() = bindings.isNotEmpty()
-}
+): Parcelable
 
 /**
  * Описание биндинга данных
@@ -55,7 +52,7 @@ enum class BindingSourceType {
  * Контекст данных для биндинга
  */
 data class DataContext(
-    val jsonSources: Map<String, JSONArray> = emptyMap(),
+    val jsonSources: Map<String, JsonElement> = emptyMap(),
     val queryResults: Map<String, Any> = emptyMap(),
     val screenQueryResults: Map<String, Any> = emptyMap(), // Добавляем отдельный тип для screenQuery
     val appState: Map<String, Any> = emptyMap(),

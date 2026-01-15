@@ -97,38 +97,6 @@ class SDUIParser(private val context: Context) {
         }
 
         /**
-         * Проверяет, есть ли биндинги в компоненте
-         */
-        private fun hasBindingsRecursive(component: Component): Boolean {
-            return component.properties.any { it.hasBindings } ||
-                    component.children.any { hasBindingsRecursive(it) }
-        }
-
-        /**
-         * Подсчитывает общее количество биндингов
-         */
-        fun countAllBindings(): Int {
-            var total = 0
-            screens.forEach { screen ->
-                screen.rootComponent?.let { root ->
-                    total += countBindingsRecursive(root)
-                }
-            }
-            return total
-        }
-
-        /**
-         * Подсчитывает биндинги в компоненте
-         */
-        private fun countBindingsRecursive(component: Component): Int {
-            var count = component.properties.sumOf { it.bindings.size }
-            component.children.forEach { child ->
-                count += countBindingsRecursive(child)
-            }
-            return count
-        }
-
-        /**
          * Получает статистику парсинга
          */
         fun getStats(): Map<String, Any> {
@@ -147,11 +115,7 @@ class SDUIParser(private val context: Context) {
                 "widgets" to widgets.size,
                 "layouts" to layouts.size,
                 "componentsCount" to countAllComponents(),
-                "bindingsCount" to countAllBindings(),
                 "hasComponentStructure" to screens.any { it.rootComponent != null },
-                "hasDataBinding" to screens.any { screen ->
-                    screen.rootComponent?.let { hasBindingsRecursive(it) } == true
-                }
             )
         }
 
@@ -174,10 +138,8 @@ class SDUIParser(private val context: Context) {
                 }
 
                 if (screen.rootComponent != null) {
-                    val bindingCount = countBindingsRecursive(screen.rootComponent)
                     Log.d("ParsedMicroappResult", "    Корневой компонент: ${screen.rootComponent.title}")
                     Log.d("ParsedMicroappResult", "    Компонентов: ${countComponentsRecursive(screen.rootComponent)}")
-                    Log.d("ParsedMicroappResult", "    Биндингов: $bindingCount")
                 }
             }
             Log.d("ParsedMicroappResult", "Стили текста: ${getTextStyles().size}")
@@ -194,7 +156,6 @@ class SDUIParser(private val context: Context) {
             Log.d("ParsedMicroappResult", "Всего запросов в экранах: $totalRequests")
 
             Log.d("ParsedMicroappResult", "Всего компонентов: ${countAllComponents()}")
-            Log.d("ParsedMicroappResult", "Всего биндингов: ${countAllBindings()}")
             Log.d("ParsedMicroappResult", "=======================================")
         }
 
@@ -222,12 +183,6 @@ class SDUIParser(private val context: Context) {
 
         private fun collectResolvedValues(component: Component?, values: MutableMap<String, String>) {
             if (component == null) return
-
-            component.properties.forEach { property ->
-                if (property.hasBindings) {
-                    values["${component.code}.${property.code}"] = property.resolvedValue
-                }
-            }
 
             component.children.forEach { child ->
                 collectResolvedValues(child, values)
@@ -334,36 +289,6 @@ class SDUIParser(private val context: Context) {
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге полного XML", e)
             ParsedMicroappResult()
-        }
-    }
-
-    /**
-     * Подсчитывает биндинги в компоненте
-     */
-    fun countBindingsInComponent(component: Component): Int {
-        return component.properties.sumOf { it.bindings.size } +
-                component.children.sumOf { countBindingsInComponent(it) }
-    }
-
-    /**
-     * Логирует биндинги компонента для отладки
-     */
-    private fun logComponentBindings(component: Component, indent: String = "  ") {
-        component.properties.forEach { property ->
-            if (property.hasBindings) {
-                Log.d("SDUIParser", "$indent${component.code}.${property.code}:")
-                Log.d("SDUIParser", "$indent  rawValue: ${property.rawValue}")
-                Log.d("SDUIParser", "$indent  resolvedValue: ${property.resolvedValue}")
-                property.bindings.forEachIndexed { index, binding ->
-                    Log.d("SDUIParser", "$indent  binding[$index]: ${binding.expression}")
-                    Log.d("SDUIParser", "$indent    source: ${binding.sourceName}.${binding.path}")
-                    Log.d("SDUIParser", "$indent    type: ${binding.sourceType}")
-                }
-            }
-        }
-
-        component.children.forEach { child ->
-            logComponentBindings(child, "$indent  ")
         }
     }
 

@@ -295,32 +295,6 @@ internal fun OpenFileScreen(
                             ) {
                                 Text("Показать экран")
                             }
-
-                            // Кнопка статистики биндингов
-                            if (state.bindingsCount > 0) {
-                                OutlinedButton(
-                                    onClick = { onEvent(OpenFileEvent.OnShowBindingStats) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f)
-                                    )
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text("Статистика биндингов")
-                                        Badge(
-                                            containerColor = MaterialTheme.colorScheme.tertiary
-                                        ) {
-                                            Text(
-                                                text = "${state.resolvedBindingsCount}/${state.bindingsCount}",
-                                                fontSize = 10.sp
-                                            )
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
 
@@ -370,28 +344,6 @@ internal fun OpenFileScreen(
 
                                     if (state.componentsCount > 0) {
                                         Text("Компонентов: ${state.componentsCount}")
-                                    }
-
-                                    if (state.bindingsCount > 0) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Text("Биндинги: ${state.resolvedBindingsCount}/${state.bindingsCount}")
-                                            if (state.bindingsCount > 0) {
-                                                val rate = state.resolvedBindingsCount.toFloat() / state.bindingsCount
-                                                Badge(
-                                                    containerColor = if (rate >= 0.8f) MaterialTheme.colorScheme.primary
-                                                    else if (rate >= 0.5f) MaterialTheme.colorScheme.secondary
-                                                    else MaterialTheme.colorScheme.error
-                                                ) {
-                                                    Text(
-                                                        text = "${String.format("%.0f", rate * 100)}%",
-                                                        fontSize = 10.sp
-                                                    )
-                                                }
-                                            }
-                                        }
                                     }
 
                                     if (state.selectedJsonFiles.isNotEmpty()) {

@@ -1,5 +1,5 @@
 {
-  "carriers_list": [
+  "carriers_allCarriers": [
     {
       "carrierId": 0,
       "carrierName": "Крымтроллейбус"

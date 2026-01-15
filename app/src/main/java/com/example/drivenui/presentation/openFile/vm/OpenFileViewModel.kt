@@ -150,7 +150,6 @@ internal class OpenFileViewModel @Inject constructor(
                     append("Результат:\n")
                     parsedResult.microapp?.let { append("• Микроапп: ${it.title}\n") }
                     append("• Экран${if (parsedResult.screens.size != 1) "ов" else ""}: ${parsedResult.screens.size}\n")
-                    append("• Биндинги: ${parsedResult.countAllBindings()}\n")
 
                     // Логируем структуру компонентов
                     parsedResult.screens.forEachIndexed { index, screen ->
@@ -306,7 +305,6 @@ internal class OpenFileViewModel @Inject constructor(
         Log.d("OpenFileViewModel", "Код: ${result.microapp?.code ?: "Не указан"}")
         Log.d("OpenFileViewModel", "Deeplink: ${result.microapp?.deeplink ?: "Не указан"}")
         Log.d("OpenFileViewModel", "Экранов: ${result.screens.size}")
-        Log.d("OpenFileViewModel", "Всего биндингов: ${result.countAllBindings()}")
 
         result.screens.forEachIndexed { index, screen ->
             Log.d("OpenFileViewModel", "  Экран ${index + 1}: ${screen.title}")
@@ -353,7 +351,7 @@ internal class OpenFileViewModel @Inject constructor(
             Log.d("OpenFileViewModel", "Контекст данных:")
             Log.d("OpenFileViewModel", "  JSON источников: ${context.jsonSources.size}")
             context.jsonSources.forEach { (key, value) ->
-                Log.d("OpenFileViewModel", "    $key: ${value.length()} байт")
+                Log.d("OpenFileViewModel", "    $key: ${value.asJsonObject.size()} байт")
             }
             Log.d("OpenFileViewModel", "  Query результатов: ${context.queryResults.size}")
             Log.d("OpenFileViewModel", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
@@ -368,14 +366,10 @@ internal class OpenFileViewModel @Inject constructor(
         } ?: run {
             Log.d("OpenFileViewModel", "Контекст данных не создан")
         }
-
-        val bindingStats = result.countAllBindings()
         val resolvedValues = result.getResolvedValues()
 
         Log.d("OpenFileViewModel", "Статистика биндингов:")
-        Log.d("OpenFileViewModel", "  Всего: $bindingStats")
         Log.d("OpenFileViewModel", "  Разрешено: ${resolvedValues.size}")
-        Log.d("OpenFileViewModel", "  Неразрешено: ${bindingStats - resolvedValues.size}")
 
         if (resolvedValues.isNotEmpty()) {
             Log.d("OpenFileViewModel", "Примеры разрешенных значений:")
@@ -405,18 +399,6 @@ internal class OpenFileViewModel @Inject constructor(
         Log.d("OpenFileViewModel", "$indent  Детей: ${component.children.size}")
         Log.d("OpenFileViewModel", "$indent  Стилей: ${component.styles.size}")
         Log.d("OpenFileViewModel", "$indent  Событий: ${component.events.size}")
-
-        // Логируем свойства с биндингами
-        component.properties.forEach { property ->
-            if (property.hasBindings) {
-                Log.d("OpenFileViewModel", "$indent  Свойство '${property.code}':")
-                Log.d("OpenFileViewModel", "$indent    Исходное: ${property.rawValue}")
-                Log.d("OpenFileViewModel", "$indent    Разрешенное: ${property.resolvedValue}")
-                property.bindings.forEach { binding ->
-                    Log.d("OpenFileViewModel", "$indent    Биндинг: ${binding.expression}")
-                }
-            }
-        }
 
         component.children.forEach { child ->
             logComponentStructure(child, "$indent  ")

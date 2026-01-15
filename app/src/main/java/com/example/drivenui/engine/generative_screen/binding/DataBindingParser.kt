@@ -4,14 +4,14 @@ import android.util.Log
 import com.example.drivenui.parser.models.DataBinding
 import com.example.drivenui.parser.models.BindingSourceType
 import com.example.drivenui.parser.models.DataContext
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 
 object DataBindingParser {
 
-
     private const val TAG = "DataBindingParser"
-
 
     /**
      * Парсит строку с макросами на список биндингов
@@ -32,6 +32,8 @@ object DataBindingParser {
                 val fullBinding = binding.copy(expression = expression)
                 Log.d(TAG, "Parsed binding: $fullBinding")
                 bindings.add(fullBinding)
+            } ?: run {
+                Log.d(TAG, "Failed to parse binding: '$content'")
             }
         }
 
@@ -44,214 +46,189 @@ object DataBindingParser {
     private fun parseBinding(content: String): DataBinding? {
         Log.d(TAG, "Parsing binding content: '$content'")
 
-        // Пример: carriers_list[0].carrierName
-        // Мы ожидаем формат: sourceName[index].property
+        // Поддерживаем два формата:
+        // 1. carriers_allCarriers.[0].carrierName (с точкой перед скобками)
+        // 2. carriers_allCarriers[0].carrierName (без точки)
 
-        val pattern = "([a-zA-Z_]+)\\[(\\d+)\\](?:\\.(.+))?".toRegex()
-        val match = pattern.matchEntire(content)
+        // Если есть точка перед скобкой
+        if (content.contains(".[")) {
+            // Формат: source.[index].property
+            val dotBracketIndex = content.indexOf(".[")
+            val sourceName = content.substring(0, dotBracketIndex)
+            val rest = content.substring(dotBracketIndex + 1) // +1 чтобы пропустить точку
 
-        return if (match != null) {
-            val sourceName = match.groupValues[1] // carriers_list
-            val index = match.groupValues[2] // 0
-            val property = match.groupValues[3] // carrierName
+            // rest теперь: [0].carrierName
 
-            Log.d(TAG, "Parsed: source=$sourceName, index=$index, property=$property")
-
-            DataBinding(
-                sourceType = BindingSourceType.JSON_FILE,
+            return DataBinding(
+                sourceType = detectSourceType(sourceName),
                 sourceName = sourceName,
-                path = "[$index].$property", // Формируем путь
+                path = rest,
                 expression = "",
                 defaultValue = ""
             )
-        } else {
-            Log.d(TAG, "Failed to parse binding: '$content'")
-            null
         }
-    }
+        // Если есть просто скобка
+        else if (content.contains("[")) {
+            // Формат: source[index].property
+            val bracketIndex = content.indexOf("[")
+            val sourceName = content.substring(0, bracketIndex)
+            val rest = content.substring(bracketIndex)
 
-    private fun parseArrayAccess(content: String): DataBinding {
-        // Пример: carriers_list[0].carrierName
-        val pattern = "([^\\[]+)\\[(\\d+)\\](?:\\.(.+))?".toRegex()
-        val match = pattern.matchEntire(content)
-
-        return if (match != null) {
-            val sourceName = match.groupValues[1] // carriers_list
-            val index = match.groupValues[2] // 0
-            val path = match.groupValues[3] // carrierName
-
-            // Определяем тип источника
-            val sourceType = when {
-                sourceName.endsWith("_list") -> BindingSourceType.JSON_FILE
-                sourceName.contains(":") -> {
-                    val type = sourceName.split(":")[0]
-                    when (type) {
-                        "json" -> BindingSourceType.JSON_FILE
-                        "query" -> BindingSourceType.QUERY_RESULT
-                        "screenQuery" -> BindingSourceType.SCREEN_QUERY_RESULT
-                        "app" -> BindingSourceType.APP_STATE
-                        "local" -> BindingSourceType.LOCAL_VAR
-                        else -> BindingSourceType.JSON_FILE
-                    }
-                }
-                else -> BindingSourceType.JSON_FILE
-            }
-
-            // Формируем полный путь
-            val fullPath = "[$index]${if (path.isNotEmpty()) ".$path" else ""}"
-
-            DataBinding(
-                sourceType = sourceType,
+            return DataBinding(
+                sourceType = detectSourceType(sourceName),
                 sourceName = sourceName,
-                path = fullPath,
+                path = rest,
                 expression = "",
                 defaultValue = ""
             )
-        } else {
-            // Если не удалось распарсить как массив, пробуем обычную нотацию
-            parseDotNotation(content)
         }
-    }
+        // Простая точечная нотация
+        else if (content.contains(".")) {
+            val dotIndex = content.indexOf(".")
+            val sourceName = content.substring(0, dotIndex)
+            val path = content.substring(dotIndex + 1)
 
-    private fun parseDotNotation(content: String): DataBinding {
-        // Простая точечная нотация без индексов
-        val parts = content.split(".")
-        val sourceName = parts[0]
-        val path = if (parts.size > 1) parts.drop(1).joinToString(".") else ""
-
-        val sourceType = when {
-            sourceName.endsWith("_list") -> BindingSourceType.JSON_FILE
-            sourceName.contains(":") -> {
-                val type = sourceName.split(":")[0]
-                when (type) {
-                    "json" -> BindingSourceType.JSON_FILE
-                    "query" -> BindingSourceType.QUERY_RESULT
-                    "screenQuery" -> BindingSourceType.SCREEN_QUERY_RESULT
-                    "app" -> BindingSourceType.APP_STATE
-                    "local" -> BindingSourceType.LOCAL_VAR
-                    else -> BindingSourceType.JSON_FILE
-                }
-            }
-            else -> BindingSourceType.JSON_FILE
+            return DataBinding(
+                sourceType = detectSourceType(sourceName),
+                sourceName = sourceName,
+                path = path,
+                expression = "",
+                defaultValue = ""
+            )
         }
-
-        return DataBinding(
-            sourceType = sourceType,
-            sourceName = sourceName,
-            path = path,
-            expression = "",
-            defaultValue = ""
-        )
+        // Просто имя источника без пути
+        else {
+            return DataBinding(
+                sourceType = detectSourceType(content),
+                sourceName = content,
+                path = "",
+                expression = "",
+                defaultValue = ""
+            )
+        }
     }
 
     /**
-     * Извлекает значение из данных по пути
+     * Определяет тип источника по его имени
      */
-    fun extractValue(data: Any?, path: String): Any? {
-        if (data == null || path.isEmpty()) return data
-
-        var current: Any? = data
-
-        for (part in splitPath(path)) {
-            current = extractValueFromPart(current, part)
-            if (current == null) break
+    private fun detectSourceType(sourceName: String): BindingSourceType {
+        return when {
+            // ScreenQuery коды (из XML файла)
+            sourceName.matches(Regex("^[a-z]+_[a-zA-Z]+$")) -> BindingSourceType.SCREEN_QUERY_RESULT
+            sourceName.endsWith("_json") -> BindingSourceType.JSON_FILE
+            sourceName.endsWith(".json") -> BindingSourceType.JSON_FILE
+            else -> BindingSourceType.SCREEN_QUERY_RESULT // По умолчанию
         }
-
-        return current
     }
 
     /**
-     * Разбивает путь на части, учитывая индексы массивов
+     * Извлекает значение из JsonElement по пути
      */
-    private fun splitPath(path: String): List<String> {
-        val parts = mutableListOf<String>()
-        var current = StringBuilder()
-        var inBrackets = false
+    /**
+     * Извлекает значение из JsonElement по пути
+     */
+    fun extractValue(data: JsonElement?, path: String): Any? {
+        if (data == null || path.isEmpty()) return data?.toString()
 
-        for (char in path) {
-            when {
-                char == '[' -> {
-                    if (current.isNotEmpty()) {
-                        parts.add(current.toString())
-                        current.clear()
+        Log.d(TAG, "Extracting value: path='$path', data type: ${data::class.simpleName}")
+
+        var current: JsonElement? = data
+        var remainingPath = path
+
+        while (remainingPath.isNotEmpty() && current != null) {
+            Log.d(TAG, "Current: $current, remaining: '$remainingPath'")
+
+            // Пробуем извлечь индекс массива
+            if (remainingPath.startsWith('[') && remainingPath.contains(']')) {
+                val endIndex = remainingPath.indexOf(']')
+                val indexStr = remainingPath.substring(1, endIndex)
+                val index = indexStr.toIntOrNull()
+
+                if (current is JsonArray && index != null) {
+                    current = if (index < current.size()) current[index] else null
+                    Log.d(TAG, "Accessed array at index $index: $current")
+                } else if (current is JsonObject) {
+                    // Если текущий объект, ищем в нем свойство с именем как источник
+                    Log.d(TAG, "Trying to find array in JsonObject")
+
+                    // Проверяем, есть ли у объекта свойство с массивом
+                    val entrySet = current.entrySet()
+                    var found = false
+
+                    for ((key, value) in entrySet) {
+                        if (value is JsonArray && index != null) {
+                            current = if (index < value.size()) value[index] else null
+                            found = true
+                            Log.d(TAG, "Found array in property '$key' at index $index")
+                            break
+                        }
                     }
-                    current.append(char)
-                    inBrackets = true
-                }
-                char == ']' -> {
-                    current.append(char)
-                    parts.add(current.toString())
-                    current.clear()
-                    inBrackets = false
-                }
-                char == '.' && !inBrackets -> {
-                    if (current.isNotEmpty()) {
-                        parts.add(current.toString())
-                        current.clear()
+
+                    if (!found) {
+                        Log.w(TAG, "No array found in object for index $index")
+                        return null
                     }
+                } else {
+                    Log.w(TAG, "Cannot access index $indexStr on $current")
+                    return null
                 }
-                else -> current.append(char)
+
+                // Удаляем обработанную часть
+                remainingPath = if (endIndex + 1 < remainingPath.length) {
+                    remainingPath.substring(endIndex + 1)
+                } else {
+                    ""
+                }
+
+                // Если следующий символ - точка, пропускаем её
+                if (remainingPath.startsWith('.')) {
+                    remainingPath = remainingPath.substring(1)
+                }
+            }
+
+            // Обработка свойства объекта
+            else if (remainingPath.contains('.')) {
+                val dotIndex = remainingPath.indexOf('.')
+                val property = remainingPath.substring(0, dotIndex)
+
+                if (current is JsonObject) {
+                    current = current.get(property)
+                    Log.d(TAG, "Accessed property '$property': $current")
+                } else {
+                    Log.w(TAG, "Cannot get property '$property' from $current")
+                    return null
+                }
+
+                remainingPath = remainingPath.substring(dotIndex + 1)
+            }
+
+            // Последняя часть пути
+            else {
+                val property = remainingPath
+                if (current is JsonObject) {
+                    current = current.get(property)
+                    Log.d(TAG, "Accessed final property '$property': $current")
+                } else if (current is JsonArray && property.toIntOrNull() != null) {
+                    val index = property.toInt()
+                    current = if (index < current.size()) current[index] else null
+                    Log.d(TAG, "Accessed array at final index $index: $current")
+                } else {
+                    Log.w(TAG, "Cannot get property '$property' from $current")
+                    return null
+                }
+                remainingPath = ""
             }
         }
 
-        if (current.isNotEmpty()) {
-            parts.add(current.toString())
+        val result = when (current) {
+            is JsonObject -> current.toString()
+            is JsonArray -> current.toString()
+            is JsonElement -> if (current.isJsonPrimitive) current.asString else current.toString()
+            else -> null
         }
 
-        return parts
-    }
-
-    private fun extractValueFromPart(data: Any?, part: String): Any? {
-        return when (data) {
-            is JSONArray -> extractFromJSONArray(data, part)
-            is JSONObject -> extractFromJSONObject(data, part)
-            is List<*> -> extractFromList(data, part)
-            is Map<*, *> -> extractFromMap(data, part)
-            else -> extractFromObject(data, part)
-        }
-    }
-
-    private fun extractFromJSONArray(jsonArray: JSONArray, part: String): Any? {
-        if (part.startsWith("[") && part.endsWith("]")) {
-            val index = part.substring(1, part.length - 1).toIntOrNull()
-            return index?.takeIf { it < jsonArray.length() }?.let { jsonArray.opt(it) }
-        }
-        return null
-    }
-
-    private fun extractFromJSONObject(jsonObject: JSONObject, part: String): Any? {
-        if (part.startsWith("[") && part.endsWith("]")) {
-            val index = part.substring(1, part.length - 1).toIntOrNull()
-            return index?.takeIf { index < jsonObject.length() }?.let {
-                jsonObject.opt(jsonObject.names()?.optString(index))
-            }
-        }
-        return jsonObject.opt(part)
-    }
-
-    private fun extractFromList(list: List<*>, part: String): Any? {
-        if (part.startsWith("[") && part.endsWith("]")) {
-            val index = part.substring(1, part.length - 1).toIntOrNull()
-            return index?.takeIf { it < list.size }?.let { list[it] }
-        }
-        return null
-    }
-
-    private fun extractFromMap(map: Map<*, *>, part: String): Any? {
-        return map[part]
-    }
-
-    private fun extractFromObject(obj: Any?, part: String): Any? {
-        if (obj == null) return null
-
-        return try {
-            // Рефлексия для объектов
-            val field = obj::class.java.getDeclaredField(part)
-            field.isAccessible = true
-            field.get(obj)
-        } catch (e: Exception) {
-            null
-        }
+        Log.d(TAG, "Extracted value: $result")
+        return result
     }
 
     /**
@@ -262,9 +239,11 @@ object DataBindingParser {
 
         bindings.forEach { binding ->
             val value = resolveBinding(binding, dataContext)?.toString() ?: binding.defaultValue
+            Log.d(TAG, "Replacing '${binding.expression}' with '$value'")
             result = result.replace(binding.expression, value)
         }
 
+        Log.d(TAG, "Original: '$text', Result: '$result'")
         return result
     }
 
@@ -274,43 +253,55 @@ object DataBindingParser {
     private fun resolveBinding(binding: DataBinding, context: DataContext): Any? {
         Log.d(TAG, "Resolving binding: $binding")
 
-        val sourceData = when (binding.sourceType) {
+        val sourceData: JsonElement? = when (binding.sourceType) {
+            BindingSourceType.SCREEN_QUERY_RESULT -> {
+                Log.d(TAG, "Looking for screen query: ${binding.sourceName}")
+                val result = context.screenQueryResults[binding.sourceName]
+                when (result) {
+                    is JsonElement -> {
+                        Log.d(TAG, "Found JsonElement: ${result::class.simpleName}")
+                        result
+                    }
+                    is String -> {
+                        try {
+                            JsonParser.parseString(result)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to parse string as JSON: $result")
+                            null
+                        }
+                    }
+                    else -> {
+                        Log.w(TAG, "Unknown data type for screen query: ${result?.javaClass?.simpleName}")
+                        null
+                    }
+                }
+            }
             BindingSourceType.JSON_FILE -> {
                 Log.d(TAG, "Looking for JSON source: ${binding.sourceName}")
-                val source = context.jsonSources[binding.sourceName]
-                Log.d(TAG, "Found source: ${if (source != null) "non-null" else "null"}")
-                source
+                val jsonElement = context.jsonSources[binding.sourceName]
+                Log.d(TAG, "Found JSON source: ${jsonElement != null}")
+                jsonElement
             }
             else -> null
         }
 
-        val result = if (binding.path.isNotEmpty()) {
-            val value = extractValue(sourceData, binding.path)
-            Log.d(TAG, "Extracted value for path '${binding.path}': $value")
-            value
-        } else {
-            Log.d(TAG, "No path, returning source: $sourceData")
-            sourceData
+        if (sourceData == null) {
+            Log.w(TAG, "No source data found for: ${binding.sourceName}")
+            Log.d(TAG, "Available screen queries: ${context.screenQueryResults.keys}")
+            Log.d(TAG, "Available JSON sources: ${context.jsonSources.keys}")
+            return null
         }
 
-        Log.d(TAG, "Final result: $result")
-        return result
-    }
-
-    /**
-     * Упрощенный метод для быстрого извлечения значения из JSON
-     */
-    fun extractFromJson(json: String, path: String): Any? {
-        return try {
-            val jsonObject = JSONObject(json)
-            extractValue(jsonObject, path)
-        } catch (e: Exception) {
-            try {
-                val jsonArray = JSONArray(json)
-                extractValue(jsonArray, path)
-            } catch (e2: Exception) {
-                null
+        val result = if (binding.path.isNotEmpty()) {
+            extractValue(sourceData, binding.path)
+        } else {
+            when (sourceData) {
+                is JsonObject, is JsonArray -> sourceData.toString()
+                else -> sourceData.toString()
             }
         }
+
+        Log.d(TAG, "Final resolved result: $result")
+        return result
     }
 }

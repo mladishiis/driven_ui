@@ -131,9 +131,6 @@ internal class FileInteractorImpl @Inject constructor(
             Log.d("FileInteractor", "  AppState: ${context.appState.size}")
             Log.d("FileInteractor", "  LocalVariables: ${context.localVariables.size}")
         }
-
-        val bindingCount = parsedMicroapp.countAllBindings()
-        Log.d("FileInteractor", "Всего биндингов в результате: $bindingCount")
     }
 
     override fun getLastParsedResult(): SDUIParser.ParsedMicroappResult? {
@@ -153,33 +150,6 @@ internal class FileInteractorImpl @Inject constructor(
             if (result.screens.isEmpty() && result.microapp == null) {
                 Log.w("FileInteractor", "Результат парсинга пуст")
                 return@withContext false
-            }
-
-            // Проверяем биндинги
-            val totalBindings = result.countAllBindings()
-            if (totalBindings > 0) {
-                val resolvedValues = result.getResolvedValues()
-                val resolvedCount = resolvedValues.size
-                Log.d("FileInteractor",
-                    "Биндинги: всего $totalBindings, разрешено $resolvedCount"
-                )
-
-                // Если есть неразрешенные биндинги, предупреждаем
-                if (resolvedCount < totalBindings) {
-                    Log.w("FileInteractor",
-                        "Внимание: ${totalBindings - resolvedCount} биндингов не разрешено"
-                    )
-
-                    // Логируем неразрешенные биндинги для отладки
-                    Log.d("FileInteractor", "Неразрешенные биндинги:")
-                    result.screens.forEach { screen ->
-                        screen.rootComponent?.let { root ->
-                            findUnresolvedBindings(root).forEach { binding ->
-                                Log.d("FileInteractor", "  $binding")
-                            }
-                        }
-                    }
-                }
             }
 
             // Дополнительные проверки
@@ -206,7 +176,7 @@ internal class FileInteractorImpl @Inject constructor(
 
         fun searchRecursive(comp: com.example.drivenui.parser.models.Component, path: String) {
             comp.properties.forEach { property ->
-                if (property.hasBindings && property.resolvedValue == property.rawValue) {
+                if (property.resolvedValue == property.rawValue) {
                     unresolved.add("$path.${property.code}: ${property.rawValue}")
                 }
             }
@@ -233,7 +203,6 @@ internal class FileInteractorImpl @Inject constructor(
                 "screenQueries" to result.screenQueries.size,
                 "widgets" to result.widgets.size,
                 "layouts" to result.layouts.size,
-                "bindings" to result.countAllBindings(),
                 "dataContext" to (result.dataContext != null),
                 "screenQueryBindings" to result.screenQueries.count {
                     it.code in (result.dataContext?.screenQueryResults?.keys ?: emptySet())
@@ -248,18 +217,13 @@ internal class FileInteractorImpl @Inject constructor(
     override fun getBindingStats(): Map<String, Any>? {
         return lastParsedResult?.let { result ->
             val resolvedValues = result.getResolvedValues()
-            val totalBindings = result.countAllBindings()
             val screenQueryResolved = result.screenQueries.count {
                 it.code in (result.dataContext?.screenQueryResults?.keys ?: emptySet())
             }
 
             mapOf(
-                "totalBindings" to totalBindings,
                 "resolvedBindings" to resolvedValues.size,
-                "unresolvedBindings" to (totalBindings - resolvedValues.size),
                 "screenQueryBindings" to screenQueryResolved,
-                "resolutionRate" to if (totalBindings > 0)
-                    resolvedValues.size.toFloat() / totalBindings else 0f,
                 "resolvedValues" to resolvedValues.entries.take(5).associate { it.key to it.value },
                 "hasDataContext" to (result.dataContext != null),
                 "hasScreenQueryData" to (!result.dataContext?.screenQueryResults.isNullOrEmpty())
@@ -290,64 +254,6 @@ internal class FileInteractorImpl @Inject constructor(
         Log.d("FileInteractor", "Количество стилей цвета: ${result.styles?.colorStyles?.size ?: 0}")
         Log.d("FileInteractor", "Количество запросов: ${result.queries.size}")
         Log.d("FileInteractor", "Количество экранных запросов: ${result.screenQueries.size}")
-        Log.d("FileInteractor", "Количество биндингов: ${result.countAllBindings()}")
         Log.d("FileInteractor", "=== Конец лога ===")
-    }
-
-    /**
-     * Логирует результаты биндингов
-     */
-    private fun logBindingResults(result: SDUIParser.ParsedMicroappResult) {
-        val bindingCount = result.countAllBindings()
-        if (bindingCount == 0) {
-            Log.d("FileInteractor", "Биндинги не найдены в результате")
-            return
-        }
-
-        Log.d("FileInteractor", "=== Результаты биндингов ===")
-        Log.d("FileInteractor", "Всего биндингов: $bindingCount")
-
-        val resolvedValues = result.getResolvedValues()
-        if (resolvedValues.isNotEmpty()) {
-            Log.d("FileInteractor", "Разрешенные значения (первые 5):")
-            resolvedValues.entries.take(5).forEach { (key, value) ->
-                Log.d("FileInteractor", "  $key = $value")
-            }
-            if (resolvedValues.size > 5) {
-                Log.d("FileInteractor", "  ... и еще ${resolvedValues.size - 5} значений")
-            }
-        } else {
-            Log.d("FileInteractor", "Нет разрешенных значений - все биндинги остались макросами")
-            Log.d("FileInteractor", "ВНИМАНИЕ: Возможно данные не загружены или контекст данных пуст")
-        }
-
-        result.dataContext?.let { context ->
-            Log.d("FileInteractor", "Контекст данных:")
-            Log.d("FileInteractor", "  JSON источников: ${context.jsonSources.size}")
-            context.jsonSources.forEach { (key, value) ->
-                Log.d("FileInteractor", "    $key: ${value.length()} элементов")
-            }
-            Log.d("FileInteractor", "  Query результатов: ${context.queryResults.size}")
-            context.queryResults.keys.forEach { key ->
-                Log.d("FileInteractor", "    $key: ${context.queryResults[key]?.javaClass?.simpleName}")
-            }
-            Log.d("FileInteractor", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
-            context.screenQueryResults.keys.forEach { key ->
-                val value = context.screenQueryResults[key]
-                Log.d("FileInteractor", "    $key: ${value?.javaClass?.simpleName}")
-                if (value is JSONArray) {
-                    Log.d("FileInteractor", "      элементов: ${value.length()}")
-                    if (value.length() > 0) {
-                        Log.d("FileInteractor", "      пример: ${value.getJSONObject(0).toString().take(100)}...")
-                    }
-                }
-            }
-            Log.d("FileInteractor", "  AppState: ${context.appState.size}")
-            Log.d("FileInteractor", "  LocalVariables: ${context.localVariables.size}")
-        } ?: run {
-            Log.d("FileInteractor", "Контекст данных не создан")
-        }
-
-        Log.d("FileInteractor", "=== Конец лога биндингов ===")
     }
 }

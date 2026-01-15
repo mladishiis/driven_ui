@@ -73,6 +73,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
+    // Gson
+    implementation(libs.gson)
+
     // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)

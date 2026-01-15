@@ -1,14 +1,11 @@
 package com.example.drivenui.parser.parsers
 
 import android.util.Log
-import com.example.drivenui.parser.binding.BindingParser
 import com.example.drivenui.parser.models.*
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
 class ComponentParser {
-
-    private val bindingParser = BindingParser()
 
     /**
      * Парсит все экраны из XML
@@ -186,13 +183,6 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        // Автоматически определяем bindingProperties из свойств
-        properties.forEach { property ->
-            if (property.hasBindings) {
-                bindingProperties.add(property.code)
-            }
-        }
-
         return if (screenLayoutCode.isNotEmpty()) {
             LayoutComponent(
                 title = title,
@@ -258,13 +248,6 @@ class ComponentParser {
                 }
             }
             eventType = parser.next()
-        }
-
-        // Автоматически определяем bindingProperties
-        properties.forEach { property ->
-            if (property.hasBindings) {
-                bindingProperties.add(property.code)
-            }
         }
 
         // Определяем тип виджета на основе кода
@@ -341,13 +324,9 @@ class ComponentParser {
         }
 
         return if (code.isNotEmpty()) {
-            // Извлекаем макросы из значения
-            val bindings = bindingParser.parseBindings(value)
-
             ComponentProperty(
                 code = code,
                 rawValue = value,
-                bindings = bindings,
                 resolvedValue = value // Пока без подстановки
             )
         } else {
@@ -707,15 +686,6 @@ class ComponentParser {
                     }
                 }
 
-                component.properties.forEach { prop ->
-                    if (prop.hasBindings) {
-                        Log.d("ComponentTree", "$indent  PROP ${prop.code}: ${prop.rawValue}")
-                        prop.bindings.forEach { binding ->
-                            Log.d("ComponentTree", "$indent    BINDING: ${binding.expression}")
-                        }
-                    }
-                }
-
                 component.children.forEach { child ->
                     logComponentTree(child, "$indent  ")
                 }
@@ -739,15 +709,6 @@ class ComponentParser {
                             } else {
                                 Log.d("ComponentTree", "$indent          Свойства: нет")
                             }
-                        }
-                    }
-                }
-
-                component.properties.forEach { prop ->
-                    if (prop.hasBindings) {
-                        Log.d("ComponentTree", "$indent  PROP ${prop.code}: ${prop.rawValue}")
-                        prop.bindings.forEach { binding ->
-                            Log.d("ComponentTree", "$indent    BINDING: ${binding.expression}")
                         }
                     }
                 }
