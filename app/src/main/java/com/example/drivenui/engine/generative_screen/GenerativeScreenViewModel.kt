@@ -3,6 +3,7 @@ package com.example.drivenui.engine.generative_screen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.data.RequestInteractor
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
 import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
@@ -25,7 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GenerativeScreenViewModel @Inject constructor(
     private val externalDeeplinkHandler: ExternalDeeplinkHandler,
-    //private val requestInteractor: RequestInteractor,
+    private val requestInteractor: RequestInteractor,
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
@@ -69,11 +70,13 @@ class GenerativeScreenViewModel @Inject constructor(
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
-            // получили данные
+            // Получаем экранную модель
             val screenModel = mapper.mapToScreenModel(firstScreen)
-            // биндинг данных
-            //val goodData = requestInteractor. (screenModel)
-            navigateToScreen(screenModel)
+
+            // Обрабатываем данные через RequestInteractor
+            val processedScreen = requestInteractor.processScreen(screenModel)
+
+            navigateToScreen(processedScreen)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
