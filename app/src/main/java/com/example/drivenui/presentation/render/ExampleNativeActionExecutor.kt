@@ -1,6 +1,7 @@
 package com.example.drivenui.presentation.render
 
-import androidx.fragment.app.FragmentActivity
+import android.content.Context
+import android.util.Log
 import com.example.drivenui.engine.generative_screen.action.NativeActionExecutor
 import com.example.drivenui.engine.generative_screen.action.NativeActionResult
 
@@ -11,7 +12,7 @@ import com.example.drivenui.engine.generative_screen.action.NativeActionResult
  * TODO: Убрать
  */
 class ExampleNativeActionExecutor(
-    private val activity: FragmentActivity
+    private val context: Context
 ) : NativeActionExecutor {
 
     override suspend fun executeAction(
@@ -21,7 +22,8 @@ class ExampleNativeActionExecutor(
         return try {
             when (actionCode) {
                 "black" -> {
-                    setMinBrightness()
+                    Log.d("ExampleNativeActionExecutor",
+                        "black action executed successfully")
                     NativeActionResult.Success()
                 }
                 else -> {
@@ -29,16 +31,8 @@ class ExampleNativeActionExecutor(
                 }
             }
         } catch (e: Exception) {
+            Log.e("ExampleNativeActionExecutor", "Error executing action: $actionCode", e)
             NativeActionResult.Error("${e.message}", e)
-        }
-    }
-
-    private fun setMinBrightness() {
-        activity.runOnUiThread {
-            val window = activity.window
-            val layoutParams = window.attributes
-            layoutParams.screenBrightness = 0.0f
-            window.attributes = layoutParams
         }
     }
 }
