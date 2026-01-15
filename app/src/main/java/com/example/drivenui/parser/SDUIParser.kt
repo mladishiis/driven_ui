@@ -20,7 +20,6 @@ import com.example.drivenui.parser.parsers.EventParser
 import com.example.drivenui.parser.parsers.LayoutParser
 import com.example.drivenui.parser.parsers.MicroappParser
 import com.example.drivenui.parser.parsers.QueryParser
-import com.example.drivenui.parser.parsers.ScreenQueryParser
 import com.example.drivenui.parser.parsers.StyleParser
 import com.example.drivenui.parser.parsers.WidgetParser
 
@@ -32,7 +31,6 @@ class SDUIParser(private val context: Context) {
     private val styleParser = StyleParser()
     private val eventParser = EventParser()
     private val queryParser = QueryParser()
-    private val screenQueryParser = ScreenQueryParser()
     private val microappParser = MicroappParser()
     private val widgetParser = WidgetParser()
     private val layoutParser = LayoutParser()
@@ -166,6 +164,15 @@ class SDUIParser(private val context: Context) {
             Log.d("ParsedMicroappResult", "Экраны: ${screens.size}")
             screens.forEachIndexed { index, screen ->
                 Log.d("ParsedMicroappResult", "  $index: ${screen.title} (${screen.screenCode})")
+
+                // Выводим информацию о запросах
+                if (screen.requests.isNotEmpty()) {
+                    Log.d("ParsedMicroappResult", "    Запросы (${screen.requests.size}):")
+                    screen.requests.forEach { query ->
+                        Log.d("ParsedMicroappResult", "      - ${query.code} → ${query.queryCode}")
+                    }
+                }
+
                 if (screen.rootComponent != null) {
                     val bindingCount = countBindingsRecursive(screen.rootComponent)
                     Log.d("ParsedMicroappResult", "    Корневой компонент: ${screen.rootComponent.title}")
@@ -178,8 +185,14 @@ class SDUIParser(private val context: Context) {
             Log.d("ParsedMicroappResult", "События: ${events?.events?.size ?: 0}")
             Log.d("ParsedMicroappResult", "Действия событий: ${eventActions?.eventActions?.size ?: 0}")
             Log.d("ParsedMicroappResult", "Запросы: ${queries.size}")
+            Log.d("ParsedMicroappResult", "ScreenQueries: ${screenQueries.size}")
             Log.d("ParsedMicroappResult", "Виджеты: ${widgets.size}")
             Log.d("ParsedMicroappResult", "Лэйауты: ${layouts.size}")
+
+            // Подсчет всех запросов по экранам
+            val totalRequests = screens.sumOf { it.requests.size }
+            Log.d("ParsedMicroappResult", "Всего запросов в экранах: $totalRequests")
+
             Log.d("ParsedMicroappResult", "Всего компонентов: ${countAllComponents()}")
             Log.d("ParsedMicroappResult", "Всего биндингов: ${countAllBindings()}")
             Log.d("ParsedMicroappResult", "=======================================")
@@ -248,9 +261,32 @@ class SDUIParser(private val context: Context) {
             val styles = parseStylesFromFullXml(xmlContent)
             val events = parseEventsFromFullXml(xmlContent)
             val eventActions = parseEventActionsFromFullXml(xmlContent)
-            val screens = componentParser.parseAllComponentsFromFullXml(xmlContent)
+
+            // 1. Парсим компоненты (экраны) - ПОКА БЕЗ ЗАПРОСОВ
+            val screensWithoutQueries = componentParser.parseAllComponentsFromFullXml(xmlContent)
+
+            // 2. Парсим запросы отдельно
             val queries = parseQueriesFromFullXml(xmlContent)
             val screenQueries = parseScreenQueriesFromFullXml(xmlContent)
+
+            // 3. Группируем запросы по экранам для быстрого доступа
+            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
+
+            // 4. Обогащаем экраны запросами
+            val screensWithQueries = screensWithoutQueries.map { screen ->
+                val screenQueriesForThisScreen = queriesByScreenCode[screen.screenCode] ?: emptyList()
+
+                // Создаем обогащенный ParsedScreen
+                ParsedScreen(
+                    title = screen.title,
+                    screenCode = screen.screenCode,
+                    screenShortCode = screen.screenShortCode,
+                    deeplink = screen.deeplink,
+                    rootComponent = screen.rootComponent,
+                    requests = screenQueriesForThisScreen  // ← ДОБАВЛЯЕМ ЗАПРОСЫ
+                )
+            }
+
             val widgets = parseWidgetsFromFullXml(xmlContent)
             val layouts = parseLayoutsFromFullXml(xmlContent)
 
@@ -259,24 +295,22 @@ class SDUIParser(private val context: Context) {
             Log.d("SDUIParser", "  - styles: ${styles != null}")
             Log.d("SDUIParser", "  - events: ${events?.events?.size ?: 0}")
             Log.d("SDUIParser", "  - eventActions: ${eventActions?.eventActions?.size ?: 0}")
-            Log.d("SDUIParser", "  - screens: ${screens.size}")
+            Log.d("SDUIParser", "  - screens: ${screensWithQueries.size}")
             Log.d("SDUIParser", "  - queries: ${queries.size}")
             Log.d("SDUIParser", "  - screenQueries: ${screenQueries.size}")
             Log.d("SDUIParser", "  - widgets: ${widgets.size}")
             Log.d("SDUIParser", "  - layouts: ${layouts.size}")
 
-            // Логируем структуру компонентов и биндинги
-            screens.forEachIndexed { index, screen ->
+            // Логируем запросы для каждого экрана
+            screensWithQueries.forEachIndexed { index, screen ->
                 Log.d("SDUIParser", "Экран $index: ${screen.title}")
-                screen.rootComponent?.let {
-                    val bindingCount = countBindingsInComponent(it)
-                    Log.d("SDUIParser", "  Корневой компонент: ${it.title} с ${it.children.size} детьми")
-                    Log.d("SDUIParser", "  Биндингов в компоненте: $bindingCount")
-
-                    // Выводим информацию о биндингах для отладки
-                    if (bindingCount > 0) {
-                        logComponentBindings(it)
+                if (screen.requests.isNotEmpty()) {
+                    Log.d("SDUIParser", "  Запросы (${screen.requests.size}):")
+                    screen.requests.forEach { query ->
+                        Log.d("SDUIParser", "    - ${query.code} → ${query.queryCode}")
                     }
+                } else {
+                    Log.d("SDUIParser", "  Запросы: нет")
                 }
             }
 
@@ -286,7 +320,7 @@ class SDUIParser(private val context: Context) {
                 styles = styles,
                 events = events,
                 eventActions = eventActions,
-                screens = screens,
+                screens = screensWithQueries,  // ← ИСПОЛЬЗУЕМ ОБОГАЩЕННЫЕ ЭКРАНЫ
                 queries = queries,
                 screenQueries = screenQueries,
                 widgets = widgets,
@@ -350,7 +384,7 @@ class SDUIParser(private val context: Context) {
      */
     private fun parseScreenQueriesFromFullXml(xmlContent: String): List<ScreenQuery> {
         return try {
-            screenQueryParser.parseScreenQueries(xmlContent)
+            queryParser.parseScreenQueries(xmlContent)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге screen queries", e)
             emptyList()

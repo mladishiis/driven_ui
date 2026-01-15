@@ -18,7 +18,7 @@ class ScreenMapper(
     ): ScreenModel {
         return ScreenModel(
             id = parsedScreen.screenCode,
-            requests = requests,
+            requests = parsedScreen.requests,
             rootComponent = mapParsedScreenToUI(parsedScreen, styleRegistry)
         )
     }

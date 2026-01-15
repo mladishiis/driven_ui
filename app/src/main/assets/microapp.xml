@@ -360,12 +360,25 @@
                 </property>
             </properties>
         </query>
+        <query title="Получение списка перевозчиков">
+            <code>allCarriers</code>
+            <type>GET</type>
+            <endpoint>/v1/tavrida/carriers</endpoint>
+            <properties>
+                <property>
+                    <code>query_parameter/query_string/query_body</code>
+                    <variableName>переменная из запроса (из самого метода, в которое нужно подставить значение. Как она называется в query_parameter/query_string/query_body)</variableName>
+                    <variableValue>переменная из контекста/глобальная переменная/переменная из ответа другого запроса, которую подставляем в значение переменной из запроса</variableValue>
+                </property>
+            </properties>
+        </query>
     </allQueries>
     <screenQueries>
         <screenQuery>
-            <code>enter_adminAuth</code>
+            <screenQueryCode>enter_adminAuth</screenQueryCode>
             <screenCode>enter</screenCode>
             <queryCode>adminAuth</queryCode>
+            <mockFile>xxx.json</mockFile>
             <properties>
                 <property>
                     <code>query_body</code>
@@ -388,6 +401,14 @@
                     <variableValue></variableValue>
                 </property>
             </properties>
+            <order>1</order>
+        </screenQuery>
+        <screenQuery>
+            <screenQueryCode>carriers_allCarriers</screenQueryCode>
+            <screenCode>carriers</screenCode>
+            <queryCode>allCarriers</queryCode>
+            <mockFile>carriers_list.json</mockFile>
+            <properties></properties>
             <order>1</order>
         </screenQuery>
     </screenQueries>
@@ -565,6 +586,24 @@
                         <value>surface</value>
                     </style>
                 </styles>
+                <events>
+                    <event>
+                        <event_code>onCreate</event_code>
+                        <order>1</order>
+                        <eventActions>
+                            <eventAction>
+                                <code>query</code>
+                                <order>1</order>
+                                <properties>
+                                    <property>
+                                        <code>queryCode</code>
+                                        <value>carriers_allCarriers</value>
+                                    </property>
+                                </properties>
+                            </eventAction>
+                        </eventActions>
+                    </event>
+                </events>
                 <screenLayout title="Перевозчики. Верх">
                     <screenLayoutCode>carriers_appbar</screenLayoutCode>
                     <layoutCode>vertical</layoutCode>
@@ -706,7 +745,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>${carriers_list[0].carrierName}</value>
+                                        <value>${carriers_allCarriers.[0].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -765,7 +804,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>${carriers_list[1].carrierName}</value>
+                                        <value>${carriers_allCarriers.[1].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -824,7 +863,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>${carriers_list[2].carrierName}</value>
+                                        <value>${carriers_allCarriers.[2].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -883,7 +922,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>${carriers_list[3].carrierName}</value>
+                                        <value>${carriers_allCarriers.[3].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>
@@ -942,7 +981,7 @@
                                 <properties>
                                     <property>
                                         <code>text</code>
-                                        <value>${carriers_list[4].carrierName}</value>
+                                        <value>${carriers_allCarriers.[4].carrierName}</value>
                                     </property>
                                     <property>
                                         <code>width</code>

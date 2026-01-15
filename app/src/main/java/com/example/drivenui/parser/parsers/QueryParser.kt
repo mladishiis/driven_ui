@@ -166,6 +166,7 @@ class QueryParser {
         var screenCode = ""
         var queryCode = ""
         var order = 0
+        var mockFile: String? = null
         val propertiesMap = mutableMapOf<String, String>()
 
         var eventType = parser.next()
@@ -173,12 +174,13 @@ class QueryParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "screenCode" -> screenCode = parser.nextText()
-                        "screenСode" -> screenCode = parser.nextText() // Для обработки опечатки
-                        "queryCode" -> queryCode = parser.nextText()
+                        "screenQueryCode" -> code = parser.nextText().trim()  // ← .trim()
+                        "screenCode" -> screenCode = parser.nextText().trim()  // ← .trim()
+                        "screenСode" -> screenCode = parser.nextText().trim()  // Для обработки опечатки
+                        "queryCode" -> queryCode = parser.nextText().trim()  // ← .trim()
+                        "mockFile" -> mockFile = parser.nextText().trim()  //
                         "order" -> {
-                            val orderText = parser.nextText()
+                            val orderText = parser.nextText().trim()
                             order = orderText.toIntOrNull() ?: 0
                         }
                         "properties" -> parseScreenQueryPropertiesToMap(parser, propertiesMap)
@@ -193,6 +195,7 @@ class QueryParser {
             code = code,
             screenCode = screenCode,
             queryCode = queryCode,
+            mockFile = mockFile,
             properties = propertiesMap,
             order = order
         )

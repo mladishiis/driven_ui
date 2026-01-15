@@ -75,6 +75,8 @@ class GenerativeScreenViewModel @Inject constructor(
 
             // Обрабатываем данные через RequestInteractor
             val processedScreen = requestInteractor.processScreen(screenModel)
+            Log.d("Aidar","screenModel = ${screenModel}")
+            Log.d("Aidar","processedScreen = ${processedScreen}")
 
             navigateToScreen(processedScreen)
         } else {

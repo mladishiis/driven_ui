@@ -191,7 +191,8 @@ data class ParsedScreen(
     val screenCode: String,
     val screenShortCode: String,
     val deeplink: String,
-    val rootComponent: Component? = null
+    val rootComponent: Component? = null,
+    val requests: List<ScreenQuery> = emptyList()
 ): Parcelable
 
 //queries
@@ -247,13 +248,15 @@ data class Query(
  * @property order Порядковый номер выполнения запроса на экране
  * @property properties Список свойств запроса с конкретными значениями
  */
+@Parcelize
 data class ScreenQuery(
     val code: String,
     val screenCode: String,
     val queryCode: String,
     val order: Int,
+    val mockFile: String? = null,
     val properties: Map<String, String>,
-)
+): Parcelable
 
 //screen
 
