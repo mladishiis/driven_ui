@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.drivenui.engine.generative_screen.GenerativeScreen
 import com.example.drivenui.engine.generative_screen.GenerativeScreenViewModel
-import com.example.drivenui.engine.generative_screen.action.NativeActionRegistry
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,13 +18,6 @@ import dagger.hilt.android.AndroidEntryPoint
 internal class TestRenderFragment : Fragment() {
 
     private val viewModel: GenerativeScreenViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Код для тестирования экшена с вызовом нативного кода
-        val activity = requireActivity()
-        NativeActionRegistry.register(ExampleNativeActionExecutor(activity))
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
