@@ -101,7 +101,28 @@ class ActionHandler(
     }
 
     private suspend fun handleNativeCode(action: UiAction.NativeCode): ActionResult {
-        return ActionResult.Success
+        val executor = NativeActionRegistry.getExecutor()
+        if (executor == null) {
+            Log.w("ActionHandler", "HostActionExecutor not registered. Cannot execute action: ${action.actionCode}")
+            return ActionResult.Error("Host action executor not registered")
+        }
+
+        return try {
+            when (val result = executor.executeAction(action.actionCode, action.parameters)) {
+                is NativeActionResult.Success -> {
+                    result.data?.forEach { (key, value) ->
+                        contextManager.setVariable(key, value)
+                    }
+                    ActionResult.Success
+                }
+                is NativeActionResult.Error -> {
+                    ActionResult.Error(result.message, result.exception)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ActionHandler", "Error executing host action: ${action.actionCode}", e)
+            ActionResult.Error("Error executing host action: ${e.message}", e)
+        }
     }
 }
 

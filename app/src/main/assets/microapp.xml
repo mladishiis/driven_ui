@@ -1285,6 +1285,24 @@
                                     <value>84</value>
                                 </property>
                             </properties>
+                            <events>
+                                <event>
+                                    <event_code>onTap</event_code>
+                                    <order>1</order>
+                                    <eventActions>
+                                        <eventAction>
+                                            <code>nativecode</code>
+                                            <order>1</order>
+                                            <properties>
+                                                <property>
+                                                    <code>actionCode</code>
+                                                    <value>black</value>
+                                                </property>
+                                            </properties>
+                                        </eventAction>
+                                    </eventActions>
+                                </event>
+                            </events>
                             <styles>
                                 <style>
                                     <code>textStyle</code>

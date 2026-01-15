@@ -80,9 +80,12 @@ fun EventAction.mapToUiAction(): UiAction {
             }
         }
         "nativecode" -> {
-            val className = properties["class"]
-            if (!className.isNullOrEmpty()) {
-                UiAction.NativeCode(className)
+            val actionCode = properties["actionCode"] ?: ""
+            if (actionCode.isNotEmpty()) {
+                val parameters = properties.filterKeys {
+                    it != "actionCode"
+                }
+                UiAction.NativeCode(actionCode, parameters)
             } else {
                 UiAction.Empty
             }

@@ -9,7 +9,10 @@ sealed interface UiAction {
     data class ExecuteQuery(val queryCode: String) : UiAction
     data class DataTransform(val variableName: String, val newValue: String) : UiAction
     data class SaveToContext(val valueTo: String, val valueFrom: String) : UiAction
-    data class NativeCode(val className: String) : UiAction
+    data class NativeCode(
+        val actionCode: String,
+        val parameters: Map<String, String> = emptyMap()
+    ) : UiAction
     data object Back : UiAction
     data object Empty : UiAction
 }
