@@ -11,6 +11,7 @@ import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
@@ -72,12 +73,12 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
         "image" -> {
             mapWidgetToImageModel(modifier)
         }
+
+        "input" -> {
+            mapWidgetToInputModel(modifier, styleRegistry)
+        }
 // TODO: остальные виджеты
 
-//        "input" -> {
-//            InputModel()
-//        }
-//
 //        "checkbox" -> {
 //            CheckboxModel()
 //        }
@@ -165,6 +166,21 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         iconLeftUrl = iconProperty,
         tapAction = getOnTapEvents(events),
+        alignmentStyle = getAlignmentStyle()
+    )
+}
+
+fun WidgetComponent.mapWidgetToInputModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): InputModel? {
+    val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
+    val hintProperty = properties.find { it.code == "hint" }?.resolvedValue ?: ""
+    val readOnlyProperty = properties.find { it.code == "readOnly" }?.resolvedValue?.toBoolean() ?: false
+    return InputModel(
+        modifier = modifier,
+        text = textProperty,
+        hint = hintProperty,
+        readOnly = readOnlyProperty,
+        widgetCode = code,
+        finishTypingActions = getOnFinishTypingEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
 }

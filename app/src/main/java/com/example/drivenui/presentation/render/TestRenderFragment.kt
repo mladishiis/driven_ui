@@ -24,10 +24,11 @@ internal class TestRenderFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val parsedScreens = arguments?.getParcelableArrayList<ParsedScreen>("ttt")
-        val allStyles = arguments?.getParcelable<AllStyles>("uuu")
+        val parsedScreens = arguments?.getParcelableArrayList<ParsedScreen>("parsedScreen")
+        val allStyles = arguments?.getParcelable<AllStyles>("allStyles")
+        val microappCode = arguments?.getString("microappCode")
         if (parsedScreens != null) {
-            viewModel.setParsedResult(parsedScreens, allStyles)
+            viewModel.setParsedResult(parsedScreens, allStyles, microappCode)
         }
 
         return ComposeView(requireContext()).apply {
@@ -41,10 +42,12 @@ internal class TestRenderFragment : Fragment() {
         fun newInstance(
             parsedScreen: List<ParsedScreen>?,
             styles: AllStyles?,
+            microappCode: String? = null
         ) = TestRenderFragment().apply {
             arguments = bundleOf(
-                "uuu" to styles,
-                "ttt" to parsedScreen,
+                "allStyles" to styles,
+                "parsedScreen" to parsedScreen,
+                "microappCode" to microappCode
             )
         }
     }

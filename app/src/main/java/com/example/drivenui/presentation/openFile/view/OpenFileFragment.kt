@@ -74,8 +74,9 @@ internal class OpenFileFragment : Fragment() {
 
                     // Переходим к DetailsFragment
                     navigateToTestFragment(
-                        effect.result.screens,
-                        effect.result.styles
+                        parsedScreen = effect.result.screens,
+                        styles = effect.result.styles,
+                        microappCode = effect.result.microapp?.code
                     )
                 }
 
@@ -117,9 +118,10 @@ internal class OpenFileFragment : Fragment() {
     private fun navigateToTestFragment(
         parsedScreen: List<ParsedScreen>?,
         styles: AllStyles?,
+        microappCode: String? = null
     ) {
         val testFragment = TestRenderFragment.newInstance(
-            parsedScreen, styles
+            parsedScreen, styles, microappCode
         )
         parentFragmentManager.beginTransaction()
             .replace(android.R.id.content, testFragment)

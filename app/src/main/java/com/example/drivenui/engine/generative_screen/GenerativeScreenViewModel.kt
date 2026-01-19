@@ -4,17 +4,19 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.data.RequestInteractor
+import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
 import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
 import com.example.drivenui.engine.generative_screen.action.ScreenProvider
-import com.example.drivenui.engine.generative_screen.context.ScreenContextManager
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,12 +29,14 @@ import javax.inject.Inject
 class GenerativeScreenViewModel @Inject constructor(
     private val externalDeeplinkHandler: ExternalDeeplinkHandler,
     private val requestInteractor: RequestInteractor,
+    private val contextManager: IContextManager,
+    private val widgetValueProvider: IWidgetValueProvider
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
     private var allStyles: AllStyles? = null
+    private var microappCode: String? = null
 
-    private val contextManager = ScreenContextManager()
     private val navigationManager = ScreenNavigationManager()
     private var screenMapper: ScreenMapper? = null
     private var actionHandler: ActionHandler? = null
@@ -43,23 +47,25 @@ class GenerativeScreenViewModel @Inject constructor(
 
     val navigationStack: List<ScreenState> get() = navigationManager.navigationStack
 
-    val context: ScreenContextManager get() = contextManager
-
     //TODO: здесь нужно, чтобы приходил список ScreenModel с подставленными запросами
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
         allStyles: AllStyles?,
+        microappCode: String? = null
     ) {
         this.parsedScreens = parsedScreens
         this.allStyles = allStyles
+        this.microappCode = microappCode
 
-        screenMapper = ScreenMapper.create(allStyles, contextManager)
+        screenMapper = ScreenMapper.create(allStyles)
         screenProvider = ScreenProviderImpl(parsedScreens, screenMapper!!)
         actionHandler = ActionHandler(
             navigationManager,
             screenProvider!!,
+            externalDeeplinkHandler,
             contextManager,
-            externalDeeplinkHandler
+            widgetValueProvider,
+            microappCode
         )
 
         loadInitialScreen()
@@ -93,9 +99,10 @@ class GenerativeScreenViewModel @Inject constructor(
             }
 
             when (val result = handler.handleAction(action)) {
-                is ActionResult.Success -> {
+                is ActionResult.NavigationChanged -> {
                     updateUiStateFromNavigation()
                 }
+                is ActionResult.Success -> {}
                 is ActionResult.Error -> {
                     Log.e("GenerativeScreenViewModel", "Action error: ${result.message}", result.exception)
                     _uiState.value = GenerativeUiState.Error(result.message)
@@ -109,6 +116,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             when (val result = handler.handleAction(UiAction.Back)) {
+                is ActionResult.NavigationChanged,
                 is ActionResult.Success -> {
                     updateUiStateFromNavigation()
                 }
@@ -121,21 +129,29 @@ class GenerativeScreenViewModel @Inject constructor(
         return navigationManager.canNavigateBack()
     }
 
+    /**
+     * Вызывается UI-слоем, когда нужно сохранить значение виджета.
+     */
+    fun onWidgetValueChange(widgetCode: String, parameter: String, value: Any) {
+        widgetValueProvider.setWidgetValue(widgetCode, parameter, value)
+    }
+
     private fun updateUiStateFromNavigation() {
         val currentScreen = navigationManager.getCurrentScreen()
         if (currentScreen != null) {
-            _uiState.value = GenerativeUiState.Screen(currentScreen.definition?.rootComponent)
+            val resolvedRoot = currentScreen.definition?.rootComponent
+            _uiState.value = GenerativeUiState.Screen(resolvedRoot)
         }
     }
 
     private fun navigateToScreen(screen: ScreenModel) {
-        navigationManager.pushScreen(ScreenState.fromDefinition(screen))
-        _uiState.value = GenerativeUiState.Screen(screen.rootComponent)
+        val resolvedScreen = resolveScreen(screen, contextManager)
+        navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+        _uiState.value = GenerativeUiState.Screen(resolvedScreen.rootComponent)
     }
 
     override fun onCleared() {
         super.onCleared()
-        contextManager.clear()
         navigationManager.clear()
     }
 

@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
+import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
 import com.example.drivenui.theme.DrivenUITheme
 
 
@@ -18,6 +19,7 @@ fun GenerativeScreen(viewModel: GenerativeScreenViewModel) {
         state = viewModel.uiState.collectAsStateWithLifecycle().value,
         onAction = viewModel::handleAction,
         onBack = viewModel::navigateBack,
+        onWidgetValueChange = viewModel::onWidgetValueChange
     )
 }
 
@@ -26,6 +28,7 @@ fun GenerativeScreenUi(
     state: GenerativeUiState,
     onAction: (UiAction) -> Unit,
     onBack: () -> Unit,
+    onWidgetValueChange: WidgetValueSetter
 ) {
     DrivenUITheme {
         BackHandler { onBack() }
@@ -35,7 +38,7 @@ fun GenerativeScreenUi(
             when (state) {
                 is GenerativeUiState.Screen ->
                     state.model?.also {
-                        ComponentRenderer(it, onAction)
+                        ComponentRenderer(it, onAction, onWidgetValueChange)
                     }
                 else -> {}
             }

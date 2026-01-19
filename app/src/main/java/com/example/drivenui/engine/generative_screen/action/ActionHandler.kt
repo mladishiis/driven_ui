@@ -1,17 +1,21 @@
 package com.example.drivenui.engine.generative_screen.action
 
 import android.util.Log
-import com.example.drivenui.engine.generative_screen.context.ScreenContextManager
+import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 
 class ActionHandler(
     private val navigationManager: ScreenNavigationManager,
     private val screenProvider: ScreenProvider,
-    private val contextManager: ScreenContextManager,
-    private val externalDeeplinkHandler: ExternalDeeplinkHandler
+    private val externalDeeplinkHandler: ExternalDeeplinkHandler,
+    private val contextManager: IContextManager,
+    private val widgetValueProvider: IWidgetValueProvider,
+    private val microappCode: String?
 ) {
 
     suspend fun handleAction(action: UiAction): ActionResult {
@@ -39,14 +43,13 @@ class ActionHandler(
         val screenModel = screenProvider.findScreen(screenCode)
             ?: return ActionResult.Error("Screen not found: $screenCode")
 
-        navigationManager.pushScreen(ScreenState.fromDefinition(screenModel))
-        return ActionResult.Success
+        return openResolvedScreen(screenModel)
     }
 
     private fun handleBack(): ActionResult {
         val previousScreen = navigationManager.popScreen()
         return if (previousScreen != null) {
-            ActionResult.Success
+            ActionResult.NavigationChanged
         } else {
             ActionResult.Error("Cannot navigate back: already at root")
         }
@@ -55,8 +58,7 @@ class ActionHandler(
     private suspend fun handleOpenDeeplink(deeplink: String): ActionResult {
         val screenModel = screenProvider.findScreenByDeeplink(deeplink)
         if (screenModel != null) {
-            navigationManager.pushScreen(ScreenState.fromDefinition(screenModel))
-            return ActionResult.Success
+            return openResolvedScreen(screenModel)
         }
 
         val handled = externalDeeplinkHandler.handleExternalDeeplink(deeplink)
@@ -65,6 +67,15 @@ class ActionHandler(
         } else {
             ActionResult.Error("Deeplink not found: $deeplink")
         }
+    }
+
+    /**
+     * Резолвит переменные контекста в экране и пушит результат в стек навигации.
+     */
+    private fun openResolvedScreen(screenModel: ScreenModel): ActionResult {
+        val resolvedScreen = resolveScreen(screenModel, contextManager)
+        navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+        return ActionResult.NavigationChanged
     }
 
     private suspend fun handleRefreshScreen(screenCode: String): ActionResult {
@@ -76,27 +87,73 @@ class ActionHandler(
     }
 
     private fun handleSaveToContext(action: UiAction.SaveToContext): ActionResult {
-        val currentScreen = navigationManager.getCurrentScreen()
-        val sourceData = buildMap<String, Any> {
-            currentScreen?.data?.let { putAll(it) }
-            putAll(contextManager.getContext())
+        val sourceValue = resolveValueFrom(action.valueFrom)
+        if (sourceValue == null) {
+            return ActionResult.Error("Failed to resolve value from: ${action.valueFrom}")
         }
 
-        val success = contextManager.saveFromSource(
-            targetKey = action.valueTo,
-            sourceKey = action.valueFrom,
-            sourceData = sourceData
+        parseMicroappContextTarget(action.valueTo)?.let { (microappCode, variableName) ->
+            contextManager.setMicroappVariable(
+                microappCode = microappCode,
+                variableName = variableName,
+                value = sourceValue
+            )
+            return ActionResult.Success
+        }
+
+        parseEngineContextTarget(action.valueTo)?.let { variableName ->
+            contextManager.setEngineVariable(
+                variableName = variableName,
+                value = sourceValue
+            )
+            return ActionResult.Success
+        }
+
+        return ActionResult.Error(
+            "Invalid target format for saveToContext: ${action.valueTo}. Expected @{microappCode.variableName} or @@{variableName}"
         )
+    }
 
-        return if (success) {
-            ActionResult.Success
-        } else {
-            ActionResult.Error("Failed to save context: source '${action.valueFrom}' not found")
+    private fun resolveValueFrom(expression: String): Any? {
+        parseWidgetVariable(expression)?.let { (widgetCode, parameter) ->
+            return widgetValueProvider.getWidgetValue(
+                widgetCode = widgetCode,
+                parameter = parameter
+            )
         }
+
+        return expression
+    }
+
+    private fun parseMicroappContextTarget(expression: String): Pair<String, String>? {
+        if (!expression.startsWith("@{") || !expression.endsWith("}")) return null
+        val content = expression.substring(2, expression.length - 1)
+        val parts = content.split(".", limit = 2)
+        if (parts.size != 2) return null
+        val microappCode = parts[0].trim()
+        val variableName = parts[1].trim()
+        if (microappCode.isEmpty() || variableName.isEmpty()) return null
+        return microappCode to variableName
+    }
+
+    private fun parseEngineContextTarget(expression: String): String? {
+        if (!expression.startsWith("@@{") || !expression.endsWith("}")) return null
+        val content = expression.substring(3, expression.length - 1).trim()
+        return content.ifEmpty { null }
+    }
+
+    private fun parseWidgetVariable(expression: String): Pair<String, String>? {
+        if (!expression.startsWith("%{") || !expression.endsWith("}")) return null
+        val content = expression.substring(2, expression.length - 1)
+        val parts = content.split(".", limit = 2)
+        if (parts.size != 2) return null
+        val widgetCode = parts[0].trim()
+        val parameter = parts[1].trim()
+        if (widgetCode.isEmpty() || parameter.isEmpty()) return null
+        return widgetCode to parameter
     }
 
     private fun handleDataTransform(action: UiAction.DataTransform): ActionResult {
-        contextManager.setVariable(action.variableName, action.newValue)
         return ActionResult.Success
     }
 
@@ -110,8 +167,16 @@ class ActionHandler(
         return try {
             when (val result = executor.executeAction(action.actionCode, action.parameters)) {
                 is NativeActionResult.Success -> {
-                    result.data?.forEach { (key, value) ->
-                        contextManager.setVariable(key, value)
+                    if (microappCode != null) {
+                        result.data?.forEach { (key, value) ->
+                            contextManager.setMicroappVariable(
+                                microappCode = microappCode,
+                                variableName = key,
+                                value = value
+                            )
+                        }
+                    } else {
+                        Log.w("ActionHandler", "Microapp code is null, cannot save NativeCode result to microapp context")
                     }
                     ActionResult.Success
                 }
@@ -128,6 +193,9 @@ class ActionHandler(
 
 sealed class ActionResult {
     data object Success : ActionResult()
+
+    data object NavigationChanged : ActionResult()
+
     data class Error(val message: String, val exception: Exception? = null) : ActionResult()
 }
 

@@ -8,6 +8,10 @@ fun getOnTapEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onTap" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
+fun getOnFinishTypingEvents(events: List<WidgetEvent>): List<UiAction> =
+    events.find { it.eventCode == "onFinishTyping" }?.eventActions?.mapToUiActionsList()
+        ?: emptyList()
+
 fun List<EventAction>.mapToUiActionsList(): List<UiAction> =
     map { it.mapToUiAction() }
 

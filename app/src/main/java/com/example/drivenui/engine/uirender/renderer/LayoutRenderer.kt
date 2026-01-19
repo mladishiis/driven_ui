@@ -14,11 +14,12 @@ import com.example.drivenui.engine.uirender.models.LayoutType
 fun LayoutRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null
 ) {
     when (model.type) {
-        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction)
-        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction)
-        LayoutType.LAYER -> BoxRenderer(model, onAction)
+        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction, onWidgetValueChange)
+        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction, onWidgetValueChange)
+        LayoutType.LAYER -> BoxRenderer(model, onAction, onWidgetValueChange)
     }
 }
 
@@ -26,10 +27,11 @@ fun LayoutRenderer(
 private fun ColumnRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(child, onAction)
+            ComponentRenderer(child, onAction, onWidgetValueChange)
         }
     }
 }
@@ -38,10 +40,11 @@ private fun ColumnRenderer(
 private fun RowRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(child, onAction)
+            ComponentRenderer(child, onAction, onWidgetValueChange)
         }
     }
 }
@@ -50,6 +53,7 @@ private fun RowRenderer(
 private fun BoxRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null
 ) {
     Box(
         modifier = model.modifier
@@ -74,7 +78,7 @@ private fun BoxRenderer(
                 else -> Modifier
             }
             Box(modifier = modifier) {
-                ComponentRenderer(child, onAction)
+                ComponentRenderer(child, onAction, onWidgetValueChange)
             }
         }
     }

@@ -42,34 +42,3 @@ fun ButtonRenderer(
         )
     }
 }
-
-
-fun CustomWidget(
-    onAction : (UiAction) -> Unit,
-){
-
-}
-
-//@Composable
-//@Preview
-//fun ButtonRendererPreview() {
-//    Box(modifier= Modifier.wrapContentHeight()) {
-//        ButtonRenderer(
-//            ButtonModel(
-//                modifier = Modifier
-//                    .padding(PaddingValues(20.dp))
-//                    .height(60.dp)
-//                    .fillMaxWidth(),
-//                enabled = true,
-//                text = "+ Добавить перевозчика",
-//                textStyle = TextStyle.Default.merge(
-//                    fontSize = 22.sp,
-//                    fontWeight = FontWeight(400),
-//                    color = Color.Black,
-//                ),
-//                roundedCornerSize = 16,
-//                alignmentStyle = "",
-//            )
-//        )
-//    }
-//}

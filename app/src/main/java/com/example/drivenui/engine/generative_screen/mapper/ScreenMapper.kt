@@ -1,6 +1,5 @@
 package com.example.drivenui.engine.generative_screen.mapper
 
-import com.example.drivenui.engine.generative_screen.context.ScreenContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
@@ -8,8 +7,7 @@ import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 
 class ScreenMapper(
-    private val styleRegistry: ComposeStyleRegistry,
-    private val contextManager: ScreenContextManager
+    private val styleRegistry: ComposeStyleRegistry
 ) {
 
     fun mapToScreenModel(
@@ -25,12 +23,10 @@ class ScreenMapper(
 
     companion object {
         fun create(
-            styles: AllStyles?,
-            contextManager: ScreenContextManager
+            styles: AllStyles?
         ): ScreenMapper {
             return ScreenMapper(
-                ComposeStyleRegistry(styles),
-                contextManager
+                ComposeStyleRegistry(styles)
             )
         }
     }
