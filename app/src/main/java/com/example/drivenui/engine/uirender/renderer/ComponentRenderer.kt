@@ -15,11 +15,12 @@ import com.example.drivenui.engine.uirender.models.SwitcherModel
 @Composable
 fun ComponentRenderer(
     model: ComponentModel,
+    isRoot: Boolean = false,
     onAction: (UiAction) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null
 ) {
     when (model) {
-        is LayoutModel -> LayoutRenderer(model, onAction, onWidgetValueChange)
+        is LayoutModel -> LayoutRenderer(model, onAction, onWidgetValueChange, isRoot)
         is InputModel -> InputRenderer(model, onAction, onWidgetValueChange ?: { _, _, _ -> })
         is LabelModel -> LabelRenderer(model, onAction)
         is ImageModel -> ImageRenderer(model, onAction)

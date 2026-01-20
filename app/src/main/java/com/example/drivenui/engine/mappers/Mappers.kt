@@ -53,6 +53,7 @@ fun LayoutComponent.mapLayoutToUIModel(modifier: Modifier, styleRegistry: Compos
         modifier = buildModifierForLayoutFromStyles(modifier, styles, styleRegistry),
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
+        onCreateActions = getOnCreateEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
 

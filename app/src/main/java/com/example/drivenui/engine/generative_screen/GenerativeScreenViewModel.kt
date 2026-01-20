@@ -17,6 +17,7 @@ import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,8 +46,6 @@ class GenerativeScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<GenerativeUiState>(GenerativeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    val navigationStack: List<ScreenState> get() = navigationManager.navigationStack
-
     //TODO: здесь нужно, чтобы приходил список ScreenModel с подставленными запросами
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
@@ -65,6 +64,7 @@ class GenerativeScreenViewModel @Inject constructor(
             externalDeeplinkHandler,
             contextManager,
             widgetValueProvider,
+            requestInteractor,
             microappCode
         )
 
@@ -76,15 +76,9 @@ class GenerativeScreenViewModel @Inject constructor(
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
-            // Получаем экранную модель
             val screenModel = mapper.mapToScreenModel(firstScreen)
 
-            // Обрабатываем данные через RequestInteractor
-            val processedScreen = requestInteractor.processScreen(screenModel)
-            Log.d("Aidar","screenModel = ${screenModel}")
-            Log.d("Aidar","processedScreen = ${processedScreen}")
-
-            navigateToScreen(processedScreen)
+            navigateToScreen(screenModel)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
@@ -100,9 +94,13 @@ class GenerativeScreenViewModel @Inject constructor(
 
             when (val result = handler.handleAction(action)) {
                 is ActionResult.NavigationChanged -> {
-                    updateUiStateFromNavigation()
+                    handleNavigationChanged()
                 }
-                is ActionResult.Success -> {}
+                is ActionResult.Success -> {
+                    if (action is UiAction.ExecuteQuery) {
+                        updateUiStateFromNavigation()
+                    }
+                }
                 is ActionResult.Error -> {
                     Log.e("GenerativeScreenViewModel", "Action error: ${result.message}", result.exception)
                     _uiState.value = GenerativeUiState.Error(result.message)
@@ -136,6 +134,21 @@ class GenerativeScreenViewModel @Inject constructor(
         widgetValueProvider.setWidgetValue(widgetCode, parameter, value)
     }
 
+    private suspend fun handleNavigationChanged() {
+        val currentScreen = navigationManager.getCurrentScreen()
+        val definition = currentScreen?.definition
+
+        if (definition == null) {
+            updateUiStateFromNavigation()
+            return
+        }
+
+        processScreenForNavigation(
+            baseScreen = definition,
+            replaceCurrent = true
+        )
+    }
+
     private fun updateUiStateFromNavigation() {
         val currentScreen = navigationManager.getCurrentScreen()
         if (currentScreen != null) {
@@ -145,9 +158,52 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun navigateToScreen(screen: ScreenModel) {
-        val resolvedScreen = resolveScreen(screen, contextManager)
-        navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+        viewModelScope.launch {
+            processScreenForNavigation(
+                baseScreen = screen,
+                replaceCurrent = false
+            )
+        }
+    }
+
+    private suspend fun processScreenForNavigation(
+        baseScreen: ScreenModel,
+        replaceCurrent: Boolean
+    ) {
+        val onCreateQueries = extractOnCreateQueries(baseScreen.rootComponent)
+
+        val finalScreen = if (onCreateQueries.isNotEmpty()) {
+            _uiState.value = GenerativeUiState.Loading
+
+            var processedScreen = baseScreen
+            for (queryCode in onCreateQueries) {
+                processedScreen = requestInteractor.executeQueryAndUpdateScreen(
+                    screenModel = processedScreen,
+                    queryCode = queryCode
+                )
+            }
+            processedScreen
+        } else {
+            baseScreen
+        }
+
+        val resolvedScreen = resolveScreen(finalScreen, contextManager)
+        if (replaceCurrent) {
+            navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        } else {
+            navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+        }
         _uiState.value = GenerativeUiState.Screen(resolvedScreen.rootComponent)
+    }
+
+    private fun extractOnCreateQueries(rootComponent: ComponentModel?): List<String> {
+        if (rootComponent !is com.example.drivenui.engine.uirender.models.LayoutModel) {
+            return emptyList()
+        }
+
+        return rootComponent.onCreateActions
+            .filterIsInstance<UiAction.ExecuteQuery>()
+            .map { it.queryCode }
     }
 
     override fun onCleared() {

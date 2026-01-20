@@ -1,11 +1,14 @@
 package com.example.drivenui.engine.uirender.models
 
 import androidx.compose.ui.Modifier
+import com.example.drivenui.engine.generative_screen.models.UiAction
 
 data class LayoutModel(
     val modifier: Modifier,
     val type: LayoutType,
-    val children: List<ComponentModel>, override val alignmentStyle: String
+    val children: List<ComponentModel>,
+    val onCreateActions: List<UiAction>,
+    override val alignmentStyle: String
 ) : ComponentModel
 
 enum class LayoutType {

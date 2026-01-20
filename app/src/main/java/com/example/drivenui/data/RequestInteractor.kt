@@ -60,6 +60,36 @@ class RequestInteractor @Inject constructor(
         return dataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
     }
 
+    fun executeQueryAndUpdateScreen(
+        screenModel: ScreenModel,
+        queryCode: String
+    ): ScreenModel {
+        Log.d(TAG, "Executing query: $queryCode for screen: ${screenModel.id}")
+
+        val screenQuery = screenModel.requests.find { it.code == queryCode }
+        if (screenQuery == null) {
+            Log.w(TAG, "Query not found: $queryCode")
+            return screenModel
+        }
+
+        screenQuery.mockFile?.let { fileName ->
+            Log.d(TAG, "Loading mock file for query: $fileName (code: ${screenQuery.code})")
+
+            try {
+                val jsonString = appContext.assets.open(fileName).bufferedReader().use { it.readText() }
+                val jsonData = com.google.gson.JsonParser.parseString(jsonString)
+
+                dataContextProvider.addScreenQueryResult(screenQuery.code, jsonData)
+
+                Log.d(TAG, "Successfully loaded data for query: ${screenQuery.code}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load mock file: $fileName for query: ${screenQuery.code}", e)
+            }
+        }
+
+        return dataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
+    }
+
     /**
      * Загружает JSON файлы из ScreenQuery
      */

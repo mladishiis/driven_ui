@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
@@ -14,12 +15,27 @@ import com.example.drivenui.engine.uirender.models.LayoutType
 fun LayoutRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null
+    onWidgetValueChange: WidgetValueSetter? = null,
+    isRoot: Boolean = false
 ) {
+    LaunchedEffect(model) {
+        if (isRoot) {
+            model.onCreateActions
+                .filterNot { it is UiAction.ExecuteQuery }
+                .forEach { action ->
+                    onAction(action)
+                }
+        } else {
+            model.onCreateActions.forEach { action ->
+                onAction(action)
+            }
+        }
+    }
+
     when (model.type) {
-        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction, onWidgetValueChange)
-        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction, onWidgetValueChange)
-        LayoutType.LAYER -> BoxRenderer(model, onAction, onWidgetValueChange)
+        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction, onWidgetValueChange, isRoot)
+        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction, onWidgetValueChange, isRoot)
+        LayoutType.LAYER -> BoxRenderer(model, onAction, onWidgetValueChange, isRoot)
     }
 }
 
@@ -27,11 +43,17 @@ fun LayoutRenderer(
 private fun ColumnRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null
+    onWidgetValueChange: WidgetValueSetter? = null,
+    isRoot: Boolean = false
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(child, onAction, onWidgetValueChange)
+            ComponentRenderer(
+                model = child,
+                isRoot = isRoot,
+                onAction = onAction,
+                onWidgetValueChange = onWidgetValueChange
+            )
         }
     }
 }
@@ -40,11 +62,17 @@ private fun ColumnRenderer(
 private fun RowRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null
+    onWidgetValueChange: WidgetValueSetter? = null,
+    isRoot: Boolean = false
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(child, onAction, onWidgetValueChange)
+            ComponentRenderer(
+                model = child,
+                isRoot = isRoot,
+                onAction = onAction,
+                onWidgetValueChange = onWidgetValueChange
+            )
         }
     }
 }
@@ -53,7 +81,8 @@ private fun RowRenderer(
 private fun BoxRenderer(
     model: LayoutModel,
     onAction: (UiAction) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null
+    onWidgetValueChange: WidgetValueSetter? = null,
+    isRoot: Boolean = false
 ) {
     Box(
         modifier = model.modifier
@@ -78,7 +107,12 @@ private fun BoxRenderer(
                 else -> Modifier
             }
             Box(modifier = modifier) {
-                ComponentRenderer(child, onAction, onWidgetValueChange)
+                ComponentRenderer(
+                    model = child,
+                    isRoot = isRoot,
+                    onAction = onAction,
+                    onWidgetValueChange = onWidgetValueChange
+                )
             }
         }
     }

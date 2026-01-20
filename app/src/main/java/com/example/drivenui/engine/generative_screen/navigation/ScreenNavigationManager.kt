@@ -34,6 +34,12 @@ class ScreenNavigationManager {
 
     fun canNavigateBack(): Boolean = _navigationStack.size > 1
 
+    fun updateCurrentScreen(screenState: ScreenState) {
+        if (_navigationStack.isNotEmpty()) {
+            _navigationStack[_navigationStack.size - 1] = screenState
+        }
+    }
+
     fun clear() {
         _navigationStack.clear()
     }

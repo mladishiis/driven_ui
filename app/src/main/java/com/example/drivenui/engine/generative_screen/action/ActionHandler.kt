@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.generative_screen.action
 
 import android.util.Log
+import com.example.drivenui.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
@@ -15,6 +16,7 @@ class ActionHandler(
     private val externalDeeplinkHandler: ExternalDeeplinkHandler,
     private val contextManager: IContextManager,
     private val widgetValueProvider: IWidgetValueProvider,
+    private val requestInteractor: RequestInteractor,
     private val microappCode: String?
 ) {
 
@@ -83,6 +85,19 @@ class ActionHandler(
     }
 
     private suspend fun handleExecuteQuery(queryCode: String): ActionResult {
+        val currentScreen = navigationManager.getCurrentScreen()
+        if (currentScreen?.definition == null) {
+            return ActionResult.Error("No current screen to execute query on")
+        }
+
+        val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
+            screenModel = currentScreen.definition,
+            queryCode = queryCode
+        )
+
+        val resolvedScreen = resolveScreen(processedScreen, contextManager)
+        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+
         return ActionResult.Success
     }
 

@@ -12,6 +12,10 @@ fun getOnFinishTypingEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onFinishTyping" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
+fun getOnCreateEvents(events: List<WidgetEvent>): List<UiAction> =
+    events.find { it.eventCode == "onCreate" }?.eventActions?.mapToUiActionsList()
+        ?: emptyList()
+
 fun List<EventAction>.mapToUiActionsList(): List<UiAction> =
     map { it.mapToUiAction() }
 
