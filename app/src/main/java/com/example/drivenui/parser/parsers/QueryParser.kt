@@ -176,7 +176,6 @@ class QueryParser {
                     when (parser.name) {
                         "screenQueryCode" -> code = parser.nextText().trim()  // ← .trim()
                         "screenCode" -> screenCode = parser.nextText().trim()  // ← .trim()
-                        "screenСode" -> screenCode = parser.nextText().trim()  // Для обработки опечатки
                         "queryCode" -> queryCode = parser.nextText().trim()  // ← .trim()
                         "mockFile" -> mockFile = parser.nextText().trim()  //
                         "order" -> {

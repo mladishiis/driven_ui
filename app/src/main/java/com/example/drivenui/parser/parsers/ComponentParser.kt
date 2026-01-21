@@ -7,64 +7,19 @@ import org.xmlpull.v1.XmlPullParserFactory
 
 class ComponentParser {
 
-    /**
-     * Парсит все экраны из XML
-     */
-    fun parseAllComponentsFromFullXml(xmlContent: String): List<ParsedScreen> {
-        Log.d("ComponentParser", "Начинаем парсинг всех компонентов")
+    fun parseSingleScreenXml(xmlContent: String): ParsedScreen? {
+        val factory = XmlPullParserFactory.newInstance()
+        val parser = factory.newPullParser()
+        parser.setInput(xmlContent.reader())
 
-        try {
-            val screens = mutableListOf<ParsedScreen>()
-
-            // Находим блок screens
-            val screensStart = xmlContent.indexOf("<screens>")
-            if (screensStart == -1) {
-                Log.w("ComponentParser", "Блок <screens> не найден")
-                return emptyList()
+        var eventType = parser.eventType
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG && parser.name == "screen") {
+                return parseScreen(parser)
             }
-
-            val screensEnd = xmlContent.indexOf("</screens>", screensStart)
-            if (screensEnd == -1) {
-                Log.w("ComponentParser", "Блок </screens> не найден")
-                return emptyList()
-            }
-
-            val screensXml = xmlContent.substring(screensStart, screensEnd + "</screens>".length)
-            Log.d("ComponentParser", "Блок screens извлечен: ${screensXml.length} символов")
-
-            // Парсим каждый экран
-            val factory = XmlPullParserFactory.newInstance()
-            factory.isNamespaceAware = true
-            val parser = factory.newPullParser()
-            parser.setInput(screensXml.reader())
-
-            var eventType = parser.eventType
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                when (eventType) {
-                    XmlPullParser.START_TAG -> {
-                        if (parser.name == "screen") {
-                            try {
-                                val screen = parseScreen(parser)
-                                if (screen != null) {
-                                    screens.add(screen)
-                                    Log.d("ComponentParser", "Добавлен экран: ${screen.title}")
-                                }
-                            } catch (e: Exception) {
-                                Log.e("ComponentParser", "Ошибка парсинга экрана", e)
-                                skipCurrentTag(parser)
-                            }
-                        }
-                    }
-                }
-                eventType = parser.next()
-            }
-
-            Log.d("ComponentParser", "Найдено экранов: ${screens.size}")
-            return screens
-        } catch (e: Exception) {
-            Log.e("ComponentParser", "Ошибка при парсинге всех компонентов", e)
-            return emptyList()
+            eventType = parser.next()
         }
+        return null
     }
 
     /**
@@ -621,24 +576,6 @@ class ComponentParser {
         return if (code.isNotEmpty()) {
             Pair(code, value)
         } else {
-            null
-        }
-    }
-
-    /**
-     * Альтернативная версия - простое чтение события как текста
-     * Для формата: <event>onTap</event>
-     */
-    private fun parseSimpleEvent(parser: XmlPullParser): WidgetEvent? {
-        return try {
-            val eventCode = parser.nextText().trim()
-            if (eventCode.isNotEmpty()) {
-                WidgetEvent(eventCode = eventCode)
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("ComponentParser", "Ошибка парсинга простого события", e)
             null
         }
     }

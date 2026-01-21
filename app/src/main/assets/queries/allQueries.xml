@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<allQueries>
+	<query title="Вход в МП">
+		<code>adminAuth</code>
+		<type>POST</type>
+		<endpoint>/v1/admin/auth/login</endpoint>
+		<properties>
+			<property>
+				<code>query_parameter/query_string/query_body</code>
+				<variableName>переменная из запроса (из самого метода, в которое нужно подставить значение. Как она называется в query_parameter/query_string/query_body)</variableName>
+				<variableValue>переменная из контекста/глобальная переменная/переменная из ответа другого запроса, которую подставляем в значение переменной из запроса</variableValue>
+			</property>
+		</properties>
+	</query>
+	<query title="Получение списка перевозчиков">
+		<code>allCarriers</code>
+		<type>GET</type>
+		<endpoint>/v1/tavrida/carriers</endpoint>
+		<properties>
+			<property>
+				<code>query_parameter/query_string/query_body</code>
+				<variableName>переменная из запроса (из самого метода, в которое нужно подставить значение. Как она называется в query_parameter/query_string/query_body)</variableName>
+				<variableValue>переменная из контекста/глобальная переменная/переменная из ответа другого запроса, которую подставляем в значение переменной из запроса</variableValue>
+			</property>
+		</properties>
+	</query>
+	<query title="Добавить перевозчика">
+		<code>addCarriers</code>
+		<type>POST</type>
+		<endpoint>/v1/tavrida/carriers</endpoint>
+		<properties>
+			<property>
+				<code>query_parameter/query_string/query_body</code>
+				<variableName>переменная из запроса (из самого метода, в которое нужно подставить значение. Как она называется в query_parameter/query_string/query_body)</variableName>
+				<variableValue>переменная из контекста/глобальная переменная/переменная из ответа другого запроса, которую подставляем в значение переменной из запроса</variableValue>
+			</property>
+		</properties>
+	</query>
+</allQueries>

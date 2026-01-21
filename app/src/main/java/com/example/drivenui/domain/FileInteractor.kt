@@ -13,7 +13,7 @@ interface FileInteractor {
      * @param fileName Имя файла в папке assets
      * @return Результат парсинга с новой структурой
      */
-    suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroappResult
+    suspend fun parseMicroappFromAssetsRoot(): SDUIParser.ParsedMicroappResult
 
     /**
      * Получает список доступных файлов в assets

@@ -16,12 +16,9 @@ import com.example.drivenui.parser.models.ScreenQuery
 import com.example.drivenui.parser.models.TextStyle
 import com.example.drivenui.parser.models.Widget
 import com.example.drivenui.parser.parsers.ComponentParser
-import com.example.drivenui.parser.parsers.EventParser
-import com.example.drivenui.parser.parsers.LayoutParser
 import com.example.drivenui.parser.parsers.MicroappParser
 import com.example.drivenui.parser.parsers.QueryParser
 import com.example.drivenui.parser.parsers.StyleParser
-import com.example.drivenui.parser.parsers.WidgetParser
 
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
@@ -29,11 +26,8 @@ import com.example.drivenui.parser.parsers.WidgetParser
 class SDUIParser(private val context: Context) {
 
     private val styleParser = StyleParser()
-    private val eventParser = EventParser()
     private val queryParser = QueryParser()
     private val microappParser = MicroappParser()
-    private val widgetParser = WidgetParser()
-    private val layoutParser = LayoutParser()
     private val componentParser = ComponentParser()
 
     /**
@@ -190,106 +184,114 @@ class SDUIParser(private val context: Context) {
         }
     }
 
-    /**
-     * Загружает и парсит микроапп из файла в assets с новой структурой
-     */
-    fun parseFromAssetsNew(fileName: String): ParsedMicroappResult {
+    fun parseFromAssetsRoot(): ParsedMicroappResult {
         return try {
-            Log.d("SDUIParser", "Начинаем парсинг файла с новой структурой: $fileName")
-            val inputStream = context.assets.open(fileName)
-            val xmlContent = inputStream.bufferedReader().use { it.readText() }
-            parseFullXmlContentNew(xmlContent)
+            Log.d("SDUIParser", "=== Парсинг новой структуры microapp ===")
+
+            // === ЧИТАЕМ ФАЙЛЫ (раздельно) ===
+            val microappXml = readAsset("microapp.xml")
+            val stylesXml = readAsset("resources/allStyles.xml")
+            val queriesXml = readAsset("queries/allQueries.xml")
+
+            // Парсим базовые блоки (как раньше, но из разных файлов) ===
+            val microapp = parseMicroappFromFullXml(microappXml)
+            val styles = parseStylesFromFullXml(stylesXml)
+
+            // 1. Экраны (UI)
+            val screensWithoutQueries = parseScreensFromFolder("screens")
+
+            // 2. ScreenQueries (ОТДЕЛЬНО!)
+            val screenQueries = parseScreenQueriesFromScreensFolder("screens")
+
+            Log.d("DEBUG", "ScreenQueries parsed: ${screenQueries.size}")
+            screenQueries.forEach {
+                Log.d("DEBUG", "${it.screenCode} -> ${it.code}")
+            }
+
+            // 3. Группировка
+            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
+
+            // === 5. ТО САМОЕ ОБОГАЩЕНИЕ ЭКРАНОВ (ВАША ЛОГИКА) ===
+            val screensWithQueries = screensWithoutQueries.map { screen ->
+                screen.copy(
+                    requests = queriesByScreenCode[screen.screenCode].orEmpty()
+                )
+            }
+
+            // === 6. Парсим реестр обычных queries (как раньше) ===
+            val queries = parseQueriesFromFullXml(queriesXml)
+
+            // === 7. Собираем итоговый результат ===
+            val result = ParsedMicroappResult(
+                microapp = microapp,
+                styles = styles,
+                screens = screensWithQueries,
+                queries = queries,
+                screenQueries = screenQueries
+            )
+
+            result.logSummary()
+            result
+
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при загрузке файла из assets: $fileName", e)
+            Log.e("SDUIParser", "Ошибка парсинга microapp-структуры", e)
             ParsedMicroappResult()
         }
     }
 
-    /**
-     * Парсит полный XML микроаппа с новой структурой компонентов
-     */
-    private fun parseFullXmlContentNew(xmlContent: String): ParsedMicroappResult {
-        return try {
-            Log.d("SDUIParser", "Начинаем парсинг полного XML с новой структурой")
 
-            val microapp = parseMicroappFromFullXml(xmlContent)
-            val styles = parseStylesFromFullXml(xmlContent)
-            val events = parseEventsFromFullXml(xmlContent)
-            val eventActions = parseEventActionsFromFullXml(xmlContent)
+    private fun parseScreensFromFolder(folder: String): List<ParsedScreen> {
+        val screens = mutableListOf<ParsedScreen>()
 
-            // 1. Парсим компоненты (экраны) - ПОКА БЕЗ ЗАПРОСОВ
-            val screensWithoutQueries = componentParser.parseAllComponentsFromFullXml(xmlContent)
+        val files = context.assets.list(folder) ?: return emptyList()
 
-            // 2. Парсим запросы отдельно
-            val queries = parseQueriesFromFullXml(xmlContent)
-            val screenQueries = parseScreenQueriesFromFullXml(xmlContent)
+        files.filter { it.endsWith(".xml") }.forEach { file ->
+            val xml = readAsset("$folder/$file")
 
-            // 3. Группируем запросы по экранам для быстрого доступа
-            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
+            val screen = componentParser.parseSingleScreenXml(xml)
 
-            // 4. Обогащаем экраны запросами
-            val screensWithQueries = screensWithoutQueries.map { screen ->
-                val screenQueriesForThisScreen = queriesByScreenCode[screen.screenCode] ?: emptyList()
-
-                // Создаем обогащенный ParsedScreen
-                ParsedScreen(
-                    title = screen.title,
-                    screenCode = screen.screenCode,
-                    screenShortCode = screen.screenShortCode,
-                    deeplink = screen.deeplink,
-                    rootComponent = screen.rootComponent,
-                    requests = screenQueriesForThisScreen  // ← ДОБАВЛЯЕМ ЗАПРОСЫ
-                )
+            screen?.let {
+                screens.add(it)
+                Log.d("SDUIParser", "Экран считан: ${it.screenCode}")
             }
-
-            val widgets = parseWidgetsFromFullXml(xmlContent)
-            val layouts = parseLayoutsFromFullXml(xmlContent)
-
-            Log.d("SDUIParser", "Парсинг завершен:")
-            Log.d("SDUIParser", "  - microapp: ${microapp?.title ?: "не найден"}")
-            Log.d("SDUIParser", "  - styles: ${styles != null}")
-            Log.d("SDUIParser", "  - events: ${events?.events?.size ?: 0}")
-            Log.d("SDUIParser", "  - eventActions: ${eventActions?.eventActions?.size ?: 0}")
-            Log.d("SDUIParser", "  - screens: ${screensWithQueries.size}")
-            Log.d("SDUIParser", "  - queries: ${queries.size}")
-            Log.d("SDUIParser", "  - screenQueries: ${screenQueries.size}")
-            Log.d("SDUIParser", "  - widgets: ${widgets.size}")
-            Log.d("SDUIParser", "  - layouts: ${layouts.size}")
-
-            // Логируем запросы для каждого экрана
-            screensWithQueries.forEachIndexed { index, screen ->
-                Log.d("SDUIParser", "Экран $index: ${screen.title}")
-                if (screen.requests.isNotEmpty()) {
-                    Log.d("SDUIParser", "  Запросы (${screen.requests.size}):")
-                    screen.requests.forEach { query ->
-                        Log.d("SDUIParser", "    - ${query.code} → ${query.queryCode}")
-                    }
-                } else {
-                    Log.d("SDUIParser", "  Запросы: нет")
-                }
-            }
-
-            // Создаем результат
-            val result = ParsedMicroappResult(
-                microapp = microapp,
-                styles = styles,
-                events = events,
-                eventActions = eventActions,
-                screens = screensWithQueries,  // ← ИСПОЛЬЗУЕМ ОБОГАЩЕННЫЕ ЭКРАНЫ
-                queries = queries,
-                screenQueries = screenQueries,
-                widgets = widgets,
-                layouts = layouts
-            )
-
-            // Логируем итоговую статистику
-            result.logSummary()
-
-            result
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге полного XML", e)
-            ParsedMicroappResult()
         }
+
+        return screens
+    }
+
+
+    private fun readAsset(path: String): String {
+        return context.assets.open(path).bufferedReader().use { it.readText() }
+    }
+
+    private fun parseScreenQueriesFromScreensFolder(folder: String): List<ScreenQuery> {
+        val result = mutableListOf<ScreenQuery>()
+
+        val files = context.assets.list(folder) ?: return emptyList()
+
+        files
+            .filter { it.endsWith(".xml") }
+            .forEach { file ->
+                val xml = readAsset("$folder/$file")
+
+                val queries = try {
+                    queryParser.parseScreenQueries(xml)
+                } catch (e: Exception) {
+                    Log.e("SDUIParser", "Ошибка парсинга screenQueries в $file", e)
+                    emptyList()
+                }
+
+                if (queries.isNotEmpty()) {
+                    Log.d(
+                        "SDUIParser",
+                        "Найдено screenQueries: ${queries.size} в экране $file"
+                    )
+                }
+
+                result.addAll(queries)
+            }
+
+        return result
     }
 
     /**
@@ -300,42 +302,6 @@ class SDUIParser(private val context: Context) {
             queryParser.parseAllQueries(xmlContent)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге queries", e)
-            emptyList()
-        }
-    }
-
-    /**
-     * Парсит screen queries из XML
-     */
-    private fun parseScreenQueriesFromFullXml(xmlContent: String): List<ScreenQuery> {
-        return try {
-            queryParser.parseScreenQueries(xmlContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге screen queries", e)
-            emptyList()
-        }
-    }
-
-    /**
-     * Парсит виджеты из XML
-     */
-    private fun parseWidgetsFromFullXml(xmlContent: String): List<Widget> {
-        return try {
-            widgetParser.parseWidgets(xmlContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге виджетов", e)
-            emptyList()
-        }
-    }
-
-    /**
-     * Парсит лэйауты из XML
-     */
-    private fun parseLayoutsFromFullXml(xmlContent: String): List<Layout> {
-        return try {
-            layoutParser.parseLayouts(xmlContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге лэйаутов", e)
             emptyList()
         }
     }
@@ -360,30 +326,6 @@ class SDUIParser(private val context: Context) {
             styleParser.parseStyles(xmlContent)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка при парсинге стилей", e)
-            null
-        }
-    }
-
-    /**
-     * Парсит события из XML
-     */
-    private fun parseEventsFromFullXml(xmlContent: String): AllEvents? {
-        return try {
-            eventParser.parseEvents(xmlContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге событий", e)
-            null
-        }
-    }
-
-    /**
-     * Парсит действия событий из XML
-     */
-    private fun parseEventActionsFromFullXml(xmlContent: String): AllEventActions? {
-        return try {
-            eventParser.parseEventActions(xmlContent)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге действий событий", e)
             null
         }
     }

@@ -22,6 +22,7 @@ class MicroappParser {
             parser.setInput(xmlContent.reader())
 
             var eventType = parser.eventType
+
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 if (eventType == XmlPullParser.START_TAG && parser.name == "microapp") {
                     return parseMicroappElement(parser)
@@ -31,38 +32,77 @@ class MicroappParser {
 
             null
         } catch (e: Exception) {
+            e.printStackTrace()
             null
         }
     }
 
-    /**
-     * Парсит элемент microapp из XML
-     *
-     * @param parser XmlPullParser позиционированный на теге <microapp>
-     * @return [Microapp] объект
-     */
     private fun parseMicroappElement(parser: XmlPullParser): Microapp {
+
         val title = parser.getAttributeValue(null, "title") ?: ""
+
         var code = ""
         var shortCode = ""
         var deeplink = ""
         val persistents = mutableListOf<String>()
 
-        var eventType = parser.eventType
+        var eventType = parser.next()
+
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "microapp")) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "code" -> code = parser.nextText()
-                        "shortСode" -> shortCode = parser.nextText()
-                        "deeplink" -> deeplink = parser.nextText()
-                        "persistent" -> persistents.add(parser.nextText())
+
+            if (eventType == XmlPullParser.START_TAG) {
+                when (parser.name) {
+
+                    "code" -> {
+                        code = parser.nextText()
+                    }
+
+                    "shortCode" -> {   // ✅ исправлено
+                        shortCode = parser.nextText()
+                    }
+
+                    "deeplink" -> {
+                        deeplink = parser.nextText()
+                    }
+
+                    "persistent" -> {
+                        val value = parser.nextText().trim()
+                        if (value.isNotEmpty()) {
+                            persistents.add(value)
+                        }
+                    }
+
+                    // screens мы сознательно ПРОПУСКАЕМ
+                    "screens" -> {
+                        skipSubTree(parser)
                     }
                 }
             }
+
             eventType = parser.next()
         }
 
-        return Microapp(title, code, shortCode, deeplink, persistents)
+        return Microapp(
+            title = title,
+            code = code,
+            shortCode = shortCode,
+            deeplink = deeplink,
+            persistents = persistents
+        )
+    }
+
+    /**
+     * Безопасно пропускает вложенное дерево XML
+     * (например <screens> ... </screens>)
+     */
+    private fun skipSubTree(parser: XmlPullParser) {
+        var depth = 1
+
+        while (depth > 0) {
+            when (parser.next()) {
+                XmlPullParser.START_TAG -> depth++
+                XmlPullParser.END_TAG -> depth--
+            }
+        }
     }
 }

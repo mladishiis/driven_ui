@@ -20,31 +20,22 @@ internal class FileInteractorImpl @Inject constructor(
     private var lastParsedResult: SDUIParser.ParsedMicroappResult? = null
     private val parserNew = SDUIParser(context)
 
-    override suspend fun parseFileFromAssets(fileName: String): SDUIParser.ParsedMicroappResult {
+    override suspend fun parseMicroappFromAssetsRoot(): SDUIParser.ParsedMicroappResult {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d("FileInteractor", "Начинаем парсинг файла из assets: $fileName")
+                Log.d("FileInteractor", "Начинаем парсинг файла из assets")
 
                 val result =
-                    parserNew.parseFromAssetsNew(fileName).also {
-                        Log.d("FileInteractor", "Использован parseFromAssetsNew (без биндингов)")
+                    parserNew.parseFromAssetsRoot().also {
+                        Log.d("FileInteractor", "Использован parseFromAssetsNew")
                     }
-
-
-                // Проверяем результат парсинга
-                if (result.screens.isEmpty() && result.microapp == null) {
-                    Log.w("FileInteractor", "Парсинг завершен, но данные не найдены в файле $fileName")
-                } else {
-                    Log.d("FileInteractor", "Парсинг успешен, найдены данные")
-                    logParsingResultNew(result, "assets: $fileName")
-                }
 
                 // Сохраняем результат
                 lastParsedResult = result
 
                 result
             } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при парсинге файла $fileName", e)
+                Log.e("FileInteractor", "Ошибка при парсинге файла", e)
                 throw e
             }
         }

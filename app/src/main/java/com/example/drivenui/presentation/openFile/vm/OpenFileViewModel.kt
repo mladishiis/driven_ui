@@ -92,44 +92,27 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleUploadFile() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Устанавливаем состояние загрузки
                 withContext(Dispatchers.Main) {
-                    updateState { copy(isUploadFile = true, isParsing = true, errorMessage = null) }
-                }
-
-                // Получаем доступные файлы
-                val files = interactor.getAvailableFiles()
-                if (files.isEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        updateState {
-                            copy(
-                                isUploadFile = false,
-                                isParsing = false,
-                                errorMessage = "Файлы не найдены в assets"
-                            )
-                        }
-                        setEffect { OpenFileEffect.ShowError("Файлы не найдены в assets") }
+                    updateState {
+                        copy(
+                            isUploadFile = true,
+                            isParsing = true,
+                            errorMessage = null,
+                            selectedFileName = "microapp.xml"
+                        )
                     }
-                    return@launch
                 }
 
-                Log.d("OpenFileViewModel", "Найдены файлы: ${files.joinToString(", ")}")
+                Log.d("OpenFileViewModel", "Начинаем парсинг структуры microapp")
 
-                // Выбираем первый XML файл
-                val fileName = files.firstOrNull { it.endsWith(".xml") } ?: files.first()
+                // 🔥 ВАЖНО: теперь парсим ВСЮ структуру, а не один файл
+                val parsedResult = interactor.parseMicroappFromAssetsRoot()
 
-                withContext(Dispatchers.Main) {
-                    updateState { copy(selectedFileName = fileName) }
-                }
+                Log.d(
+                    "OpenFileViewModel",
+                    "Результат парсинга: ${parsedResult.screens.size} экранов"
+                )
 
-                Log.d("OpenFileViewModel", "Начинаем парсинг файла: $fileName")
-
-                // Загружаем и парсим файл с новой структурой
-                val parsedResult = interactor.parseFileFromAssets(fileName)
-
-                Log.d("OpenFileViewModel", "Результат парсинга: ${parsedResult.screens.size} экранов")
-
-                // Сохраняем результат
                 withContext(Dispatchers.Main) {
                     updateState {
                         copy(
@@ -141,28 +124,15 @@ internal class OpenFileViewModel @Inject constructor(
                     }
                 }
 
-                // Логируем результат
                 logParsingResult(parsedResult)
 
-                // Создаем сообщение об успехе
                 val successMessage = buildString {
-                    append("Файл '$fileName' успешно спарсен!\n")
-                    append("Результат:\n")
-                    parsedResult.microapp?.let { append("• Микроапп: ${it.title}\n") }
-                    append("• Экран${if (parsedResult.screens.size != 1) "ов" else ""}: ${parsedResult.screens.size}\n")
-
-                    // Логируем структуру компонентов
-                    parsedResult.screens.forEachIndexed { index, screen ->
-                        append("  Экран ${index + 1}: ${screen.title}\n")
-                        screen.rootComponent?.let { root ->
-                            val componentCount = countComponents(root)
-                            append("    Компонентов: $componentCount\n")
-                        }
+                    append("Микроапп успешно загружен из assets!\n")
+                    parsedResult.microapp?.let {
+                        append("• Микроапп: ${it.title}\n")
                     }
-
-                    append("• Стили текста: ${parsedResult.styles?.textStyles?.size ?: 0}\n")
-                    append("• Стили цвета: ${parsedResult.styles?.colorStyles?.size ?: 0}\n")
-                    append("• Запросов API: ${parsedResult.queries.size}")
+                    append("• Экранов: ${parsedResult.screens.size}\n")
+                    append("• Запросов API: ${parsedResult.queries.size}\n")
                 }
 
                 withContext(Dispatchers.Main) {
@@ -170,7 +140,7 @@ internal class OpenFileViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при парсинге файла", e)
+                Log.e("OpenFileViewModel", "Ошибка при парсинге microapp", e)
 
                 withContext(Dispatchers.Main) {
                     updateState {
@@ -188,6 +158,7 @@ internal class OpenFileViewModel @Inject constructor(
             }
         }
     }
+
 
     /**
      * Загружает список JSON файлов

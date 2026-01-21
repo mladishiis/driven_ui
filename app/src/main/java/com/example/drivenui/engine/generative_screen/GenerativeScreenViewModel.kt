@@ -72,7 +72,7 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun loadInitialScreen() {
-        val firstScreen = parsedScreens?.firstOrNull()
+        val firstScreen = parsedScreens?.get(1)
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
