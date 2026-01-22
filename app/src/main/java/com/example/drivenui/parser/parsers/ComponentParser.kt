@@ -374,20 +374,6 @@ class ComponentParser {
                         skipCurrentTag(parser)
                     }
                 }
-                XmlPullParser.TEXT -> {
-                    // Если события представлены как текст между тегами
-                    val text = parser.text?.trim()
-                    if (text?.isNotEmpty() == true && !text.matches(Regex("\\s+"))) {
-                        Log.d("ComponentParser", "Найден текст в событиях: $text")
-                        // Разделяем по запятым или новым строкам
-                        text.split(',', '\n').forEach { eventText ->
-                            val trimmed = eventText.trim()
-                            if (trimmed.isNotEmpty()) {
-                                events.add(WidgetEvent(eventCode = trimmed))
-                            }
-                        }
-                    }
-                }
             }
             eventType = parser.next()
         }

@@ -78,12 +78,7 @@ class GenerativeScreenViewModel @Inject constructor(
         if (firstScreen != null) {
             val screenModel = mapper.mapToScreenModel(firstScreen)
 
-            // Обрабатываем данные через RequestInteractor
-            val processedScreen = requestInteractor.processScreen(screenModel)
-            Log.d("Aidar","screenModel = ${screenModel}")
-            Log.d("Aidar","processedScreen = ${processedScreen}")
-
-            navigateToScreen(processedScreen)
+            navigateToScreen(screenModel)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
