@@ -62,7 +62,7 @@ fun EventAction.mapToUiAction(): UiAction {
             }
         }
         "query" -> {
-            val queryCode = properties["queryCode"]
+            val queryCode = properties["screenQueryCode"]
             if (!queryCode.isNullOrEmpty()) {
                 UiAction.ExecuteQuery(queryCode)
             } else {
