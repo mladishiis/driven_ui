@@ -13,5 +13,6 @@ data class ButtonModel(
     val background: Color,
     val roundedCornerSize: Int?,
     val tapAction: List<UiAction>,
+    val widgetCode: String,
     override val alignmentStyle: String,
 ) : ComponentModel

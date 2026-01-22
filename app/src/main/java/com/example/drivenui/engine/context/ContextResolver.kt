@@ -20,7 +20,8 @@ fun resolveScreen(
     return screenModel.copy(rootComponent = resolvedRoot)
 }
 
-private fun resolveComponent(
+// TODO: может переписать посимпатичнее
+fun resolveComponent(
     component: ComponentModel?,
     contextManager: IContextManager
 ): ComponentModel? {

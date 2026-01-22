@@ -4,5 +4,7 @@ import androidx.compose.ui.Modifier
 
 data class ImageModel(
     val modifier: Modifier,
-    val url: String?, override val alignmentStyle: String,
+    val url: String?,
+    val widgetCode: String,
+    override val alignmentStyle: String,
 ) : ComponentModel

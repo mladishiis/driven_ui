@@ -73,6 +73,17 @@ class RequestInteractor @Inject constructor(
         )
     }
 
+
+    /**
+     * Временный метод для того, чтобы имитировать применение ответов из запроса отдельно от запроса,
+     * с помощью экшена рефреш
+     * В будующем будет переписано как-то по-другому, когда появятся реальные запросы
+     */
+    fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
+        Log.d(TAG, "Applying bindings to screen: ${screenModel.id} (without executing queries)")
+        return dataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
+    }
+
     /**
      * Загружает JSON файлы из ScreenQuery
      */

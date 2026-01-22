@@ -3,12 +3,20 @@ package com.example.drivenui.engine.generative_screen.action
 import android.util.Log
 import com.example.drivenui.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.context.resolveComponent
 import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
+import com.example.drivenui.engine.uirender.models.AppBarModel
+import com.example.drivenui.engine.uirender.models.ButtonModel
+import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
+import com.example.drivenui.engine.uirender.models.LabelModel
+import com.example.drivenui.engine.uirender.models.LayoutModel
 
 class ActionHandler(
     private val navigationManager: ScreenNavigationManager,
@@ -31,8 +39,8 @@ class ActionHandler(
                 is UiAction.DataTransform -> handleDataTransform(action)
                 is UiAction.SaveToContext -> handleSaveToContext(action)
                 is UiAction.NativeCode -> handleNativeCode(action)
-                is UiAction.RefreshWidget -> ActionResult.Success
-                is UiAction.RefreshLayout -> ActionResult.Success
+                is UiAction.RefreshWidget -> handleRefreshWidget(action.widgetCode)
+                is UiAction.RefreshLayout -> handleRefreshLayout(action.layoutCode)
                 is UiAction.Empty -> ActionResult.Success
             }
         } catch (e: Exception) {
@@ -51,7 +59,7 @@ class ActionHandler(
     private fun handleBack(): ActionResult {
         val previousScreen = navigationManager.popScreen()
         return if (previousScreen != null) {
-            ActionResult.NavigationChanged
+            ActionResult.NavigationChanged(isBack = true)
         } else {
             ActionResult.Error("Cannot navigate back: already at root")
         }
@@ -77,11 +85,103 @@ class ActionHandler(
     private fun openResolvedScreen(screenModel: ScreenModel): ActionResult {
         val resolvedScreen = resolveScreen(screenModel, contextManager)
         navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
-        return ActionResult.NavigationChanged
+        return ActionResult.NavigationChanged(isBack = false)
     }
 
+    /**
+     * Метод для обновления всего экранаа
+     */
     private suspend fun handleRefreshScreen(screenCode: String): ActionResult {
+        val currentScreen = navigationManager.getCurrentScreen()
+        val definition = currentScreen?.definition
+            ?: return ActionResult.Error("No current screen to refresh")
+
+        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
+
+        val resolvedScreen = resolveScreen(screenWithBindings, contextManager)
+        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+
         return ActionResult.Success
+    }
+
+    /**
+     * Метод для обновления конкретного виджета
+     */
+    private fun handleRefreshWidget(widgetCode: String): ActionResult {
+        val currentScreen = navigationManager.getCurrentScreen()
+        val definition = currentScreen?.definition
+            ?: return ActionResult.Error("No current screen to refresh widget on")
+
+        val updatedRoot = refreshWidgetInComponent(definition.rootComponent, widgetCode)
+        val updatedScreen = definition.copy(rootComponent = updatedRoot)
+
+        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(updatedScreen))
+        return ActionResult.Success
+    }
+
+    /**
+     * Метод для обновления конкретного лейаута
+     * Пока что реализовано как обновление всего экрана
+     */
+    private fun handleRefreshLayout(layoutCode: String): ActionResult {
+        val currentScreen = navigationManager.getCurrentScreen()
+        val definition = currentScreen?.definition
+            ?: return ActionResult.Error("No current screen to refresh layout on")
+
+        val resolvedScreen = resolveScreen(definition, contextManager)
+        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        return ActionResult.Success
+    }
+
+    //TODO: рефакторинг или вынести куда-то вообще
+    private fun refreshWidgetInComponent(
+        component: ComponentModel?,
+        widgetCode: String
+    ): ComponentModel? {
+        return when (component) {
+            null -> null
+            is LayoutModel -> component.copy(
+                children = component.children.map { child ->
+                    refreshWidgetInComponent(child, widgetCode) ?: child
+                }
+            )
+            is InputModel -> {
+                if (component.widgetCode == widgetCode) {
+                    resolveComponent(component, contextManager) as? InputModel ?: component
+                } else {
+                    component
+                }
+            }
+            is ButtonModel -> {
+                if (component.widgetCode == widgetCode) {
+                    resolveComponent(component, contextManager) as? ButtonModel ?: component
+                } else {
+                    component
+                }
+            }
+            is LabelModel -> {
+                if (component.widgetCode == widgetCode) {
+                    resolveComponent(component, contextManager) as? LabelModel ?: component
+                } else {
+                    component
+                }
+            }
+            is ImageModel -> {
+                if (component.widgetCode == widgetCode) {
+                    resolveComponent(component, contextManager) as? ImageModel ?: component
+                } else {
+                    component
+                }
+            }
+            is AppBarModel -> {
+                if (component.widgetCode == widgetCode) {
+                    resolveComponent(component, contextManager) as? AppBarModel ?: component
+                } else {
+                    component
+                }
+            }
+            else -> component
+        }
     }
 
     private suspend fun handleExecuteQuery(queryCode: String): ActionResult {
@@ -209,7 +309,8 @@ class ActionHandler(
 sealed class ActionResult {
     data object Success : ActionResult()
 
-    data object NavigationChanged : ActionResult()
+    // TODO: подумать над рефакторингом
+    data class NavigationChanged(val isBack: Boolean) : ActionResult()
 
     data class Error(val message: String, val exception: Exception? = null) : ActionResult()
 }

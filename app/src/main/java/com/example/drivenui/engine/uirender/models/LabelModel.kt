@@ -6,5 +6,7 @@ import androidx.compose.ui.text.TextStyle
 data class LabelModel(
     val modifier: Modifier,
     val text: String,
-    val textStyle: TextStyle, override val alignmentStyle: String,
+    val textStyle: TextStyle,
+    val widgetCode: String,
+    override val alignmentStyle: String,
 ) : ComponentModel

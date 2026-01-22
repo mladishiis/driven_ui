@@ -94,10 +94,19 @@ class GenerativeScreenViewModel @Inject constructor(
 
             when (val result = handler.handleAction(action)) {
                 is ActionResult.NavigationChanged -> {
-                    handleNavigationChanged()
+                    if (result.isBack) {
+                        updateUiStateFromNavigation()
+                    } else {
+                        handleNavigationChanged()
+                    }
                 }
                 is ActionResult.Success -> {
-                    if (action is UiAction.ExecuteQuery) {
+                    // TODO: поправить в будущем. После выполнения запроса обновление происходит по отдельному экшену, а не сразу
+                    if (action is UiAction.ExecuteQuery ||
+                        action is UiAction.RefreshWidget ||
+                        action is UiAction.RefreshLayout ||
+                        action is UiAction.RefreshScreen
+                    ) {
                         updateUiStateFromNavigation()
                     }
                 }

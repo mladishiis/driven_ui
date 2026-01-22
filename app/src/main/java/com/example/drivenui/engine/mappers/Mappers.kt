@@ -94,6 +94,7 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
                 modifier = Modifier,
                 textStyle = TextStyle.Default,
                 text = "Custom Widget",
+                widgetCode = widgetCode,
                 alignmentStyle = this.getAlignmentStyle()
             )
         }
@@ -108,6 +109,7 @@ fun WidgetComponent.mapWidgetToLabelModel(modifier: Modifier, styleRegistry: Com
             modifier = modifier,
             text = textProperty.resolvedValue, // Используем resolvedValue
             textStyle = getTextStyle(textColor, styles, styleRegistry),
+            widgetCode = code,
             alignmentStyle = getAlignmentStyle()
         )
     } else null
@@ -137,6 +139,7 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
     return ImageModel(
         modifier = modifier,
         url = urlProperty,
+        widgetCode = code,
         alignmentStyle = getAlignmentStyle()
     )
 }
@@ -153,6 +156,7 @@ fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: Co
         roundedCornerSize = getRoundStyle(styleRegistry),
         background = getBackgroundColorFromStyles(styleRegistry),
         tapAction = getOnTapEvents(events),
+        widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
     )
 }
@@ -167,6 +171,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         iconLeftUrl = iconProperty,
         tapAction = getOnTapEvents(events),
+        widgetCode = code,
         alignmentStyle = getAlignmentStyle()
     )
 }
