@@ -14,14 +14,13 @@ import com.example.drivenui.engine.uirender.models.ButtonModel
 @Composable
 fun ButtonRenderer(
     model: ButtonModel,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
 ) {
     val shape = if (model.roundedCornerSize != null) {
         RoundedCornerShape(model.roundedCornerSize.dp)
     } else {
         ButtonDefaults.shape
     }
-    val action = model.tapAction.firstOrNull() ?: UiAction.Empty
     Button(
         modifier = model.modifier,
         shape = shape,
@@ -34,7 +33,11 @@ fun ButtonRenderer(
         colors = ButtonDefaults.buttonColors(
             containerColor = model.background
         ),
-        onClick = { onAction.invoke(action) }
+        onClick = {
+            if (model.tapActions.isNotEmpty()) {
+                onActions(model.tapActions)
+            }
+        }
     ) {
         Text(
             text = model.text,

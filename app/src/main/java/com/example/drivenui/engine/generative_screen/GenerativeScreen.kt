@@ -20,7 +20,7 @@ import com.example.drivenui.theme.DrivenUITheme
 fun GenerativeScreen(viewModel: GenerativeScreenViewModel) {
     GenerativeScreenUi(
         state = viewModel.uiState.collectAsStateWithLifecycle().value,
-        onAction = viewModel::handleAction,
+        onActions = viewModel::handleActions,
         onBack = viewModel::navigateBack,
         onWidgetValueChange = viewModel::onWidgetValueChange
     )
@@ -29,7 +29,7 @@ fun GenerativeScreen(viewModel: GenerativeScreenViewModel) {
 @Composable
 fun GenerativeScreenUi(
     state: GenerativeUiState,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter
 ) {
@@ -52,7 +52,7 @@ fun GenerativeScreenUi(
                         ComponentRenderer(
                             model = it,
                             isRoot = true,
-                            onAction = onAction,
+                            onActions = onActions,
                             onWidgetValueChange = onWidgetValueChange
                         )
                     }

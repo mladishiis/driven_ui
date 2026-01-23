@@ -1,5 +1,6 @@
 package com.example.drivenui.engine.uirender.renderer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,44 +15,68 @@ import com.example.drivenui.engine.uirender.models.LayoutType
 @Composable
 fun LayoutRenderer(
     model: LayoutModel,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     isRoot: Boolean = false
 ) {
     LaunchedEffect(model) {
         if (isRoot) {
-            model.onCreateActions
+            val actions = model.onCreateActions
                 .filterNot { it is UiAction.ExecuteQuery }
-                .forEach { action ->
-                    onAction(action)
-                }
+            onActions(actions)
         } else {
-            model.onCreateActions.forEach { action ->
-                onAction(action)
-            }
+            onActions(model.onCreateActions)
         }
     }
 
+    val layoutModifier = if (model.onTapActions.isNotEmpty()) {
+        model.modifier.then(
+            Modifier.clickable {
+                onActions(model.onTapActions)
+            }
+        )
+    } else {
+        model.modifier
+    }
+
+    val modelWithClickable = model.copy(modifier = layoutModifier)
+
     when (model.type) {
-        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(model, onAction, onWidgetValueChange, isRoot)
-        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(model, onAction, onWidgetValueChange, isRoot)
-        LayoutType.LAYER -> BoxRenderer(model, onAction, onWidgetValueChange, isRoot)
+        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
+            modelWithClickable,
+            isRoot,
+            onActions,
+            onWidgetValueChange
+        )
+
+        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
+            modelWithClickable,
+            isRoot,
+            onActions,
+            onWidgetValueChange
+        )
+        LayoutType.LAYER -> BoxRenderer(
+            modelWithClickable,
+            isRoot,
+            onActions,
+            onWidgetValueChange
+        )
     }
 }
 
 @Composable
 private fun ColumnRenderer(
     model: LayoutModel,
-    onAction: (UiAction) -> Unit,
+    isRoot: Boolean = false,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    isRoot: Boolean = false
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
             ComponentRenderer(
                 model = child,
                 isRoot = isRoot,
-                onAction = onAction,
+                onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange
             )
         }
@@ -61,16 +86,16 @@ private fun ColumnRenderer(
 @Composable
 private fun RowRenderer(
     model: LayoutModel,
-    onAction: (UiAction) -> Unit,
+    isRoot: Boolean = false,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    isRoot: Boolean = false
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
             ComponentRenderer(
                 model = child,
                 isRoot = isRoot,
-                onAction = onAction,
+                onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange
             )
         }
@@ -80,13 +105,11 @@ private fun RowRenderer(
 @Composable
 private fun BoxRenderer(
     model: LayoutModel,
-    onAction: (UiAction) -> Unit,
+    isRoot: Boolean = false,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    isRoot: Boolean = false
 ) {
-    Box(
-        modifier = model.modifier
-    ) {
+    Box(modifier = model.modifier) {
         model.children.forEach { child ->
             val modifier = when (child.alignmentStyle.lowercase()) {
                 "aligncenter" -> Modifier
@@ -110,11 +133,10 @@ private fun BoxRenderer(
                 ComponentRenderer(
                     model = child,
                     isRoot = isRoot,
-                    onAction = onAction,
+                    onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange
                 )
             }
         }
     }
 }
-

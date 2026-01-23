@@ -54,6 +54,7 @@ fun LayoutComponent.mapLayoutToUIModel(modifier: Modifier, styleRegistry: Compos
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
         onCreateActions = getOnCreateEvents(events),
+        onTapActions = getOnTapEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
 
@@ -95,6 +96,7 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
                 textStyle = TextStyle.Default,
                 text = "Custom Widget",
                 widgetCode = widgetCode,
+                tapActions = getOnTapEvents(events),
                 alignmentStyle = this.getAlignmentStyle()
             )
         }
@@ -110,6 +112,7 @@ fun WidgetComponent.mapWidgetToLabelModel(modifier: Modifier, styleRegistry: Com
             text = textProperty.resolvedValue, // Используем resolvedValue
             textStyle = getTextStyle(textColor, styles, styleRegistry),
             widgetCode = code,
+            tapActions = getOnTapEvents(events),
             alignmentStyle = getAlignmentStyle()
         )
     } else null
@@ -140,6 +143,7 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
         modifier = modifier,
         url = urlProperty,
         widgetCode = code,
+        tapActions = getOnTapEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
 }
@@ -155,7 +159,7 @@ fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: Co
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         roundedCornerSize = getRoundStyle(styleRegistry),
         background = getBackgroundColorFromStyles(styleRegistry),
-        tapAction = getOnTapEvents(events),
+        tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
     )
@@ -170,7 +174,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
         title = titleProperty,
         textStyle = getTextStyle(textColor, styles, styleRegistry),
         iconLeftUrl = iconProperty,
-        tapAction = getOnTapEvents(events),
+        tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignmentStyle = getAlignmentStyle()
     )

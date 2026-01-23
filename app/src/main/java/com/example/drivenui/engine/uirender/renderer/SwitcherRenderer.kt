@@ -6,8 +6,10 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.SwitcherModel
 
 @Composable
-fun SwitcherRenderer(model: SwitcherModel,
-                     onAction: (UiAction) -> Unit,) {
+fun SwitcherRenderer(
+    model: SwitcherModel,
+    onActions: (List<UiAction>) -> Unit,
+) {
     Switch(
         checked = model.checked,
         onCheckedChange = {}

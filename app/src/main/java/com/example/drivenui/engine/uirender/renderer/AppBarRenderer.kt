@@ -14,9 +14,10 @@ import com.example.drivenui.engine.uirender.models.AppBarModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppBarRenderer(model: AppBarModel,
-                   onAction: (UiAction) -> Unit,) {
-    val action = model.tapAction.firstOrNull() ?: UiAction.Empty
+fun AppBarRenderer(
+    model: AppBarModel,
+    onActions: (List<UiAction>) -> Unit,
+) {
     CenterAlignedTopAppBar(
         modifier = model.modifier,
         title = {
@@ -31,7 +32,11 @@ fun AppBarRenderer(model: AppBarModel,
         },
         navigationIcon = {
             if (model.iconLeftUrl != null) {
-                IconButton(onClick = { onAction.invoke(action) }) {
+                IconButton(onClick = {
+                    if (model.tapActions.isNotEmpty()) {
+                        onActions(model.tapActions)
+                    }
+                }) {
                     // TODO загружать из hcms
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,

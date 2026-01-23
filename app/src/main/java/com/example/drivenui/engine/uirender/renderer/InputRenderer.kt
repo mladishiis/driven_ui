@@ -16,25 +16,25 @@ import com.example.drivenui.engine.uirender.models.InputModel
 @Composable
 fun InputRenderer(
     model: InputModel,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter
 ) {
     var text by remember { mutableStateOf(model.text) }
 
     var isFirstValue by remember { mutableStateOf(true) }
 
-    val finishTypingAction = remember(model) {
-        model.finishTypingActions.firstOrNull() ?: UiAction.RefreshWidget(model.widgetCode)
-    }
+    val finishTypingActions = remember(model) { model.finishTypingActions }
 
     LaunchedEffect(text) {
         if (isFirstValue) {
             isFirstValue = false
             return@LaunchedEffect
         }
-        kotlinx.coroutines.delay(800)
-        onWidgetValueChange(model.widgetCode, "text", text)
-        onAction(finishTypingAction)
+        if (finishTypingActions.isNotEmpty()) {
+            kotlinx.coroutines.delay(800)
+            onWidgetValueChange(model.widgetCode, "text", text)
+            onActions(finishTypingActions)
+        }
     }
 
     BasicTextField(
@@ -48,8 +48,10 @@ fun InputRenderer(
         ),
         keyboardActions = KeyboardActions(
             onDone = {
-                onWidgetValueChange(model.widgetCode, "text", text)
-                onAction(finishTypingAction)
+                if (finishTypingActions.isNotEmpty()) {
+                    onWidgetValueChange(model.widgetCode, "text", text)
+                    onActions(finishTypingActions)
+                }
             }
         )
     )

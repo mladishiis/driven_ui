@@ -8,7 +8,7 @@ import com.example.drivenui.engine.uirender.models.CheckboxModel
 @Composable
 fun CheckboxRenderer(
     model: CheckboxModel,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
 ) {
     Checkbox(
         checked = model.checked,

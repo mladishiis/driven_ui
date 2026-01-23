@@ -84,7 +84,7 @@ class GenerativeScreenViewModel @Inject constructor(
         }
     }
 
-    fun handleAction(action: UiAction) {
+    fun handleActions(actions: List<UiAction>) {
         viewModelScope.launch {
             val handler = actionHandler
             if (handler == null) {
@@ -92,27 +92,35 @@ class GenerativeScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            when (val result = handler.handleAction(action)) {
-                is ActionResult.NavigationChanged -> {
-                    if (result.isBack) {
-                        updateUiStateFromNavigation()
-                    } else {
-                        handleNavigationChanged()
+            for (action in actions) {
+                when (val result = handler.handleAction(action)) {
+                    is ActionResult.NavigationChanged -> {
+                        if (result.isBack) {
+                            updateUiStateFromNavigation()
+                        } else {
+                            handleNavigationChanged()
+                        }
                     }
-                }
-                is ActionResult.Success -> {
-                    // TODO: поправить в будущем. После выполнения запроса обновление происходит по отдельному экшену, а не сразу
-                    if (action is UiAction.ExecuteQuery ||
-                        action is UiAction.RefreshWidget ||
-                        action is UiAction.RefreshLayout ||
-                        action is UiAction.RefreshScreen
-                    ) {
-                        updateUiStateFromNavigation()
+                    is ActionResult.Success -> {
+                        // TODO: поправить в будущем. После выполнения запроса обновление происходит по отдельному экшену, а не сразу
+                        if (action is UiAction.ExecuteQuery ||
+                            action is UiAction.RefreshWidget ||
+                            action is UiAction.RefreshLayout ||
+                            action is UiAction.RefreshScreen
+                        ) {
+                            updateUiStateFromNavigation()
+                        }
                     }
-                }
-                is ActionResult.Error -> {
-                    Log.e("GenerativeScreenViewModel", "Action error: ${result.message}", result.exception)
-                    _uiState.value = GenerativeUiState.Error(result.message)
+                    // TODO: выяснить нужно ли прерывать оставшиеся действия при ошибке одного из
+                    is ActionResult.Error -> {
+                        Log.e(
+                            "GenerativeScreenViewModel",
+                            "Action error: ${result.message}",
+                            result.exception
+                        )
+                        _uiState.value = GenerativeUiState.Error(result.message)
+                        break
+                    }
                 }
             }
         }

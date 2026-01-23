@@ -16,18 +16,18 @@ import com.example.drivenui.engine.uirender.models.SwitcherModel
 fun ComponentRenderer(
     model: ComponentModel,
     isRoot: Boolean = false,
-    onAction: (UiAction) -> Unit,
+    onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null
 ) {
     when (model) {
-        is LayoutModel -> LayoutRenderer(model, onAction, onWidgetValueChange, isRoot)
-        is InputModel -> InputRenderer(model, onAction, onWidgetValueChange ?: { _, _, _ -> })
-        is LabelModel -> LabelRenderer(model, onAction)
-        is ImageModel -> ImageRenderer(model, onAction)
-        is ButtonModel -> ButtonRenderer(model, onAction)
-        is CheckboxModel -> CheckboxRenderer(model, onAction)
-        is SwitcherModel -> SwitcherRenderer(model, onAction)
-        is AppBarModel -> AppBarRenderer(model, onAction)
+        is LayoutModel -> LayoutRenderer(model, onActions, onWidgetValueChange, isRoot)
+        is InputModel -> InputRenderer(model, onActions, onWidgetValueChange ?: { _, _, _ -> })
+        is LabelModel -> LabelRenderer(model, onActions)
+        is ImageModel -> ImageRenderer(model, onActions)
+        is ButtonModel -> ButtonRenderer(model, onActions)
+        is CheckboxModel -> CheckboxRenderer(model, onActions)
+        is SwitcherModel -> SwitcherRenderer(model, onActions)
+        is AppBarModel -> AppBarRenderer(model, onActions)
         else -> {}
     }
 }

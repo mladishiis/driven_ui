@@ -50,8 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
 import com.example.drivenui.presentation.details.model.DetailsEvent
 import com.example.drivenui.presentation.details.model.DetailsState
 import com.example.drivenui.presentation.details.model.LayoutItem
@@ -170,7 +168,6 @@ internal fun DetailsScreen(
                     5 -> WidgetsTab(state, viewModel, onEvent)
                     6 -> LayoutsTab(state, viewModel, onEvent)
                     7 -> DetailsTab(state, viewModel, onEvent) // Новая вкладка для деталей
-                    8 -> if (renderModel != null) TestTab(renderModel) // Новая вкладка для деталей
                 }
             }
         }
@@ -948,15 +945,6 @@ private fun WidgetCard(
             }
         }
     }
-}
-
-@Composable
-private fun TestTab(
-    model: ComponentModel
-) {
-    ComponentRenderer(
-        model = model,
-        onAction = {})
 }
 
 @Composable
