@@ -7,6 +7,8 @@ import com.example.drivenui.parser.SDUIParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import java.io.File
+import java.io.FileNotFoundException
 import javax.inject.Inject
 
 /**
@@ -24,9 +26,9 @@ internal class FileInteractorImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 Log.d("FileInteractor", "Начинаем парсинг файла из assets")
-
+                val extractedDir = File(context.filesDir, "assets_simulation/microappTavrida")
                 val result =
-                    parserNew.parseFromAssetsRoot().also {
+                    parserNew.parseFromDir(extractedDir).also {
                         Log.d("FileInteractor", "Использован parseFromAssetsNew")
                     }
 
@@ -42,55 +44,31 @@ internal class FileInteractorImpl @Inject constructor(
     }
 
     override fun getAvailableFiles(): List<String> {
-        return try {
-            // Получаем список файлов из assets
-            context.assets.list("")?.filter {
-                it.endsWith(".xml") || it.endsWith(".zip") || it.endsWith(".json")
-            }?.toList() ?: emptyList()
-        } catch (e: Exception) {
-            Log.e("FileInteractor", "Ошибка при получении списка файлов", e)
-            emptyList()
-        }
+        val dir = File(context.filesDir, "assets_simulation/microappTavrida")
+        return dir.list()?.toList() ?: emptyList()
     }
 
     /**
      * НОВЫЙ МЕТОД: Получить список JSON файлов
      */
     override fun getAvailableJsonFiles(): List<String> {
-        return try {
-            context.assets.list("")?.filter {
-                it.endsWith(".json")
-            }?.toList() ?: emptyList()
-        } catch (e: Exception) {
-            Log.e("FileInteractor", "Ошибка при получении списка JSON файлов", e)
-            emptyList()
-        }
+        val dir = File(context.filesDir, "assets_simulation/microappTavrida")
+        return dir.list()?.filter { it.endsWith(".json") } ?: emptyList()
     }
 
     override suspend fun loadXmlFile(fileName: String): String {
         return withContext(Dispatchers.IO) {
-            try {
-                val inputStream = context.assets.open(fileName)
-                inputStream.bufferedReader().use { it.readText() }
-            } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при загрузке файла $fileName", e)
-                throw e
-            }
+            val file = File(context.filesDir, "assets_simulation/microappTavrida/$fileName")
+            if (!file.exists()) throw FileNotFoundException("File not found: $fileName")
+            file.readText()
         }
     }
 
-    /**
-     * НОВЫЙ МЕТОД: Загрузить JSON файл
-     */
     override suspend fun loadJsonFile(fileName: String): String {
         return withContext(Dispatchers.IO) {
-            try {
-                val inputStream = context.assets.open(fileName)
-                inputStream.bufferedReader().use { it.readText() }
-            } catch (e: Exception) {
-                Log.e("FileInteractor", "Ошибка при загрузке JSON файла $fileName", e)
-                throw e
-            }
+            val file = File(context.filesDir, "assets_simulation/microappTavrida/$fileName")
+            if (!file.exists()) throw FileNotFoundException("File not found: $fileName")
+            file.readText()
         }
     }
 

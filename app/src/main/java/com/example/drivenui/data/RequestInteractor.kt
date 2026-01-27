@@ -41,22 +41,17 @@ class RequestInteractor @Inject constructor(
             Log.d(TAG, "Loading mock file from ScreenQuery: $fileName for query: ${screenQuery.code}")
 
             try {
-                val jsonString = appContext.assets
-                    .open(fileName)
-                    .bufferedReader()
-                    .use { it.readText() }
+                // Попробуем загрузить файл через "умный" метод, который ищет и в папке mocks
+                val jsonData = dataContextProvider.loadJsonSmart(fileName)
 
-                val jsonData = com.google.gson.JsonParser.parseString(jsonString)
-
-                dataContextProvider.addScreenQueryResult(screenQuery.code, jsonData)
-
-                Log.d(TAG, "Successfully loaded mock data for: ${screenQuery.code}")
+                if (jsonData != null) {
+                    dataContextProvider.addScreenQueryResult(screenQuery.code, jsonData)
+                    Log.d(TAG, "Successfully loaded mock data for: ${screenQuery.code}")
+                } else {
+                    Log.e(TAG, "Failed to load mock file: $fileName for query: ${screenQuery.code}")
+                }
             } catch (e: Exception) {
-                Log.e(
-                    TAG,
-                    "Failed to load mock file: $fileName for query: ${screenQuery.code}",
-                    e
-                )
+                Log.e(TAG, "Unexpected error loading mock file: $fileName", e)
             }
         }
 
@@ -72,7 +67,6 @@ class RequestInteractor @Inject constructor(
             dataContextProvider.getDataContext()
         )
     }
-
 
     /**
      * Временный метод для того, чтобы имитировать применение ответов из запроса отдельно от запроса,
@@ -131,7 +125,7 @@ class RequestInteractor @Inject constructor(
                 val fileName = "$sourceName.json"
                 Log.d(TAG, "Looking for binding JSON file: $fileName")
 
-                val jsonData = dataContextProvider.loadJsonFromAssets(fileName)
+                val jsonData = dataContextProvider.loadJsonSmart(fileName)
                 if (jsonData != null) {
                     dataContextProvider.addJsonSource(sourceName, jsonData)
                     Log.d(TAG, "Successfully loaded JSON data for: $sourceName")

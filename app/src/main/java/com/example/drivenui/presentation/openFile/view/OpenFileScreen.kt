@@ -254,7 +254,7 @@ internal fun OpenFileScreen(
                             enabled = !state.isUploadFile
                         ) {
                             Text(
-                                text = if (state.hasParsingResult) "Повторно загрузить файл" else "Загрузить и спарсить файл",
+                                text = if (state.hasParsingResult) "Повторно сканировать qr код" else "Сканировать qr код",
                                 fontSize = 16.sp
                             )
                         }

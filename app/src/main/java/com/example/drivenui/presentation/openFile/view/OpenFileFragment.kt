@@ -24,6 +24,8 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 @AndroidEntryPoint
 internal class OpenFileFragment : Fragment() {
@@ -103,8 +105,32 @@ internal class OpenFileFragment : Fragment() {
                 is OpenFileEffect.ShowJsonFileSelectionDialog -> {
                     showJsonFileSelectionDialog(effect)
                 }
+
+                is OpenFileEffect.OpenQrScanner -> {
+                    val options = ScanOptions().apply {
+                        setPrompt("Отсканируйте QR-код с ссылкой на microapp")
+                        setBeepEnabled(true)
+                        setOrientationLocked(true)
+                        setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                        setCameraId(0) // задняя камера
+                    }
+
+                    qrScannerLauncher.launch(options)
+                }
             }
         }.launchIn(lifecycleScope)
+    }
+
+    private val qrScannerLauncher = registerForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) {
+            // QR успешно считан
+            viewModel.handleEvent(
+                OpenFileEvent.OnQrScanned(result.contents)
+            )
+        } else {
+            // Пользователь отменил
+            showErrorDialog("Сканирование отменено")
+        }
     }
 
     private fun navigateToDetails() {

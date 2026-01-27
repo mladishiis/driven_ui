@@ -2,6 +2,7 @@ package com.example.drivenui.presentation.openFile.vm
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.domain.FileDownloadInteractor
 import com.example.drivenui.domain.FileInteractor
 import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.presentation.openFile.model.OpenFileEffect
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
-    private val interactor: FileInteractor
+    private val fileInteractor: FileInteractor,
+    private val fileDownloadInteractor: FileDownloadInteractor,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
     init {
@@ -34,7 +36,7 @@ internal class OpenFileViewModel @Inject constructor(
             }
 
             OpenFileEvent.OnUploadFile -> {
-                handleUploadFile()
+                handleUploadFileViaQr()
             }
 
             OpenFileEvent.OnShowFile -> {
@@ -57,16 +59,72 @@ internal class OpenFileViewModel @Inject constructor(
                 handleLoadJsonFiles()
             }
 
+            is OpenFileEvent.OnQrScanned -> {
+                Log.d("OpenFileViewModel", "Url для скачивания ${event.url}")
+                if (!event.url.startsWith("http")) {
+                    setEffect {
+                        OpenFileEffect.ShowError("QR не содержит корректную ссылку")
+                    }
+                    return
+                }
+                downloadAndParseFile(event.url)
+            }
+
             is OpenFileEvent.OnSelectJsonFiles -> {
                 handleSelectJsonFiles(event.files)
             }
         }
     }
 
+    private fun downloadAndParseFile(url: String) {
+        viewModelScope.launch {
+            try {
+                updateState {
+                    copy(
+                        isUploadFile = true,
+                        isParsing = true,
+                        errorMessage = null
+                    )
+                }
+
+                val success = withContext(Dispatchers.IO) {
+                    fileDownloadInteractor.downloadAndExtractZip(url)
+                }
+
+                if (!success) {
+                    setEffect {
+                        OpenFileEffect.ShowError("Не удалось загрузить архив")
+                    }
+                    updateState {
+                        copy(isUploadFile = false, isParsing = false)
+                    }
+                    return@launch
+                }
+
+                handleUploadFile()
+
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
+                setEffect {
+                    OpenFileEffect.ShowError("Ошибка загрузки: ${e.localizedMessage}")
+                }
+                updateState {
+                    copy(isUploadFile = false, isParsing = false)
+                }
+            }
+        }
+    }
+
+
+
+    private fun handleUploadFileViaQr() {
+        setEffect { OpenFileEffect.OpenQrScanner }
+    }
+
     private fun loadJsonFilesOnInit() {
         viewModelScope.launch {
             try {
-                val jsonFiles = interactor.getAvailableJsonFiles()
+                val jsonFiles = fileInteractor.getAvailableJsonFiles()
                 updateState { copy(availableJsonFiles = jsonFiles) }
 
                 // Автоматически выбираем первые 2 JSON файла (или все, если меньше)
@@ -106,7 +164,7 @@ internal class OpenFileViewModel @Inject constructor(
                 Log.d("OpenFileViewModel", "Начинаем парсинг структуры microapp")
 
                 // 🔥 ВАЖНО: теперь парсим ВСЮ структуру, а не один файл
-                val parsedResult = interactor.parseMicroappFromAssetsRoot()
+                val parsedResult = fileInteractor.parseMicroappFromAssetsRoot()
 
                 Log.d(
                     "OpenFileViewModel",
@@ -166,7 +224,7 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleLoadJsonFiles() {
         viewModelScope.launch {
             try {
-                val jsonFiles = interactor.getAvailableJsonFiles()
+                val jsonFiles = fileInteractor.getAvailableJsonFiles()
                 Log.d("OpenFileViewModel", "Загружены JSON файлы: ${jsonFiles.joinToString(", ")}")
 
                 updateState { copy(availableJsonFiles = jsonFiles) }
@@ -204,7 +262,7 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleShowBindingStats() {
         val currentResult = uiState.value.parsingResult
         if (currentResult != null) {
-            val bindingStats = uiState.value.bindingStats ?: interactor.getBindingStats()
+            val bindingStats = uiState.value.bindingStats ?: fileInteractor.getBindingStats()
             val resolvedValues = uiState.value.resolvedValues
 
             setEffect {

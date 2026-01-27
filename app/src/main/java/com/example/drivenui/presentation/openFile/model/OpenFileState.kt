@@ -31,6 +31,9 @@ internal sealed interface OpenFileEvent : VtbEvent {
 
     /** Выбрать JSON файлы */
     data class OnSelectJsonFiles(val files: List<String>) : OpenFileEvent
+
+    /** QR успешно отсканирован */
+    data class OnQrScanned(val url: String) : OpenFileEvent
 }
 
 /** События с вью-модели на экран */
@@ -50,6 +53,9 @@ internal sealed interface OpenFileEffect : VtbEffect {
 
     /** Показать сообщение об успехе */
     data class ShowSuccess(val message: String) : OpenFileEffect
+
+    /** Открыть экран сканирования QR */
+    data object OpenQrScanner : OpenFileEffect
 
     /** Показать сообщение об успехе с информацией о биндингах */
     data class ShowSuccessWithBindings(

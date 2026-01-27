@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt")
-    id ("kotlin-parcelize")
+    id("kotlin-parcelize")
     alias(libs.plugins.hilt.android)     // Hilt плагин
 }
 
@@ -73,6 +73,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
+
     // Gson
     implementation(libs.gson)
 
@@ -80,6 +83,7 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.fragment) // Для Fragment навигации
+    implementation(libs.hilt.navigation.compose) // Для Compose навигации
 
     // coil
     api(libs.coil)
@@ -88,11 +92,11 @@ dependencies {
     api(libs.coil.okhttp)
     api(libs.coil.svg)
 
-    // XML Parsing (оставляем если нужно)
-    // implementation(libs.tikxml.annotation)
-    // implementation(libs.tikxml.core)
-    // implementation(libs.tikxml.retrofit.converter)
-    // kapt(libs.tikxml.processor)
+    // QR Code Scanning
+    implementation(libs.zxing.android.embedded)
+
+    // Network
+    implementation(libs.okhttp)
 
     // Testing
     testImplementation(libs.junit)

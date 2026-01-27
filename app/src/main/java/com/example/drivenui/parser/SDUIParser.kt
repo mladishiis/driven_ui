@@ -19,6 +19,7 @@ import com.example.drivenui.parser.parsers.ComponentParser
 import com.example.drivenui.parser.parsers.MicroappParser
 import com.example.drivenui.parser.parsers.QueryParser
 import com.example.drivenui.parser.parsers.StyleParser
+import java.io.File
 
 /**
  * Главный парсер с поддержкой новой структуры компонентов и макросов
@@ -184,7 +185,46 @@ class SDUIParser(private val context: Context) {
         }
     }
 
-    fun parseFromAssetsRoot(): ParsedMicroappResult {
+    fun parseFromDir(rootDir: File): ParsedMicroappResult {
+        return try {
+            Log.d("SDUIParser", "=== Парсинг новой структуры microapp из папки ===")
+
+            val microappXml = File(rootDir, "microapp.xml").readText()
+            val stylesXml = File(rootDir, "resources/allStyles.xml").readText()
+            val queriesXml = File(rootDir, "queries/allQueries.xml").readText()
+
+            val microapp = parseMicroappFromFullXml(microappXml)
+            val styles = parseStylesFromFullXml(stylesXml)
+
+            val screensWithoutQueries = parseScreensFromFolder(rootDir.resolve("screens"))
+
+            val screenQueries = parseScreenQueriesFromScreensFolder(rootDir.resolve("screens"))
+
+            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
+            val screensWithQueries = screensWithoutQueries.map { screen ->
+                screen.copy(requests = queriesByScreenCode[screen.screenCode].orEmpty())
+            }
+
+            val queries = parseQueriesFromFullXml(queriesXml)
+
+            val result = ParsedMicroappResult(
+                microapp = microapp,
+                styles = styles,
+                screens = screensWithQueries,
+                queries = queries,
+                screenQueries = screenQueries
+            )
+
+            result.logSummary()
+            result
+
+        } catch (e: Exception) {
+            Log.e("SDUIParser", "Ошибка парсинга microapp-структуры из папки", e)
+            ParsedMicroappResult()
+        }
+    }
+
+    /*fun parseFromAssetsRoot(): ParsedMicroappResult {
         return try {
             Log.d("SDUIParser", "=== Парсинг новой структуры microapp ===")
 
@@ -237,27 +277,39 @@ class SDUIParser(private val context: Context) {
             Log.e("SDUIParser", "Ошибка парсинга microapp-структуры", e)
             ParsedMicroappResult()
         }
-    }
+    }*/
 
 
-    private fun parseScreensFromFolder(folder: String): List<ParsedScreen> {
+    private fun parseScreensFromFolder(folder: File): List<ParsedScreen> {
         val screens = mutableListOf<ParsedScreen>()
-
-        val files = context.assets.list(folder) ?: return emptyList()
-
-        files.filter { it.endsWith(".xml") }.forEach { file ->
-            val xml = readAsset("$folder/$file")
-
+        val files = folder.listFiles()?.filter { it.extension == "xml" } ?: return emptyList()
+        files.forEach { file ->
+            val xml = file.readText()
             val screen = componentParser.parseSingleScreenXml(xml)
-
             screen?.let {
                 screens.add(it)
                 Log.d("SDUIParser", "Экран считан: ${it.screenCode}")
             }
         }
-
         return screens
     }
+
+    private fun parseScreenQueriesFromScreensFolder(folder: File): List<ScreenQuery> {
+        val result = mutableListOf<ScreenQuery>()
+        val files = folder.listFiles()?.filter { it.extension == "xml" } ?: return emptyList()
+        files.forEach { file ->
+            val xml = file.readText()
+            val queries = try {
+                queryParser.parseScreenQueries(xml)
+            } catch (e: Exception) {
+                Log.e("SDUIParser", "Ошибка парсинга screenQueries в ${file.name}", e)
+                emptyList()
+            }
+            result.addAll(queries)
+        }
+        return result
+    }
+
 
 
     private fun readAsset(path: String): String {

@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.drivenui.parser.models.DataContext
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
+import java.io.File
 
 class DataContextProvider(private val appContext: Context) {
 
@@ -13,13 +14,20 @@ class DataContextProvider(private val appContext: Context) {
     /**
      * Загружает JSON файл из assets
      */
-    fun loadJsonFromAssets(fileName: String): JsonElement? {
-        return try {
-            val jsonString = appContext.assets.open(fileName).bufferedReader().use { it.readText() }
-            JsonParser.parseString(jsonString)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading JSON from assets: $fileName", e)
-            null
+    fun loadJsonSmart(fileName: String): JsonElement? {
+        // 1️⃣ Сначала проверяем runtime microappTavrida
+        val runtimeFile = File(appContext.filesDir, "assets_simulation/microappTavrida/mocks/$fileName")
+        if (runtimeFile.exists()) {
+            return try {
+                val jsonString = runtimeFile.readText()
+                JsonParser.parseString(jsonString)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to parse JSON from runtime file: $runtimeFile", e)
+                null
+            }
+        } else {
+            Log.e(TAG, "Не найдено такого файла: $runtimeFile")
+            return null
         }
     }
 
@@ -31,16 +39,6 @@ class DataContextProvider(private val appContext: Context) {
         currentSources[name] = jsonData
         dataContext = dataContext.copy(jsonSources = currentSources)
         Log.d(TAG, "Added JSON source: $name")
-    }
-
-    /**
-     * Загружает и добавляет JSON файл по имени
-     */
-    fun loadAndAddJsonFile(fileName: String) {
-        loadJsonFromAssets(fileName)?.let { jsonData ->
-            val baseName = fileName.removeSuffix(".json")
-            addJsonSource(baseName, jsonData)
-        }
     }
 
     /**
