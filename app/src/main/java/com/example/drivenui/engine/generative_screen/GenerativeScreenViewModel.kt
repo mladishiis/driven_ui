@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
-import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
 import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
@@ -16,7 +15,9 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
+import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
@@ -40,6 +41,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
     private val navigationManager = ScreenNavigationManager()
     private var screenMapper: ScreenMapper? = null
+    private var styleRegistry: ComposeStyleRegistry? = null
     private var actionHandler: ActionHandler? = null
     private var screenProvider: ScreenProviderImpl? = null
 
@@ -56,7 +58,10 @@ class GenerativeScreenViewModel @Inject constructor(
         this.allStyles = allStyles
         this.microappCode = microappCode
 
-        screenMapper = ScreenMapper.create(allStyles)
+        val localStyleRegistry = ComposeStyleRegistry(allStyles)
+        styleRegistry = localStyleRegistry
+
+        screenMapper = ScreenMapper(localStyleRegistry)
         screenProvider = ScreenProviderImpl(parsedScreens, screenMapper!!)
         actionHandler = ActionHandler(
             navigationManager,
@@ -65,7 +70,8 @@ class GenerativeScreenViewModel @Inject constructor(
             contextManager,
             widgetValueProvider,
             requestInteractor,
-            microappCode
+            microappCode,
+            localStyleRegistry
         )
 
         loadInitialScreen()
@@ -204,7 +210,8 @@ class GenerativeScreenViewModel @Inject constructor(
             baseScreen
         }
 
-        val resolvedScreen = resolveScreen(finalScreen, contextManager)
+        val localStyleRegistry = styleRegistry ?: return
+        val resolvedScreen = resolveScreen(finalScreen, contextManager, localStyleRegistry)
         if (replaceCurrent) {
             navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         } else {

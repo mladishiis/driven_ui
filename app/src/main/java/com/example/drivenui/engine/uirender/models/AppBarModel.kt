@@ -9,6 +9,8 @@ data class AppBarModel(
     val title: String?,
     val iconLeftUrl: String?,
     val textStyle: TextStyle = TextStyle.Default,
+    val textStyleCode: String? = null,
+    val colorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     val widgetCode: String,
     override val alignmentStyle: String,

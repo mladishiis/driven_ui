@@ -1,12 +1,6 @@
 package com.example.drivenui.engine.mappers
 
-import androidx.compose.foundation.background
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -19,7 +13,6 @@ import com.example.drivenui.parser.models.Component
 import com.example.drivenui.parser.models.LayoutComponent
 import com.example.drivenui.parser.models.ParsedScreen
 import com.example.drivenui.parser.models.WidgetComponent
-import com.example.drivenui.parser.models.WidgetStyle
 
 fun mapParsedScreenToUI(
     screen: ParsedScreen,
@@ -43,33 +36,39 @@ fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): Compon
         .applyWidth(widthProperty)
     return when (this) {
         is LayoutComponent -> mapLayoutToUIModel(modifier, styleRegistry)
-        is WidgetComponent -> mapWidgetToUiModel(modifier, styleRegistry)
+        is WidgetComponent -> mapWidgetToUiModel(modifier)
     }
 }
 
 
-fun LayoutComponent.mapLayoutToUIModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry) =
+fun LayoutComponent.mapLayoutToUIModel(
+    modifier: Modifier,
+    styleRegistry: ComposeStyleRegistry
+) =
     LayoutModel(
-        modifier = buildModifierForLayoutFromStyles(modifier, styles, styleRegistry),
+        modifier = modifier,
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
+        backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
         alignmentStyle = getAlignmentStyle()
     )
 
-fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): ComponentModel? {
+fun WidgetComponent.mapWidgetToUiModel(
+    modifier: Modifier,
+): ComponentModel? {
     return when (widgetCode) {
         "appbar" -> {
-            mapWidgetToAppbarModel(modifier, styleRegistry)
+            mapWidgetToAppbarModel(modifier)
         }
 
         "label" -> {
-            mapWidgetToLabelModel(modifier, styleRegistry)
+            mapWidgetToLabelModel(modifier)
         }
 
         "button" -> {
-            mapWidgetToButtonModel(modifier, styleRegistry)
+            mapWidgetToButtonModel(modifier)
         }
 
         "image" -> {
@@ -77,7 +76,7 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
         }
 
         "input" -> {
-            mapWidgetToInputModel(modifier, styleRegistry)
+            mapWidgetToInputModel(modifier)
         }
 // TODO: остальные виджеты
 
@@ -93,7 +92,6 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
             //TODO тут какой-то кастомный виджет
             LabelModel(
                 modifier = Modifier,
-                textStyle = TextStyle.Default,
                 text = "Custom Widget",
                 widgetCode = widgetCode,
                 tapActions = getOnTapEvents(events),
@@ -103,38 +101,25 @@ fun WidgetComponent.mapWidgetToUiModel(modifier: Modifier, styleRegistry: Compos
     }
 }
 
-fun WidgetComponent.mapWidgetToLabelModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): LabelModel? {
+fun WidgetComponent.mapWidgetToLabelModel(
+    modifier: Modifier
+): LabelModel? {
     val textProperty = properties.find { it.code == "text" }
-    val textColor = getColorFromStyles(styleRegistry)
+    val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
+    val textStyleCode = styles.find { it.code == "textStyle" }?.value
     return if (textProperty != null) {
         LabelModel(
             modifier = modifier,
             text = textProperty.resolvedValue, // Используем resolvedValue
-            textStyle = getTextStyle(textColor, styles, styleRegistry),
             widgetCode = code,
+            textStyleCode = textStyleCode,
+            colorStyleCode = colorStyleCode,
             tapActions = getOnTapEvents(events),
             alignmentStyle = getAlignmentStyle()
         )
     } else null
 }
 
-
-fun getTextStyle(
-    color: Color,
-    styles: List<WidgetStyle>,
-    styleRegistry: ComposeStyleRegistry
-): TextStyle {
-    val textStyle = TextStyle.Default
-    val widgetTextStyle = styles.find { it.code == "textStyle" }
-    if (widgetTextStyle == null) return textStyle
-    val textStyleFromRegistry = styleRegistry.getTextStyle(widgetTextStyle.value)
-    if (textStyleFromRegistry == null) return textStyle
-    return textStyle.copy(
-        fontSize = textStyleFromRegistry.fontSize.sp,
-        fontWeight = FontWeight(textStyleFromRegistry.fontWeight),
-        color = color,
-    )
-}
 
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
     // TODO может переделать проперти на мапу, чтобы легче доставать?
@@ -148,31 +133,42 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
     )
 }
 
-fun WidgetComponent.mapWidgetToButtonModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): ButtonModel {
+fun WidgetComponent.mapWidgetToButtonModel(
+    modifier: Modifier
+): ButtonModel {
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val enabledProperty = properties.find { it.code == "enabled" }?.resolvedValue?.toBoolean() ?: true
-    val textColor = getColorFromStyles(styleRegistry)
+    val roundStyleCode = styles.find { it.code == "roundStyle" }?.value
+    val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
+    val backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value
+    val textStyleCode = styles.find { it.code == "textStyle" }?.value
     return ButtonModel(
         modifier = modifier,
         text = textProperty,
         enabled = enabledProperty,
-        textStyle = getTextStyle(textColor, styles, styleRegistry),
-        roundedCornerSize = getRoundStyle(styleRegistry),
-        background = getBackgroundColorFromStyles(styleRegistry),
+        roundedCornerSize = null,
+        roundStyleCode = roundStyleCode,
+        textStyleCode = textStyleCode,
+        colorStyleCode = colorStyleCode,
+        backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
     )
 }
 
-fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): AppBarModel {
+fun WidgetComponent.mapWidgetToAppbarModel(
+    modifier: Modifier,
+): AppBarModel {
     val titleProperty = properties.find { it.code == "title" }?.resolvedValue ?: ""
     val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
-    val textColor = getColorFromStyles(styleRegistry)
+    val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
+    val textStyleCode = styles.find { it.code == "textStyle" }?.value
     return AppBarModel(
         modifier = modifier,
         title = titleProperty,
-        textStyle = getTextStyle(textColor, styles, styleRegistry),
+        textStyleCode = textStyleCode,
+        colorStyleCode = colorStyleCode,
         iconLeftUrl = iconProperty,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
@@ -180,7 +176,9 @@ fun WidgetComponent.mapWidgetToAppbarModel(modifier: Modifier, styleRegistry: Co
     )
 }
 
-fun WidgetComponent.mapWidgetToInputModel(modifier: Modifier, styleRegistry: ComposeStyleRegistry): InputModel? {
+fun WidgetComponent.mapWidgetToInputModel(
+    modifier: Modifier
+): InputModel? {
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val hintProperty = properties.find { it.code == "hint" }?.resolvedValue ?: ""
     val readOnlyProperty = properties.find { it.code == "readOnly" }?.resolvedValue?.toBoolean() ?: false
@@ -193,44 +191,4 @@ fun WidgetComponent.mapWidgetToInputModel(modifier: Modifier, styleRegistry: Com
         finishTypingActions = getOnFinishTypingEvents(events),
         alignmentStyle = getAlignmentStyle()
     )
-}
-
-private fun WidgetComponent.getColorFromStyles(styleRegistry: ComposeStyleRegistry): Color {
-    val colorStyle = styles.find { it.code == "colorStyle" }
-    if (colorStyle == null) return Color.Black
-    return getColorFromCode(colorStyle.value, styleRegistry)
-}
-
-private fun WidgetComponent.getBackgroundColorFromStyles(styleRegistry: ComposeStyleRegistry): Color {
-    val colorStyle = styles.find { it.code == "backgroundColorStyle" }
-    if (colorStyle == null) return Color.Black
-    return getColorFromCode(colorStyle.value, styleRegistry)
-}
-
-// TODO проверка темы
-private fun getColorFromCode(colorCode: String, styleRegistry: ComposeStyleRegistry): Color {
-    return styleRegistry.getColorStyle(colorCode)?.let { colorStyle ->
-        Color(colorStyle.lightTheme.color.toColorInt())
-    } ?: Color.Black
-}
-
-private fun buildModifierForLayoutFromStyles(
-    modifier: Modifier,
-    styles: List<WidgetStyle>,
-    styleRegistry: ComposeStyleRegistry
-): Modifier {
-    var currentModifier: Modifier = modifier
-
-    styles.forEach { style ->
-        currentModifier = when (style.code) {
-            "colorStyle" -> {
-                val color = getColorFromCode(style.value, styleRegistry)
-                currentModifier.background(color)
-            }
-
-            else -> currentModifier
-        }
-    }
-
-    return currentModifier
 }

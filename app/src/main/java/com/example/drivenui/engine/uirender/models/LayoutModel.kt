@@ -9,6 +9,7 @@ data class LayoutModel(
     val children: List<ComponentModel>,
     val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
+    val backgroundColorStyleCode: String? = null,
     override val alignmentStyle: String
 ) : ComponentModel
 

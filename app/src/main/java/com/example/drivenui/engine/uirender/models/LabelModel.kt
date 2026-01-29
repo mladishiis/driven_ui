@@ -7,8 +7,10 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 data class LabelModel(
     val modifier: Modifier,
     val text: String,
-    val textStyle: TextStyle,
     val widgetCode: String,
+    val textStyle: TextStyle = TextStyle.Default,
+    val textStyleCode: String? = null,
+    val colorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     override val alignmentStyle: String,
 ) : ComponentModel

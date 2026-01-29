@@ -31,7 +31,7 @@ fun ButtonRenderer(
             end = 13.dp,
         ),
         colors = ButtonDefaults.buttonColors(
-            containerColor = model.background
+            containerColor = model.backgroundColor
         ),
         onClick = {
             if (model.tapActions.isNotEmpty()) {

@@ -3,13 +3,14 @@ package com.example.drivenui.engine.generative_screen.action
 import android.util.Log
 import com.example.drivenui.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
-import com.example.drivenui.engine.context.resolveComponent
-import com.example.drivenui.engine.context.resolveScreen
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.styles.resolveComponent
+import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
+import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -25,7 +26,8 @@ class ActionHandler(
     private val contextManager: IContextManager,
     private val widgetValueProvider: IWidgetValueProvider,
     private val requestInteractor: RequestInteractor,
-    private val microappCode: String?
+    private val microappCode: String?,
+    private val styleRegistry: ComposeStyleRegistry,
 ) {
 
     suspend fun handleAction(action: UiAction): ActionResult {
@@ -83,7 +85,7 @@ class ActionHandler(
      * Резолвит переменные контекста в экране и пушит результат в стек навигации.
      */
     private fun openResolvedScreen(screenModel: ScreenModel): ActionResult {
-        val resolvedScreen = resolveScreen(screenModel, contextManager)
+        val resolvedScreen = resolveScreen(screenModel, contextManager, styleRegistry)
         navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.NavigationChanged(isBack = false)
     }
@@ -97,8 +99,7 @@ class ActionHandler(
             ?: return ActionResult.Error("No current screen to refresh")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
-
-        val resolvedScreen = resolveScreen(screenWithBindings, contextManager)
+        val resolvedScreen = resolveScreen(screenWithBindings, contextManager, styleRegistry)
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 
         return ActionResult.Success
@@ -128,7 +129,7 @@ class ActionHandler(
         val definition = currentScreen?.definition
             ?: return ActionResult.Error("No current screen to refresh layout on")
 
-        val resolvedScreen = resolveScreen(definition, contextManager)
+        val resolvedScreen = resolveScreen(definition, contextManager, styleRegistry)
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.Success
     }
@@ -147,35 +148,35 @@ class ActionHandler(
             )
             is InputModel -> {
                 if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager) as? InputModel ?: component
+                    resolveComponent(component, contextManager, styleRegistry) as? InputModel ?: component
                 } else {
                     component
                 }
             }
             is ButtonModel -> {
                 if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager) as? ButtonModel ?: component
+                    resolveComponent(component, contextManager, styleRegistry) as? ButtonModel ?: component
                 } else {
                     component
                 }
             }
             is LabelModel -> {
                 if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager) as? LabelModel ?: component
+                    resolveComponent(component, contextManager, styleRegistry) as? LabelModel ?: component
                 } else {
                     component
                 }
             }
             is ImageModel -> {
                 if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager) as? ImageModel ?: component
+                    resolveComponent(component, contextManager, styleRegistry) as? ImageModel ?: component
                 } else {
                     component
                 }
             }
             is AppBarModel -> {
                 if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager) as? AppBarModel ?: component
+                    resolveComponent(component, contextManager, styleRegistry) as? AppBarModel ?: component
                 } else {
                     component
                 }
@@ -195,7 +196,7 @@ class ActionHandler(
             queryCode = queryCode
         )
 
-        val resolvedScreen = resolveScreen(processedScreen, contextManager)
+        val resolvedScreen = resolveScreen(processedScreen, contextManager, styleRegistry)
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 
         return ActionResult.Success
