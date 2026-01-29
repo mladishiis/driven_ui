@@ -83,6 +83,7 @@ data class LayoutComponent(
     override val title: String,
     override val code: String,
     val layoutCode: String,
+    val maxForIndex: String? = null,
     override val properties: List<ComponentProperty> = emptyList(),  // ComponentProperty
     override val styles: List<WidgetStyle> = emptyList(),
     override val events: List<WidgetEvent> = emptyList(),

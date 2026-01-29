@@ -79,6 +79,7 @@ class ComponentParser {
         var screenLayoutCode = ""
         var layoutCode = ""
         var screenLayoutIndex = 0
+        var maxForIndex: String? = null
         var forIndexName: String? = null
         val properties = mutableListOf<ComponentProperty>()
         val styles = mutableListOf<WidgetStyle>()
@@ -104,6 +105,9 @@ class ComponentParser {
                         }
                         "forIndexName" -> {
                             forIndexName = parser.nextText().trim()
+                        }
+                        "maxForIndex" -> {
+                            maxForIndex = parser.nextText().trim()
                         }
                         "properties" -> {
                             properties.addAll(parsePropertiesBlock(parser))
@@ -149,7 +153,8 @@ class ComponentParser {
                 children = children,
                 bindingProperties = bindingProperties,
                 index = screenLayoutIndex,
-                forIndexName = forIndexName
+                forIndexName = forIndexName,
+                maxForIndex = maxForIndex,
             )
         } else {
             null
