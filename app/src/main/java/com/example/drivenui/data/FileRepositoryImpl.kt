@@ -5,80 +5,74 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
+import java.io.FileNotFoundException
 import javax.inject.Inject
 
 /**
- * Реализация FileRepository
+ * Реализация FileRepository чтение/запись файлов.
  */
 internal class FileRepositoryImpl @Inject constructor(
     private val context: Context
 ) : FileRepository {
 
-    override suspend fun loadXmlContent(fileName: String): String {
-        return withContext(Dispatchers.IO) {
-            try {
-                context.assets.open(fileName).bufferedReader().use { it.readText() }
-            } catch (e: Exception) {
-                Log.e("FileRepository", "Ошибка при загрузке файла $fileName", e)
-                throw e
-            }
+    private val rootDir: File =
+        File(context.filesDir, "assets_simulation/microappTavrida")
+
+    override fun getAvailableFiles(): List<String> =
+        try {
+            rootDir.list()?.toList().orEmpty()
+        } catch (e: Exception) {
+            Log.e("FileRepository", "Error listing files", e)
+            emptyList()
         }
-    }
+
+    override fun getAvailableJsonFiles(): List<String> =
+        try {
+            rootDir.list()?.filter { it.endsWith(".json") }.orEmpty()
+        } catch (e: Exception) {
+            Log.e("FileRepository", "Error listing JSON files", e)
+            emptyList()
+        }
+
+    override suspend fun loadXmlFile(fileName: String): String =
+        withContext(Dispatchers.IO) {
+            val file = File(rootDir, fileName)
+            if (!file.exists()) {
+                throw FileNotFoundException("XML file not found: $fileName")
+            }
+            file.readText()
+        }
+
+    override suspend fun loadJsonFile(fileName: String): String =
+        withContext(Dispatchers.IO) {
+            val file = File(rootDir, fileName)
+            if (!file.exists()) {
+                throw FileNotFoundException("JSON file not found: $fileName")
+            }
+            file.readText()
+        }
 
     override suspend fun saveJsonResult(jsonResult: String, fileName: String) {
         withContext(Dispatchers.IO) {
             try {
-                val file = File(context.filesDir, fileName)
+                if (!rootDir.exists()) {
+                    rootDir.mkdirs()
+                }
+
+                val file = File(rootDir, fileName)
                 file.writeText(jsonResult)
-                Log.d("FileRepository", "Файл сохранен: ${file.absolutePath}")
-            } catch (e: Exception) {
-                Log.e("FileRepository", "Ошибка при сохранении файла $fileName", e)
-                throw e
-            }
-        }
-    }
 
-    override fun getXmlFiles(): List<String> {
-        return try {
-            context.assets.list("")?.filter {
-                it.endsWith(".xml") || it.endsWith(".zip")
-            }?.toList() ?: emptyList()
-        } catch (e: Exception) {
-            Log.e("FileRepository", "Ошибка при получении списка файлов", e)
-            emptyList()
-        }
-    }
-
-    override fun fileExists(fileName: String): Boolean {
-        return try {
-            context.assets.open(fileName).close()
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    override suspend fun getFileInfo(fileName: String): FileRepository.FileInfo? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val inputStream = context.assets.open(fileName)
-                val size = inputStream.available().toLong()
-                inputStream.close()
-
-                FileRepository.FileInfo(
-                    name = fileName,
-                    size = size,
-                    lastModified = System.currentTimeMillis(),
-                    type = when {
-                        fileName.endsWith(".xml") -> "XML"
-                        fileName.endsWith(".zip") -> "ZIP"
-                        else -> "UNKNOWN"
-                    }
+                Log.d(
+                    "FileRepository",
+                    "Saved file: ${file.absolutePath}"
                 )
             } catch (e: Exception) {
-                Log.e("FileRepository", "Ошибка при получении информации о файле $fileName", e)
-                null
+                Log.e(
+                    "FileRepository",
+                    "Error saving file $fileName",
+                    e
+                )
+                throw e
             }
         }
     }

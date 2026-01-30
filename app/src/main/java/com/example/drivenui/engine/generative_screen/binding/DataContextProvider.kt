@@ -15,19 +15,20 @@ class DataContextProvider(private val appContext: Context) {
      * Загружает JSON файл из assets
      */
     fun loadJsonSmart(fileName: String): JsonElement? {
-        // 1️⃣ Сначала проверяем runtime microappTavrida
+        // 1. runtime
         val runtimeFile = File(appContext.filesDir, "assets_simulation/microappTavrida/mocks/$fileName")
         if (runtimeFile.exists()) {
-            return try {
-                val jsonString = runtimeFile.readText()
-                JsonParser.parseString(jsonString)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to parse JSON from runtime file: $runtimeFile", e)
-                null
-            }
-        } else {
-            Log.e(TAG, "Не найдено такого файла: $runtimeFile")
-            return null
+            return runtimeFile.readText().let(JsonParser::parseString)
+        }
+
+        // 2. assets
+        return try {
+            appContext.assets.open("mocks/$fileName")
+                .bufferedReader()
+                .use { JsonParser.parseString(it.readText()) }
+        } catch (e: Exception) {
+            Log.e(TAG, "JSON not found in runtime or assets: $fileName", e)
+            null
         }
     }
 

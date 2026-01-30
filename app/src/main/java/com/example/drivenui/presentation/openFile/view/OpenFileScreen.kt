@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.drivenui.domain.MicroappSource
 import com.example.drivenui.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.presentation.openFile.model.OpenFileState
 
@@ -247,15 +248,16 @@ internal fun OpenFileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Основная кнопка загрузки
                         Button(
-                            onClick = { onEvent(OpenFileEvent.OnUploadFile) },
+                            onClick = { onEvent(OpenFileEvent.OnUpload) },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !state.isUploadFile
                         ) {
                             Text(
-                                text = if (state.hasParsingResult) "Повторно сканировать qr код" else "Сканировать qr код",
-                                fontSize = 16.sp
+                                text = when (state.microappSource) {
+                                    MicroappSource.ASSETS -> "Загрузить из assets"
+                                    MicroappSource.FILE_SYSTEM -> "Загрузить через QR-код"
+                                }
                             )
                         }
                     }

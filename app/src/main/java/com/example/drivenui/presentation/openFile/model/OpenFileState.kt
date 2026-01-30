@@ -1,5 +1,6 @@
 package com.example.drivenui.presentation.openFile.model
 
+import com.example.drivenui.domain.MicroappSource
 import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.utile.VtbEffect
 import com.example.drivenui.utile.VtbEvent
@@ -11,8 +12,8 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Жмак по кнопке назад */
     data object OnBackClick : OpenFileEvent
 
-    /** Жмак по кнопке Загрузить файл */
-    data object OnUploadFile : OpenFileEvent
+    /** Загрузка*/
+    data object OnUpload : OpenFileEvent
 
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
@@ -94,6 +95,7 @@ internal sealed interface OpenFileEffect : VtbEffect {
 /**
  * Состояние экрана с поддержкой новой структуры компонентов и биндингов
  *
+ * @property microappSource откуда будем грузить
  * @property isUploadFile состояние загрузки файла
  * @property isParsing состояние парсинга файла
  * @property parsingResult результат парсинга с новой структурой
@@ -105,6 +107,7 @@ internal sealed interface OpenFileEffect : VtbEffect {
  * @property showJsonSelectionDialog показать диалог выбора JSON файлов
  */
 internal data class OpenFileState(
+    val microappSource: MicroappSource = MicroappSource.ASSETS,
     val isUploadFile: Boolean = false,
     val isParsing: Boolean = false,
     val parsingResult: SDUIParser.ParsedMicroappResult? = null,

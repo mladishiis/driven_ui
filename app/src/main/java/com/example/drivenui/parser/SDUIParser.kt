@@ -1,30 +1,16 @@
 package com.example.drivenui.parser
 
-import android.content.Context
 import android.util.Log
-import com.example.drivenui.parser.models.AllEventActions
-import com.example.drivenui.parser.models.AllEvents
-import com.example.drivenui.parser.models.AllStyles
-import com.example.drivenui.parser.models.ColorStyle
-import com.example.drivenui.parser.models.Component
-import com.example.drivenui.parser.models.DataContext
-import com.example.drivenui.parser.models.Layout
-import com.example.drivenui.parser.models.Microapp
-import com.example.drivenui.parser.models.ParsedScreen
-import com.example.drivenui.parser.models.Query
-import com.example.drivenui.parser.models.ScreenQuery
-import com.example.drivenui.parser.models.TextStyle
-import com.example.drivenui.parser.models.Widget
+import com.example.drivenui.parser.models.*
 import com.example.drivenui.parser.parsers.ComponentParser
 import com.example.drivenui.parser.parsers.MicroappParser
 import com.example.drivenui.parser.parsers.QueryParser
 import com.example.drivenui.parser.parsers.StyleParser
-import java.io.File
 
 /**
- * Главный парсер с поддержкой новой структуры компонентов и макросов
+ * Главный парсер SDUI. Работает ТОЛЬКО со строками XML.
  */
-class SDUIParser(private val context: Context) {
+class SDUIParser {
 
     private val styleParser = StyleParser()
     private val queryParser = QueryParser()
@@ -32,7 +18,7 @@ class SDUIParser(private val context: Context) {
     private val componentParser = ComponentParser()
 
     /**
-     * Результат парсинга с новой структурой
+     * Результат парсинга
      */
     data class ParsedMicroappResult(
         val microapp: Microapp? = null,
@@ -46,339 +32,181 @@ class SDUIParser(private val context: Context) {
         val layouts: List<Layout> = emptyList(),
         val dataContext: DataContext? = null
     ) {
+
         /**
          * Проверяет, содержит ли результат какие-либо данные
          */
-        fun hasData(): Boolean {
-            return microapp != null ||
+        fun hasData(): Boolean =
+            microapp != null ||
                     screens.isNotEmpty() ||
-                    events?.events?.isNotEmpty() == true ||
-                    eventActions?.eventActions?.isNotEmpty() == true ||
                     styles != null ||
                     queries.isNotEmpty() ||
                     screenQueries.isNotEmpty() ||
                     widgets.isNotEmpty() ||
                     layouts.isNotEmpty()
-        }
 
-        /**
-         * Получает экран по коду
-         */
-        fun getScreenByCode(screenCode: String): ParsedScreen? {
-            return screens.firstOrNull { it.screenCode == screenCode }
-        }
+        fun getScreenByCode(screenCode: String): ParsedScreen? =
+            screens.firstOrNull { it.screenCode == screenCode }
 
-        /**
-         * Получает текстовые стили
-         */
-        fun getTextStyles(): List<TextStyle> = styles?.textStyles ?: emptyList()
+        fun getTextStyles(): List<TextStyle> =
+            styles?.textStyles.orEmpty()
 
-        /**
-         * Получает цветовые стили
-         */
-        fun getColorStyles(): List<ColorStyle> = styles?.colorStyles ?: emptyList()
+        fun getColorStyles(): List<ColorStyle> =
+            styles?.colorStyles.orEmpty()
 
-        /**
-         * Подсчитывает общее количество компонентов во всех экранах
-         */
-        fun countAllComponents(): Int {
-            var total = 0
-            screens.forEach { screen ->
-                screen.rootComponent?.let { root ->
-                    total += countComponentsRecursive(root)
-                }
+        fun countAllComponents(): Int =
+            screens.sumOf { screen ->
+                screen.rootComponent?.let { countComponentsRecursive(it) } ?: 0
             }
-            return total
-        }
 
-        /**
-         * Получает статистику парсинга
-         */
-        fun getStats(): Map<String, Any> {
-            return mapOf(
-                "microapp" to (microapp?.title ?: "нет"),
-                "screens" to screens.size,
-                "textStyles" to (styles?.textStyles?.size ?: 0),
-                "colorStyles" to (styles?.colorStyles?.size ?: 0),
-                "roundStyles" to (styles?.roundStyles?.size ?: 0),
-                "paddingStyles" to (styles?.paddingStyles?.size ?: 0),
-                "alignmentStyles" to (styles?.alignmentStyles?.size ?: 0),
-                "queries" to queries.size,
-                "screenQueries" to screenQueries.size,
-                "events" to (events?.events?.size ?: 0),
-                "eventActions" to (eventActions?.eventActions?.size ?: 0),
-                "widgets" to widgets.size,
-                "layouts" to layouts.size,
-                "componentsCount" to countAllComponents(),
-                "hasComponentStructure" to screens.any { it.rootComponent != null },
-            )
-        }
+        fun getStats(): Map<String, Any> = mapOf(
+            "microapp" to (microapp?.title ?: "нет"),
+            "screens" to screens.size,
+            "textStyles" to (styles?.textStyles?.size ?: 0),
+            "colorStyles" to (styles?.colorStyles?.size ?: 0),
+            "roundStyles" to (styles?.roundStyles?.size ?: 0),
+            "paddingStyles" to (styles?.paddingStyles?.size ?: 0),
+            "alignmentStyles" to (styles?.alignmentStyles?.size ?: 0),
+            "queries" to queries.size,
+            "screenQueries" to screenQueries.size,
+            "widgets" to widgets.size,
+            "layouts" to layouts.size,
+            "componentsCount" to countAllComponents()
+        )
 
-        /**
-         * Логирует краткую информацию о результате
-         */
         fun logSummary() {
-            Log.d("ParsedMicroappResult", "=== Краткая информация о результате ===")
-            Log.d("ParsedMicroappResult", "Микроапп: ${microapp?.title ?: "нет"}")
-            Log.d("ParsedMicroappResult", "Экраны: ${screens.size}")
-            screens.forEachIndexed { index, screen ->
-                Log.d("ParsedMicroappResult", "  $index: ${screen.title} (${screen.screenCode})")
+            Log.d("SDUIParser", "====== SDUI PARSE RESULT ======")
+            Log.d("SDUIParser", "Microapp: ${microapp?.title ?: "нет"}")
+            Log.d("SDUIParser", "Screens: ${screens.size}")
 
-                // Выводим информацию о запросах
-                if (screen.requests.isNotEmpty()) {
-                    Log.d("ParsedMicroappResult", "    Запросы (${screen.requests.size}):")
-                    screen.requests.forEach { query ->
-                        Log.d("ParsedMicroappResult", "      - ${query.code} → ${query.queryCode}")
-                    }
-                }
-
-                if (screen.rootComponent != null) {
-                    Log.d("ParsedMicroappResult", "    Корневой компонент: ${screen.rootComponent.title}")
-                    Log.d("ParsedMicroappResult", "    Компонентов: ${countComponentsRecursive(screen.rootComponent)}")
-                }
+            screens.forEach { screen ->
+                Log.d(
+                    "SDUIParser",
+                    "Screen ${screen.screenCode}: ${screen.title}, components=${screen.rootComponent?.let {
+                        countComponentsRecursive(it)
+                    } ?: 0}, requests=${screen.requests.size}"
+                )
             }
-            Log.d("ParsedMicroappResult", "Стили текста: ${getTextStyles().size}")
-            Log.d("ParsedMicroappResult", "Стили цвета: ${getColorStyles().size}")
-            Log.d("ParsedMicroappResult", "События: ${events?.events?.size ?: 0}")
-            Log.d("ParsedMicroappResult", "Действия событий: ${eventActions?.eventActions?.size ?: 0}")
-            Log.d("ParsedMicroappResult", "Запросы: ${queries.size}")
-            Log.d("ParsedMicroappResult", "ScreenQueries: ${screenQueries.size}")
-            Log.d("ParsedMicroappResult", "Виджеты: ${widgets.size}")
-            Log.d("ParsedMicroappResult", "Лэйауты: ${layouts.size}")
 
-            // Подсчет всех запросов по экранам
-            val totalRequests = screens.sumOf { it.requests.size }
-            Log.d("ParsedMicroappResult", "Всего запросов в экранах: $totalRequests")
-
-            Log.d("ParsedMicroappResult", "Всего компонентов: ${countAllComponents()}")
-            Log.d("ParsedMicroappResult", "=======================================")
+            Log.d("SDUIParser", "Text styles: ${getTextStyles().size}")
+            Log.d("SDUIParser", "Color styles: ${getColorStyles().size}")
+            Log.d("SDUIParser", "Queries: ${queries.size}")
+            Log.d("SDUIParser", "ScreenQueries: ${screenQueries.size}")
+            Log.d("SDUIParser", "Total components: ${countAllComponents()}")
+            Log.d("SDUIParser", "==============================")
         }
 
-        /**
-         * Рекурсивно подсчитывает компоненты
-         */
-        fun countComponentsRecursive(component: Component): Int {
-            var count = 1 // текущий компонент
-            component.children.forEach { child ->
-                count += countComponentsRecursive(child)
-            }
-            return count
-        }
-
-        /**
-         * Получает разрешенные значения для всех биндингов
-         */
         fun getResolvedValues(): Map<String, String> {
             val values = mutableMapOf<String, String>()
             screens.forEach { screen ->
-                collectResolvedValues(screen.rootComponent, values)
+                screen.rootComponent?.let { collectResolvedValues(it, values) }
             }
             return values
         }
 
-        private fun collectResolvedValues(component: Component?, values: MutableMap<String, String>) {
-            if (component == null) return
-
+        private fun collectResolvedValues(component: Component, values: MutableMap<String, String>) {
+            // Пример: собираем только те свойства, у которых rawValue != resolvedValue
+            component.properties.forEach { prop ->
+                prop.resolvedValue?.let { values[prop.code] = it }
+            }
             component.children.forEach { child ->
                 collectResolvedValues(child, values)
             }
         }
+
+        private fun countComponentsRecursive(component: Component): Int =
+            1 + component.children.sumOf { countComponentsRecursive(it) }
     }
 
-    fun parseFromDir(rootDir: File): ParsedMicroappResult {
+    /**
+     * ЕДИНСТВЕННЫЙ публичный метод парсинга
+     */
+    fun parse(
+        microappXml: String,
+        stylesXml: String,
+        queriesXml: String,
+        screens: List<Pair<String, String>> // fileName → xml
+    ): ParsedMicroappResult {
+
         return try {
-            Log.d("SDUIParser", "=== Парсинг новой структуры microapp из папки ===")
+            Log.d("SDUIParser", "=== Start SDUI parsing ===")
 
-            val microappXml = File(rootDir, "microapp.xml").readText()
-            val stylesXml = File(rootDir, "resources/allStyles.xml").readText()
-            val queriesXml = File(rootDir, "queries/allQueries.xml").readText()
+            val microapp = parseMicroapp(microappXml)
+            val styles = parseStyles(stylesXml)
+            val queries = parseQueries(queriesXml)
 
-            val microapp = parseMicroappFromFullXml(microappXml)
-            val styles = parseStylesFromFullXml(stylesXml)
+            val parsedScreens = parseScreens(screens)
+            val screenQueries = parseScreenQueries(screens)
 
-            val screensWithoutQueries = parseScreensFromFolder(rootDir.resolve("screens"))
+            val queriesByScreen = screenQueries.groupBy { it.screenCode }
 
-            val screenQueries = parseScreenQueriesFromScreensFolder(rootDir.resolve("screens"))
-
-            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
-            val screensWithQueries = screensWithoutQueries.map { screen ->
-                screen.copy(requests = queriesByScreenCode[screen.screenCode].orEmpty())
-            }
-
-            val queries = parseQueriesFromFullXml(queriesXml)
-
-            val result = ParsedMicroappResult(
-                microapp = microapp,
-                styles = styles,
-                screens = screensWithQueries,
-                queries = queries,
-                screenQueries = screenQueries
-            )
-
-            result.logSummary()
-            result
-
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга microapp-структуры из папки", e)
-            ParsedMicroappResult()
-        }
-    }
-
-    /*fun parseFromAssetsRoot(): ParsedMicroappResult {
-        return try {
-            Log.d("SDUIParser", "=== Парсинг новой структуры microapp ===")
-
-            // === ЧИТАЕМ ФАЙЛЫ (раздельно) ===
-            val microappXml = readAsset("microapp.xml")
-            val stylesXml = readAsset("resources/allStyles.xml")
-            val queriesXml = readAsset("queries/allQueries.xml")
-
-            // Парсим базовые блоки (как раньше, но из разных файлов) ===
-            val microapp = parseMicroappFromFullXml(microappXml)
-            val styles = parseStylesFromFullXml(stylesXml)
-
-            // 1. Экраны (UI)
-            val screensWithoutQueries = parseScreensFromFolder("screens")
-
-            // 2. ScreenQueries (ОТДЕЛЬНО!)
-            val screenQueries = parseScreenQueriesFromScreensFolder("screens")
-
-            Log.d("DEBUG", "ScreenQueries parsed: ${screenQueries.size}")
-            screenQueries.forEach {
-                Log.d("DEBUG", "${it.screenCode} -> ${it.code}")
-            }
-
-            // 3. Группировка
-            val queriesByScreenCode = screenQueries.groupBy { it.screenCode }
-
-            // === 5. ТО САМОЕ ОБОГАЩЕНИЕ ЭКРАНОВ (ВАША ЛОГИКА) ===
-            val screensWithQueries = screensWithoutQueries.map { screen ->
+            val screensWithQueries = parsedScreens.map { screen ->
                 screen.copy(
-                    requests = queriesByScreenCode[screen.screenCode].orEmpty()
+                    requests = queriesByScreen[screen.screenCode].orEmpty()
                 )
             }
 
-            // === 6. Парсим реестр обычных queries (как раньше) ===
-            val queries = parseQueriesFromFullXml(queriesXml)
-
-            // === 7. Собираем итоговый результат ===
-            val result = ParsedMicroappResult(
+            ParsedMicroappResult(
                 microapp = microapp,
                 styles = styles,
                 screens = screensWithQueries,
                 queries = queries,
                 screenQueries = screenQueries
-            )
-
-            result.logSummary()
-            result
+            ).also { it.logSummary() }
 
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга microapp-структуры", e)
+            Log.e("SDUIParser", "Ошибка парсинга SDUI", e)
             ParsedMicroappResult()
         }
-    }*/
-
-
-    private fun parseScreensFromFolder(folder: File): List<ParsedScreen> {
-        val screens = mutableListOf<ParsedScreen>()
-        val files = folder.listFiles()?.filter { it.extension == "xml" } ?: return emptyList()
-        files.forEach { file ->
-            val xml = file.readText()
-            val screen = componentParser.parseSingleScreenXml(xml)
-            screen?.let {
-                screens.add(it)
-                Log.d("SDUIParser", "Экран считан: ${it.screenCode}")
-            }
-        }
-        return screens
     }
 
-    private fun parseScreenQueriesFromScreensFolder(folder: File): List<ScreenQuery> {
-        val result = mutableListOf<ScreenQuery>()
-        val files = folder.listFiles()?.filter { it.extension == "xml" } ?: return emptyList()
-        files.forEach { file ->
-            val xml = file.readText()
-            val queries = try {
+    private fun parseScreens(
+        screens: List<Pair<String, String>>
+    ): List<ParsedScreen> =
+        screens.mapNotNull { (name, xml) ->
+            try {
+                componentParser.parseSingleScreenXml(xml)?.also {
+                    Log.d("SDUIParser", "Screen parsed: ${it.screenCode} ($name)")
+                }
+            } catch (e: Exception) {
+                Log.e("SDUIParser", "Ошибка парсинга экрана $name", e)
+                null
+            }
+        }
+
+    private fun parseScreenQueries(
+        screens: List<Pair<String, String>>
+    ): List<ScreenQuery> =
+        screens.flatMap { (name, xml) ->
+            try {
                 queryParser.parseScreenQueries(xml)
             } catch (e: Exception) {
-                Log.e("SDUIParser", "Ошибка парсинга screenQueries в ${file.name}", e)
+                Log.e("SDUIParser", "Ошибка парсинга screenQueries в $name", e)
                 emptyList()
             }
-            result.addAll(queries)
         }
-        return result
-    }
 
-
-
-    private fun readAsset(path: String): String {
-        return context.assets.open(path).bufferedReader().use { it.readText() }
-    }
-
-    private fun parseScreenQueriesFromScreensFolder(folder: String): List<ScreenQuery> {
-        val result = mutableListOf<ScreenQuery>()
-
-        val files = context.assets.list(folder) ?: return emptyList()
-
-        files
-            .filter { it.endsWith(".xml") }
-            .forEach { file ->
-                val xml = readAsset("$folder/$file")
-
-                val queries = try {
-                    queryParser.parseScreenQueries(xml)
-                } catch (e: Exception) {
-                    Log.e("SDUIParser", "Ошибка парсинга screenQueries в $file", e)
-                    emptyList()
-                }
-
-                if (queries.isNotEmpty()) {
-                    Log.d(
-                        "SDUIParser",
-                        "Найдено screenQueries: ${queries.size} в экране $file"
-                    )
-                }
-
-                result.addAll(queries)
-            }
-
-        return result
-    }
-
-    /**
-     * Парсит список query из XML
-     */
-    private fun parseQueriesFromFullXml(xmlContent: String): List<Query> {
-        return try {
-            queryParser.parseAllQueries(xmlContent)
+    private fun parseQueries(xml: String): List<Query> =
+        try {
+            queryParser.parseAllQueries(xml)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге queries", e)
+            Log.e("SDUIParser", "Ошибка парсинга queries", e)
             emptyList()
         }
-    }
 
-    /**
-     * Парсит микроапп из XML
-     */
-    private fun parseMicroappFromFullXml(xmlContent: String): Microapp? {
-        return try {
-            microappParser.parseMicroapp(xmlContent)
+    private fun parseMicroapp(xml: String): Microapp? =
+        try {
+            microappParser.parseMicroapp(xml)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге микроаппа", e)
+            Log.e("SDUIParser", "Ошибка парсинга microapp", e)
             null
         }
-    }
 
-    /**
-     * Парсит стили из XML
-     */
-    private fun parseStylesFromFullXml(xmlContent: String): AllStyles? {
-        return try {
-            styleParser.parseStyles(xmlContent)
+    private fun parseStyles(xml: String): AllStyles? =
+        try {
+            styleParser.parseStyles(xml)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка при парсинге стилей", e)
+            Log.e("SDUIParser", "Ошибка парсинга styles", e)
             null
         }
-    }
 }

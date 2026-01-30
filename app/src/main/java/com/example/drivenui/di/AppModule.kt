@@ -1,12 +1,16 @@
 package com.example.drivenui.di
 
+import AssetsMicroappFileProvider
 import android.content.Context
+import com.example.drivenui.data.DirMicroappFileProvider
 import com.example.drivenui.data.FileRepository
 import com.example.drivenui.data.FileRepositoryImpl
 import com.example.drivenui.domain.FileDownloadInteractor
 import com.example.drivenui.domain.FileDownloadInteractorImpl
 import com.example.drivenui.domain.FileInteractor
 import com.example.drivenui.domain.FileInteractorImpl
+import com.example.drivenui.domain.MicroappFileProvider
+import com.example.drivenui.domain.MicroappSource
 import com.example.drivenui.engine.context.ContextManager
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.action.DefaultExternalDeeplinkHandler
@@ -38,8 +42,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSDUIParser(context: Context): SDUIParser {
-        return SDUIParser(context)
+    fun provideSDUIParser(): SDUIParser {
+        return SDUIParser()
     }
 
     @Provides
@@ -68,12 +72,32 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideMicroappFileProvider(
+        @ApplicationContext context: Context,
+        source: MicroappSource
+    ): MicroappFileProvider =
+        when (source) {
+            MicroappSource.ASSETS ->
+                AssetsMicroappFileProvider(context)
+
+            MicroappSource.FILE_SYSTEM ->
+                DirMicroappFileProvider(context)
+        }
+
+    @Provides
+    @Singleton
     fun provideFileInteractor(
         fileRepository: FileRepository,
         @ApplicationContext context: Context,
-        sdUiParser: SDUIParser
+        microappSource: MicroappSource,
+        fileProvider: MicroappFileProvider,
     ): FileInteractor {
-        return FileInteractorImpl(fileRepository, context)
+        return FileInteractorImpl(
+            fileRepository = fileRepository,
+            context = context,
+            source = microappSource,
+            fileProvider = fileProvider,
+        )
     }
 
     /**
@@ -86,6 +110,12 @@ object AppModule {
         client: OkHttpClient
     ): FileDownloadInteractor {
         return FileDownloadInteractorImpl(context, client)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMicroappSource(): MicroappSource {
+        return MicroappSource.ASSETS
     }
 
     /**

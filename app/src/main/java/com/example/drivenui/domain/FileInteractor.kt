@@ -1,87 +1,107 @@
 package com.example.drivenui.domain
 
 import com.example.drivenui.parser.SDUIParser
-import org.json.JSONArray
 
 /**
- * Интерфейс для работы с файлами и парсингом SDUI
+ * Интерактор для работы с microapp:
+ * - парсинг SDUI-описаний,
+ * - хранение последнего результата,
+ * - валидация и сбор диагностической информации.
+ *
+ * Инкапсулирует логику загрузки и разбора microapp
+ * независимо от источника данных (assets, file system и т.д.).
  */
 interface FileInteractor {
 
     /**
-     * Парсит файл из assets с новой структурой компонентов
-     * @param fileName Имя файла в папке assets
-     * @return Результат парсинга с новой структурой
+     * Запускает парсинг microapp.
+     *
+     * Выполняет чтение всех необходимых файлов (microapp, styles, queries, screens)
+     * и возвращает результат парсинга.
+     *
+     * @return результат парсинга microapp
+     * @throws Exception если произошла ошибка чтения или парсинга
      */
-    suspend fun parseMicroappFromAssetsRoot(): SDUIParser.ParsedMicroappResult
+    suspend fun parseMicroapp(): SDUIParser.ParsedMicroappResult
 
     /**
-     * Получает список доступных файлов в assets
-     * @return Список имен файлов
-     */
-    fun getAvailableFiles(): List<String>
-
-    /**
-     * Получает список JSON файлов в assets
-     * @return Список имен JSON файлов
-     */
-    fun getAvailableJsonFiles(): List<String>
-
-    /**
-     * Загружает XML файл как строку
-     * @param fileName Имя файла
-     * @return Содержимое файла как строка
-     */
-    suspend fun loadXmlFile(fileName: String): String
-
-    /**
-     * Загружает JSON файл как строку
-     * @param fileName Имя JSON файла
-     * @return Содержимое файла как строка
-     */
-    suspend fun loadJsonFile(fileName: String): String
-
-    /**
-     * Сохраняет результат парсинга
-     * @param parsedMicroapp Результат парсинга
-     */
-    fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult)
-
-    /**
-     * Получает последний результат парсинга
-     * @return Последний результат или null
+     * Возвращает последний успешно сохранённый результат парсинга.
+     *
+     * @return последний результат парсинга или `null`, если парсинг ещё не выполнялся
      */
     fun getLastParsedResult(): SDUIParser.ParsedMicroappResult?
 
     /**
-     * Получает разрешенные значения биндингов
-     * @return Мапа разрешенных биндингов
+     * Сохраняет результат парсинга для последующего использования
+     * (отладка, повторное применение, аналитика).
+     *
+     * @param parsedMicroapp результат парсинга microapp
+     */
+    fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult)
+
+    /**
+     * Выполняет валидацию результата парсинга.
+     *
+     * Может использоваться для проверки целостности microapp:
+     * - наличие экранов,
+     * - корректность биндингов,
+     * - обязательные сущности и т.д.
+     *
+     * @param result результат парсинга для проверки
+     * @return `true`, если результат валиден, иначе `false`
+     */
+    suspend fun validateParsingResult(
+        result: SDUIParser.ParsedMicroappResult
+    ): Boolean
+
+    /**
+     * Возвращает разрешённые значения биндингов,
+     * полученные в результате последнего парсинга.
+     *
+     * Ключ — имя биндинга, значение — итоговое строковое значение.
+     *
+     * @return map с разрешёнными биндингами или пустую map, если данных нет
      */
     fun getResolvedValues(): Map<String, String>
 
     /**
-     * Валидирует результат парсинга
-     * @param result Результат для валидации
-     * @return true если результат валиден
-     */
-    suspend fun validateParsingResult(result: SDUIParser.ParsedMicroappResult): Boolean
-
-    /**
-     * Получает статистику парсинга
-     * @return Статистика или null если нет данных
+     * Возвращает статистику парсинга microapp.
+     *
+     * Может содержать:
+     * - количество экранов,
+     * - количество компонентов,
+     * - количество ошибок/предупреждений и т.д.
+     *
+     * @return map со статистикой парсинга или `null`, если данных нет
      */
     fun getParsingStats(): Map<String, Any>?
 
     /**
-     * Получает детальную статистику по биндингам
-     * @return Статистика биндингов или null
+     * Возвращает статистику биндингов.
+     *
+     * Может содержать:
+     * - количество разрешённых биндингов,
+     * - наличие DataContext,
+     * - количество screen queries и т.д.
+     *
+     * @return map со статистикой биндингов или `null`, если данных нет
      */
     fun getBindingStats(): Map<String, Any>?
 
     /**
-     * Очищает сохраненные данные парсинга
+     * Очищает сохранённые данные парсинга и связанные с ними состояния.
+     *
+     * Используется при повторной загрузке microapp
+     * или при сбросе состояния приложения.
      */
     fun clearParsedData()
 
-    suspend fun loadJsonFileAsArray(fileName: String): JSONArray?
+    /**
+     * Возвращает список доступных JSON-файлов,
+     * которые могут использоваться в качестве mock-данных
+     * для screen queries или биндингов.
+     *
+     * @return список имён JSON-файлов
+     */
+    fun getAvailableJsonFiles(): List<String>
 }

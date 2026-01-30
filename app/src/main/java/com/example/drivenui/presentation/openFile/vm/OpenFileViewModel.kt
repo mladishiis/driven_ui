@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.domain.FileDownloadInteractor
 import com.example.drivenui.domain.FileInteractor
+import com.example.drivenui.domain.MicroappSource
 import com.example.drivenui.parser.SDUIParser
 import com.example.drivenui.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.presentation.openFile.model.OpenFileEvent
@@ -13,133 +14,47 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import javax.inject.Inject
 
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
     private val fileInteractor: FileInteractor,
     private val fileDownloadInteractor: FileDownloadInteractor,
+    private val microappSource: MicroappSource
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
     init {
-        // Автоматически загружаем JSON файлы при создании ViewModel
         loadJsonFilesOnInit()
     }
 
-    override fun createInitialState() = OpenFileState()
+    override fun createInitialState() = OpenFileState(
+        microappSource = microappSource
+    )
 
     override fun handleEvent(event: OpenFileEvent) {
         when (event) {
-            OpenFileEvent.OnBackClick -> {
-                setEffect { OpenFileEffect.GoBack }
+            OpenFileEvent.OnBackClick -> setEffect { OpenFileEffect.GoBack }
+            OpenFileEvent.OnUpload -> {
+                handleUpload()
             }
-
-            OpenFileEvent.OnUploadFile -> {
-                handleUploadFileViaQr()
-            }
-
-            OpenFileEvent.OnShowFile -> {
-                handleShowFile()
-            }
-
-            OpenFileEvent.OnShowParsingDetails -> {
-                handleShowParsingDetails()
-            }
-
-            OpenFileEvent.OnShowTestScreen -> {
-                handleShowTestScreen()
-            }
-
-            OpenFileEvent.OnShowBindingStats -> {
-                handleShowBindingStats()
-            }
-
-            OpenFileEvent.OnLoadJsonFiles -> {
-                handleLoadJsonFiles()
-            }
-
-            is OpenFileEvent.OnQrScanned -> {
-                Log.d("OpenFileViewModel", "Url для скачивания ${event.url}")
-                if (!event.url.startsWith("http")) {
-                    setEffect {
-                        OpenFileEffect.ShowError("QR не содержит корректную ссылку")
-                    }
-                    return
-                }
-                downloadAndParseFile(event.url)
-            }
-
-            is OpenFileEvent.OnSelectJsonFiles -> {
-                handleSelectJsonFiles(event.files)
-            }
+            OpenFileEvent.OnShowFile -> handleShowFile()
+            OpenFileEvent.OnShowParsingDetails -> handleShowParsingDetails()
+            OpenFileEvent.OnShowTestScreen -> handleShowTestScreen()
+            OpenFileEvent.OnShowBindingStats -> handleShowBindingStats()
+            OpenFileEvent.OnLoadJsonFiles -> handleLoadJsonFiles()
+            is OpenFileEvent.OnQrScanned -> handleQrScanned(event.url)
+            is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files)
         }
     }
 
-    private fun downloadAndParseFile(url: String) {
-        viewModelScope.launch {
-            try {
-                updateState {
-                    copy(
-                        isUploadFile = true,
-                        isParsing = true,
-                        errorMessage = null
-                    )
-                }
-
-                val success = withContext(Dispatchers.IO) {
-                    fileDownloadInteractor.downloadAndExtractZip(url)
-                }
-
-                if (!success) {
-                    setEffect {
-                        OpenFileEffect.ShowError("Не удалось загрузить архив")
-                    }
-                    updateState {
-                        copy(isUploadFile = false, isParsing = false)
-                    }
-                    return@launch
-                }
-
+    private fun handleUpload() {
+        when (microappSource) {
+            MicroappSource.ASSETS -> {
                 handleUploadFile()
-
-            } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
-                setEffect {
-                    OpenFileEffect.ShowError("Ошибка загрузки: ${e.localizedMessage}")
-                }
-                updateState {
-                    copy(isUploadFile = false, isParsing = false)
-                }
             }
-        }
-    }
 
-
-
-    private fun handleUploadFileViaQr() {
-        setEffect { OpenFileEffect.OpenQrScanner }
-    }
-
-    private fun loadJsonFilesOnInit() {
-        viewModelScope.launch {
-            try {
-                val jsonFiles = fileInteractor.getAvailableJsonFiles()
-                updateState { copy(availableJsonFiles = jsonFiles) }
-
-                // Автоматически выбираем первые 2 JSON файла (или все, если меньше)
-                val selectedFiles = if (jsonFiles.size >= 2) {
-                    jsonFiles.take(2)
-                } else {
-                    jsonFiles
-                }
-
-                if (selectedFiles.isNotEmpty()) {
-                    updateState { copy(selectedJsonFiles = selectedFiles) }
-                    Log.d("OpenFileViewModel", "Автоматически выбраны JSON файлы: ${selectedFiles.joinToString(", ")}")
-                }
-            } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при загрузке JSON файлов", e)
+            MicroappSource.FILE_SYSTEM -> {
+                setEffect { OpenFileEffect.OpenQrScanner }
             }
         }
     }
@@ -161,15 +76,7 @@ internal class OpenFileViewModel @Inject constructor(
                     }
                 }
 
-                Log.d("OpenFileViewModel", "Начинаем парсинг структуры microapp")
-
-                // 🔥 ВАЖНО: теперь парсим ВСЮ структуру, а не один файл
-                val parsedResult = fileInteractor.parseMicroappFromAssetsRoot()
-
-                Log.d(
-                    "OpenFileViewModel",
-                    "Результат парсинга: ${parsedResult.screens.size} экранов"
-                )
+                val parsedResult = fileInteractor.parseMicroapp()
 
                 withContext(Dispatchers.Main) {
                     updateState {
@@ -180,74 +87,93 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = null
                         )
                     }
+                    setEffect { OpenFileEffect.ShowSuccess("Микроапп успешно загружен") }
                 }
 
                 logParsingResult(parsedResult)
 
-                val successMessage = buildString {
-                    append("Микроапп успешно загружен из assets!\n")
-                    parsedResult.microapp?.let {
-                        append("• Микроапп: ${it.title}\n")
-                    }
-                    append("• Экранов: ${parsedResult.screens.size}\n")
-                    append("• Запросов API: ${parsedResult.queries.size}\n")
-                }
-
-                withContext(Dispatchers.Main) {
-                    setEffect { OpenFileEffect.ShowSuccess(successMessage) }
-                }
-
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при парсинге microapp", e)
-
+                Log.e("OpenFileViewModel", "Ошибка при загрузке или парсинге", e)
                 withContext(Dispatchers.Main) {
                     updateState {
                         copy(
                             isUploadFile = false,
                             isParsing = false,
-                            errorMessage = "Ошибка: ${e.localizedMessage}"
+                            errorMessage = e.localizedMessage
                         )
                     }
-
-                    setEffect {
-                        OpenFileEffect.ShowError("Ошибка при парсинге: ${e.localizedMessage}")
-                    }
+                    setEffect { OpenFileEffect.ShowError("Ошибка: ${e.localizedMessage}") }
                 }
             }
         }
     }
 
+    private fun handleQrScanned(url: String) {
+        if (!url.startsWith("http")) {
+            setEffect { OpenFileEffect.ShowError("QR не содержит корректную ссылку") }
+            return
+        }
 
-    /**
-     * Загружает список JSON файлов
-     */
+        viewModelScope.launch {
+            try {
+                updateState { copy(isUploadFile = true, isParsing = true, errorMessage = null) }
+
+                val success = withContext(Dispatchers.IO) {
+                    fileDownloadInteractor.downloadAndExtractZip(url)
+                }
+
+                if (!success) {
+                    setEffect { OpenFileEffect.ShowError("Не удалось загрузить архив") }
+                    updateState { copy(isUploadFile = false, isParsing = false) }
+                    return@launch
+                }
+
+                handleUploadFile()
+
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
+                updateState { copy(isUploadFile = false, isParsing = false) }
+                setEffect { OpenFileEffect.ShowError("Ошибка загрузки: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    private fun loadJsonFilesOnInit() {
+        viewModelScope.launch {
+            try {
+                val jsonFiles = fileInteractor.getAvailableJsonFiles()
+                updateState { copy(availableJsonFiles = jsonFiles) }
+
+                val selectedFiles = jsonFiles.take(2)
+                if (selectedFiles.isNotEmpty()) {
+                    updateState { copy(selectedJsonFiles = selectedFiles) }
+                    Log.d("OpenFileViewModel", "Автовыбор JSON файлов: ${selectedFiles.joinToString(", ")}")
+                }
+
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка при загрузке JSON файлов", e)
+            }
+        }
+    }
+
     private fun handleLoadJsonFiles() {
         viewModelScope.launch {
             try {
                 val jsonFiles = fileInteractor.getAvailableJsonFiles()
-                Log.d("OpenFileViewModel", "Загружены JSON файлы: ${jsonFiles.joinToString(", ")}")
-
                 updateState { copy(availableJsonFiles = jsonFiles) }
 
-                if (jsonFiles.isEmpty()) {
-                    setEffect { OpenFileEffect.ShowError("JSON файлы не найдены в assets") }
-                } else {
-                    setEffect { OpenFileEffect.ShowSuccess("Найдено ${jsonFiles.size} JSON файлов") }
-                }
+                if (jsonFiles.isEmpty()) setEffect { OpenFileEffect.ShowError("JSON файлы не найдены") }
+                else setEffect { OpenFileEffect.ShowSuccess("Найдено ${jsonFiles.size} JSON файлов") }
+
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при загрузке JSON файлов", e)
+                Log.e("OpenFileViewModel", "Ошибка при загрузке JSON", e)
                 setEffect { OpenFileEffect.ShowError("Ошибка при загрузке JSON файлов") }
             }
         }
     }
 
-    /**
-     * Обрабатывает выбор JSON файлов
-     */
     private fun handleSelectJsonFiles(files: List<String>) {
         updateState { copy(selectedJsonFiles = files) }
-
-        // Показываем диалог выбора
         setEffect {
             OpenFileEffect.ShowJsonFileSelectionDialog(
                 availableFiles = uiState.value.availableJsonFiles,
@@ -256,181 +182,72 @@ internal class OpenFileViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Показывает статистику по биндингам
-     */
-    private fun handleShowBindingStats() {
-        val currentResult = uiState.value.parsingResult
-        if (currentResult != null) {
-            val bindingStats = uiState.value.bindingStats ?: fileInteractor.getBindingStats()
-            val resolvedValues = uiState.value.resolvedValues
+    // =====================================================
+    // Статистика и биндинги
+    // =====================================================
 
-            setEffect {
-                OpenFileEffect.ShowBindingStats(
-                    stats = bindingStats,
-                    resolvedValues = resolvedValues
-                )
-            }
-        } else {
+    private fun handleShowBindingStats() {
+        val resolvedValues = fileInteractor.getResolvedValues()
+        val bindingStats = fileInteractor.getBindingStats().orEmpty()
+
+        if (resolvedValues.isEmpty() && bindingStats.isEmpty()) {
             setEffect { OpenFileEffect.ShowError("Сначала загрузите файл с биндингами") }
+            return
+        }
+
+        setEffect {
+            OpenFileEffect.ShowBindingStats(
+                stats = bindingStats,
+                resolvedValues = resolvedValues
+            )
         }
     }
 
-    /**
-     * Считает количество компонентов в дереве (рекурсивно)
-     */
+    private fun handleShowFile() {
+        uiState.value.parsingResult?.let {
+            setEffect { OpenFileEffect.NavigateToParsingDetails(it) }
+        } ?: setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
+    }
+
+    private fun handleShowParsingDetails() = handleShowFile()
+    private fun handleShowTestScreen() {
+        uiState.value.parsingResult?.let {
+            setEffect { OpenFileEffect.NavigateToTestScreen(it) }
+        } ?: setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
+    }
+
     private fun countComponents(component: com.example.drivenui.parser.models.Component?): Int {
         if (component == null) return 0
-
-        var count = 1 // текущий компонент
-        component.children.forEach { child ->
-            count += countComponents(child)
-        }
-        return count
+        return 1 + component.children.sumOf { countComponents(it) }
     }
 
-    /**
-     * Показывает последний спарсенный файл
-     */
-    private fun handleShowFile() {
-        val currentResult = uiState.value.parsingResult
-        if (currentResult != null) {
-            setEffect { OpenFileEffect.NavigateToParsingDetails(currentResult) }
-        } else {
-            setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
-        }
-    }
-
-    /**
-     * Показывает детали парсинга
-     */
-    private fun handleShowParsingDetails() {
-        val currentResult = uiState.value.parsingResult
-        if (currentResult != null) {
-            setEffect { OpenFileEffect.NavigateToParsingDetails(currentResult) }
-        } else {
-            setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
-        }
-    }
-
-    /**
-     * Показывает тестовый экран
-     */
-    private fun handleShowTestScreen() {
-        val currentResult = uiState.value.parsingResult
-        if (currentResult != null) {
-            setEffect { OpenFileEffect.NavigateToTestScreen(currentResult) }
-        } else {
-            setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
-        }
-    }
-
-    /**
-     * Логирует результат парсинга с новой структурой
-     */
     private fun logParsingResult(result: SDUIParser.ParsedMicroappResult) {
-        Log.d("OpenFileViewModel", "=== Результат парсинга (новая структура) ===")
+        Log.d("OpenFileViewModel", "=== Результат парсинга ===")
         Log.d("OpenFileViewModel", "Микроапп: ${result.microapp?.title ?: "Не найден"}")
-        Log.d("OpenFileViewModel", "Код: ${result.microapp?.code ?: "Не указан"}")
-        Log.d("OpenFileViewModel", "Deeplink: ${result.microapp?.deeplink ?: "Не указан"}")
         Log.d("OpenFileViewModel", "Экранов: ${result.screens.size}")
+        Log.d("OpenFileViewModel", "Запросов API: ${result.queries.size}")
 
         result.screens.forEachIndexed { index, screen ->
-            Log.d("OpenFileViewModel", "  Экран ${index + 1}: ${screen.title}")
-            Log.d("OpenFileViewModel", "    Код: ${screen.screenCode}")
-            Log.d("OpenFileViewModel", "    Deeplink: ${screen.deeplink}")
-
+            Log.d("OpenFileViewModel", "Экран ${index + 1}: ${screen.title} (${screen.screenCode})")
             screen.rootComponent?.let { root ->
-                val componentCount = countComponents(root)
-                Log.d("OpenFileViewModel", "    Компонентов в дереве: $componentCount")
-                logComponentStructure(root, "      ")
+                Log.d("OpenFileViewModel", "  Компонентов в дереве: ${countComponents(root)}")
+                logComponentStructure(root, "    ")
             }
         }
 
-        Log.d("OpenFileViewModel", "Стилей текста: ${result.styles?.textStyles?.size ?: 0}")
-        Log.d("OpenFileViewModel", "Стилей цвета: ${result.styles?.colorStyles?.size ?: 0}")
-        Log.d("OpenFileViewModel", "Запросов API: ${result.queries.size}")
-        Log.d("OpenFileViewModel", "Экранных запросов: ${result.screenQueries.size}")
-        Log.d("OpenFileViewModel", "Виджетов в реестре: ${result.widgets.size}")
-        Log.d("OpenFileViewModel", "Лэйаутов в реестре: ${result.layouts.size}")
-
-        // Информация о биндингах
-        val resolvedValues = result.getResolvedValues()
+        val resolvedValues = fileInteractor.getResolvedValues()
         Log.d("OpenFileViewModel", "Разрешено биндингов: ${resolvedValues.size}")
-        if (resolvedValues.isNotEmpty()) {
-            Log.d("OpenFileViewModel", "Примеры разрешенных значений:")
-            resolvedValues.entries.take(3).forEach { (key, value) ->
-                Log.d("OpenFileViewModel", "  $key = $value")
-            }
+        resolvedValues.entries.take(5).forEach { (k, v) ->
+            Log.d("OpenFileViewModel", "  $k = $v")
         }
-
         Log.d("OpenFileViewModel", "=== Конец лога ===")
     }
 
-    /**
-     * Логирует результат парсинга с информацией о биндингах
-     */
-    private fun logParsingResultWithBindings(result: SDUIParser.ParsedMicroappResult) {
-        logParsingResult(result)
-
-        // Дополнительная информация о биндингах
-        Log.d("OpenFileViewModel", "=== Детали биндингов ===")
-
-        result.dataContext?.let { context ->
-            Log.d("OpenFileViewModel", "Контекст данных:")
-            Log.d("OpenFileViewModel", "  JSON источников: ${context.jsonSources.size}")
-            context.jsonSources.forEach { (key, value) ->
-                Log.d("OpenFileViewModel", "    $key: ${value.asJsonObject.size()} байт")
-            }
-            Log.d("OpenFileViewModel", "  Query результатов: ${context.queryResults.size}")
-            Log.d("OpenFileViewModel", "  ScreenQuery результатов: ${context.screenQueryResults.size}")
-
-            context.screenQueryResults.keys.forEach { key ->
-                val value = context.screenQueryResults[key]
-                Log.d("OpenFileViewModel", "    $key: ${value?.let {
-                    if (it is JSONArray) "JSONArray(${it.length()} элементов)"
-                    else it.javaClass.simpleName
-                }}")
-            }
-        } ?: run {
-            Log.d("OpenFileViewModel", "Контекст данных не создан")
-        }
-        val resolvedValues = result.getResolvedValues()
-
-        Log.d("OpenFileViewModel", "Статистика биндингов:")
-        Log.d("OpenFileViewModel", "  Разрешено: ${resolvedValues.size}")
-
-        if (resolvedValues.isNotEmpty()) {
-            Log.d("OpenFileViewModel", "Примеры разрешенных значений:")
-            resolvedValues.entries.take(5).forEach { (key, value) ->
-                Log.d("OpenFileViewModel", "  $key = $value")
-            }
-        }
-
-        Log.d("OpenFileViewModel", "=== Конец деталей биндингов ===")
-    }
-
-    /**
-     * Рекурсивно логирует структуру компонентов
-     */
     private fun logComponentStructure(
         component: com.example.drivenui.parser.models.Component,
         indent: String
     ) {
-        val typeName = when (component.type) {
-            com.example.drivenui.parser.models.ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
-            com.example.drivenui.parser.models.ComponentType.LAYOUT -> "Layout"
-            com.example.drivenui.parser.models.ComponentType.WIDGET -> "Widget"
-            com.example.drivenui.parser.models.ComponentType.SCREEN -> "Screen"
-        }
-
-        Log.d("OpenFileViewModel", "$indent$typeName: ${component.title} (${component.code})")
-        Log.d("OpenFileViewModel", "$indent  Детей: ${component.children.size}")
-        Log.d("OpenFileViewModel", "$indent  Стилей: ${component.styles.size}")
-        Log.d("OpenFileViewModel", "$indent  Событий: ${component.events.size}")
-
-        component.children.forEach { child ->
-            logComponentStructure(child, "$indent  ")
-        }
+        Log.d("OpenFileViewModel", "$indent${component.type}: ${component.title} (${component.code})")
+        component.children.forEach { logComponentStructure(it, "$indent  ") }
     }
 }
