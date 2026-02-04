@@ -52,7 +52,9 @@ fun LayoutComponent.mapLayoutToUIModel(
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
-        alignmentStyle = getAlignmentStyle()
+        alignmentStyle = getAlignmentStyle(),
+        forIndexName = forIndexName,
+        maxForIndex = maxForIndex
     )
 
 fun WidgetComponent.mapWidgetToUiModel(

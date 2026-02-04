@@ -126,6 +126,13 @@
 			<paddingRight>16</paddingRight>
 			<paddingBottom>12</paddingBottom>
 		</paddingStyle>
+        <paddingStyle>
+            <code>padding0-0-0-92</code>
+            <paddingLeft>0</paddingLeft>
+            <paddingTop>0</paddingTop>
+            <paddingRight>0</paddingRight>
+            <paddingBottom>92</paddingBottom>
+        </paddingStyle>
 	</paddingStyles>
 	<alignmentStyles>
 		<alignStyle>

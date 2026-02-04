@@ -4,11 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
@@ -17,9 +20,10 @@ fun LayoutRenderer(
     model: LayoutModel,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    isRoot: Boolean = false
+    isRoot: Boolean = false,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
-    LaunchedEffect(model) {
+    LaunchedEffect(Unit) {
         if (isRoot) {
             val actions = model.onCreateActions
                 .filterNot { it is UiAction.ExecuteQuery }
@@ -46,20 +50,37 @@ fun LayoutRenderer(
             modelWithClickable,
             isRoot,
             onActions,
-            onWidgetValueChange
+            onWidgetValueChange,
+            applyBindingsForComponent
+        )
+        LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
+            modelWithClickable,
+            isRoot,
+            onActions,
+            onWidgetValueChange,
+            applyBindingsForComponent
         )
 
         LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
             modelWithClickable,
             isRoot,
             onActions,
-            onWidgetValueChange
+            onWidgetValueChange,
+            applyBindingsForComponent
+        )
+        LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
+            modelWithClickable,
+            isRoot,
+            onActions,
+            onWidgetValueChange,
+            applyBindingsForComponent
         )
         LayoutType.LAYER -> BoxRenderer(
             modelWithClickable,
             isRoot,
             onActions,
-            onWidgetValueChange
+            onWidgetValueChange,
+            applyBindingsForComponent
         )
     }
 }
@@ -70,14 +91,16 @@ private fun ColumnRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
             ComponentRenderer(
-                model = child,
+                model = applyBindingsForComponent?.invoke(child) ?: child,
                 isRoot = isRoot,
                 onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent
             )
         }
     }
@@ -89,15 +112,75 @@ private fun RowRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
             ComponentRenderer(
-                model = child,
+                model = applyBindingsForComponent?.invoke(child) ?: child,
                 isRoot = isRoot,
                 onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent
             )
+        }
+    }
+}
+
+@Composable
+private fun LazyColumnRenderer(
+    model: LayoutModel,
+    isRoot: Boolean = false,
+    onActions: (List<UiAction>) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+) {
+    val forIndexName = model.forIndexName ?: return
+    val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
+
+    LazyColumn(modifier = model.modifier) {
+        items(maxForIndex) { index ->
+            val indexStr = index.toString()
+            model.children.forEach { templateChild ->
+                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
+                val childWithBindings = applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                ComponentRenderer(
+                    model = childWithBindings,
+                    isRoot = isRoot,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LazyRowRenderer(
+    model: LayoutModel,
+    isRoot: Boolean = false,
+    onActions: (List<UiAction>) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+) {
+    val forIndexName = model.forIndexName ?: return
+    val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
+
+    LazyRow(modifier = model.modifier) {
+        items(maxForIndex) { index ->
+            val indexStr = index.toString()
+            model.children.forEach { templateChild ->
+                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
+                val childWithBindings = applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                ComponentRenderer(
+                    model = childWithBindings,
+                    isRoot = isRoot,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent
+                )
+            }
         }
     }
 }
@@ -108,6 +191,7 @@ private fun BoxRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
@@ -131,12 +215,78 @@ private fun BoxRenderer(
             }
             Box(modifier = modifier) {
                 ComponentRenderer(
-                    model = child,
+                    model = applyBindingsForComponent?.invoke(child) ?: child,
                     isRoot = isRoot,
                     onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent
                 )
             }
         }
+    }
+}
+
+/**
+ * Заменяет {#forIndexName} на конкретный индекс во всех строках компонента
+ * TODO: может вынести?
+ */
+private fun expandComponentWithIndex(
+    component: ComponentModel,
+    forIndexName: String,
+    index: String
+): ComponentModel {
+    val pattern = "{#$forIndexName}"
+    fun String?.replaceIndex(): String? = this?.replace(pattern, index)
+    fun String.replaceIndex(): String = this.replace(pattern, index)
+
+    return when (component) {
+        is LayoutModel -> {
+            component.copy(
+                children = component.children.map { child ->
+                    expandComponentWithIndex(child, forIndexName, index)
+                },
+                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex()
+            )
+        }
+        is com.example.drivenui.engine.uirender.models.LabelModel -> {
+            component.copy(
+                text = component.text.replaceIndex(),
+                widgetCode = component.widgetCode.replaceIndex(),
+                textStyleCode = component.textStyleCode.replaceIndex(),
+                colorStyleCode = component.colorStyleCode.replaceIndex()
+            )
+        }
+        is com.example.drivenui.engine.uirender.models.ButtonModel -> {
+            component.copy(
+                text = component.text.replaceIndex(),
+                widgetCode = component.widgetCode.replaceIndex(),
+                roundStyleCode = component.roundStyleCode.replaceIndex(),
+                textStyleCode = component.textStyleCode.replaceIndex(),
+                colorStyleCode = component.colorStyleCode.replaceIndex(),
+                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex()
+            )
+        }
+        is com.example.drivenui.engine.uirender.models.AppBarModel -> {
+            component.copy(
+                title = component.title.replaceIndex(),
+                widgetCode = component.widgetCode.replaceIndex(),
+                textStyleCode = component.textStyleCode.replaceIndex(),
+                colorStyleCode = component.colorStyleCode.replaceIndex()
+            )
+        }
+        is com.example.drivenui.engine.uirender.models.InputModel -> {
+            component.copy(
+                text = component.text.replaceIndex(),
+                hint = component.hint.replaceIndex(),
+                widgetCode = component.widgetCode.replaceIndex()
+            )
+        }
+        is com.example.drivenui.engine.uirender.models.ImageModel -> {
+            component.copy(
+                url = component.url.replaceIndex(),
+                widgetCode = component.widgetCode.replaceIndex()
+            )
+        }
+        else -> component
     }
 }

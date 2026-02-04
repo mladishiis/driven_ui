@@ -11,7 +11,9 @@ import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.parser.models.DataContext
 
-class DataBinder {
+private const val TAG = "DataBinder"
+
+object DataBinder {
 
     /**
      * Применяет биндинги данных к модели экрана
@@ -95,6 +97,31 @@ class DataBinder {
         layout: LayoutModel,
         dataContext: DataContext
     ): LayoutModel {
+        // Если это цикл, НЕ применяем биндинги к шаблону (там есть {#forIndexName}, который нужно заменить сначала)
+        // Только резолвим maxForIndex для использования в LazyColumn/LazyRow
+        if (layout.type == com.example.drivenui.engine.uirender.models.LayoutType.VERTICAL_FOR ||
+            layout.type == com.example.drivenui.engine.uirender.models.LayoutType.HORIZONTAL_FOR
+        ) {
+            // НЕ применяем биндинги к шаблону - оставляем как есть
+            // Биндинги будут применены в LayoutRenderer после замены {#forIndexName} на индекс
+
+            Log.d(TAG, "Processing FOR loop layout: forIndexName=${layout.forIndexName}, maxForIndex=${layout.maxForIndex}")
+
+            // Резолвим maxForIndex для использования в рендерере
+            val maxForIndex = layout.maxForIndex?.let {
+                val resolved = resolveMaxForIndex(it, dataContext)
+                Log.d(TAG, "Resolved maxForIndex: '$it' -> $resolved")
+                resolved
+            }
+
+            if (maxForIndex == null) {
+                Log.w(TAG, "Failed to resolve maxForIndex for FOR loop: ${layout.maxForIndex}")
+            }
+
+            return layout.copy(children = layout.children, maxForIndex = maxForIndex?.toString())
+        }
+
+        // Для обычных лейаутов применяем биндинги ко всем детям
         val processedChildren = layout.children.map { child ->
             applyBindingsToComponent(child, dataContext)
         }.filterNotNull()
@@ -102,7 +129,43 @@ class DataBinder {
         return layout.copy(children = processedChildren)
     }
 
-    companion object {
-        private const val TAG = "DataBinder"
+    /**
+     * Публичный метод для применения биндингов к компоненту (используется в LayoutRenderer для циклов)
+     */
+    fun applyBindingsToComponentPublic(
+        component: ComponentModel,
+        dataContext: DataContext
+    ): ComponentModel? {
+        return applyBindingsToComponent(component, dataContext)
+    }
+
+    /**
+     * Резолвит maxForIndex из строки (может быть числом или ${...} выражением)
+     */
+    private fun resolveMaxForIndex(maxForIndexStr: String, dataContext: DataContext): Int? {
+        Log.d(TAG, "Resolving maxForIndex: '$maxForIndexStr'")
+
+        maxForIndexStr.toIntOrNull()?.let {
+            Log.d(TAG, "maxForIndex is already a number: $it")
+            return it
+        }
+
+        val bindings = DataBindingParser.parseBindings(maxForIndexStr)
+        Log.d(TAG, "Parsed bindings for maxForIndex: $bindings")
+        Log.d(TAG, "DataContext screenQueryResults keys: ${dataContext.screenQueryResults.keys}")
+        Log.d(TAG, "DataContext jsonSources keys: ${dataContext.jsonSources.keys}")
+
+        if (bindings.isNotEmpty()) {
+            val resolved = DataBindingParser.replaceBindings(maxForIndexStr, bindings, dataContext)
+            Log.d(TAG, "Resolved maxForIndex expression: '$maxForIndexStr' -> '$resolved'")
+            val intValue = resolved.toIntOrNull()
+            if (intValue == null) {
+                Log.w(TAG, "Failed to convert resolved maxForIndex to int: '$resolved'")
+            }
+            return intValue
+        }
+
+        Log.w(TAG, "No bindings found in maxForIndex: '$maxForIndexStr'")
+        return null
     }
 }

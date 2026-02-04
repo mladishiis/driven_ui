@@ -10,13 +10,17 @@ data class LayoutModel(
     val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String? = null,
-    override val alignmentStyle: String
+    override val alignmentStyle: String,
+    val forIndexName: String? = null,
+    val maxForIndex: String? = null
 ) : ComponentModel
 
 enum class LayoutType {
     VERTICAL_LAYOUT,
     HORIZONTAL_LAYOUT,
     LAYER,
+    VERTICAL_FOR,
+    HORIZONTAL_FOR,
 }
 
 fun getLayoutTypeFromString(type: String) =
@@ -24,5 +28,7 @@ fun getLayoutTypeFromString(type: String) =
         "vertical" -> LayoutType.VERTICAL_LAYOUT
         "horizontal" -> LayoutType.HORIZONTAL_LAYOUT
         "layers" -> LayoutType.LAYER
+        "verticalFor" -> LayoutType.VERTICAL_FOR
+        "horizontalFor" -> LayoutType.HORIZONTAL_FOR
         else -> LayoutType.VERTICAL_LAYOUT
     }

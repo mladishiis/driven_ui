@@ -23,7 +23,6 @@ class RequestInteractor @Inject constructor(
 ) {
 
     private val dataContextProvider = DataContextProvider(appContext)
-    private val dataBinder = DataBinder()
 
     fun executeQueryAndUpdateScreen(
         screenModel: ScreenModel,
@@ -62,7 +61,7 @@ class RequestInteractor @Inject constructor(
         dataContextProvider.debugInfo()
 
         // 4. Применяем биндинги (как в processScreen)
-        return dataBinder.applyBindings(
+        return DataBinder.applyBindings(
             screenModel,
             dataContextProvider.getDataContext()
         )
@@ -75,8 +74,18 @@ class RequestInteractor @Inject constructor(
      */
     fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
         Log.d(TAG, "Applying bindings to screen: ${screenModel.id} (without executing queries)")
-        return dataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
+        return DataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
     }
+
+    /**
+     * Получить DataBinder для применения биндингов в рендерерах
+     */
+    fun getDataBinder(): DataBinder = DataBinder
+
+    /**
+     * Получить DataContext для применения биндингов в рендерерах
+     */
+    fun getDataContext(): com.example.drivenui.parser.models.DataContext = dataContextProvider.getDataContext()
 
     /**
      * Загружает JSON файлы из ScreenQuery

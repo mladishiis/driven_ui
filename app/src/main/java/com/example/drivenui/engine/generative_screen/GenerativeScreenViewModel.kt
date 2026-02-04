@@ -107,6 +107,7 @@ class GenerativeScreenViewModel @Inject constructor(
                             handleNavigationChanged()
                         }
                     }
+
                     is ActionResult.Success -> {
                         // TODO: поправить в будущем. После выполнения запроса обновление происходит по отдельному экшену, а не сразу
                         if (action is UiAction.ExecuteQuery ||
@@ -141,6 +142,7 @@ class GenerativeScreenViewModel @Inject constructor(
                 is ActionResult.Success -> {
                     updateUiStateFromNavigation()
                 }
+
                 is ActionResult.Error -> {
                     Log.w("GenerativeScreenViewModel", "Navigate back error: ${result.message}")
                 }
@@ -155,6 +157,15 @@ class GenerativeScreenViewModel @Inject constructor(
      */
     fun onWidgetValueChange(widgetCode: String, parameter: String, value: Any) {
         widgetValueProvider.setWidgetValue(widgetCode, parameter, value)
+    }
+
+    /**
+     * Применить биндинги к одному компоненту
+     */
+    fun applyBindingsToComponent(componentModel: ComponentModel): ComponentModel {
+        val binder = requestInteractor.getDataBinder()
+        val dataContext = requestInteractor.getDataContext()
+        return binder.applyBindingsToComponentPublic(componentModel, dataContext) ?: componentModel
     }
 
     private suspend fun handleNavigationChanged() {

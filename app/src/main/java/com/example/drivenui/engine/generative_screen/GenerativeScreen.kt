@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.UiAction
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
 import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
 import com.example.drivenui.theme.DrivenUITheme
@@ -22,7 +23,8 @@ fun GenerativeScreen(viewModel: GenerativeScreenViewModel) {
         state = viewModel.uiState.collectAsStateWithLifecycle().value,
         onActions = viewModel::handleActions,
         onBack = viewModel::navigateBack,
-        onWidgetValueChange = viewModel::onWidgetValueChange
+        onWidgetValueChange = viewModel::onWidgetValueChange,
+        applyBindingsForComponent = viewModel::applyBindingsToComponent
     )
 }
 
@@ -31,7 +33,8 @@ fun GenerativeScreenUi(
     state: GenerativeUiState,
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
-    onWidgetValueChange: WidgetValueSetter
+    onWidgetValueChange: WidgetValueSetter,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     DrivenUITheme {
         BackHandler { onBack() }
@@ -53,7 +56,8 @@ fun GenerativeScreenUi(
                             model = it,
                             isRoot = true,
                             onActions = onActions,
-                            onWidgetValueChange = onWidgetValueChange
+                            onWidgetValueChange = onWidgetValueChange,
+                            applyBindingsForComponent = applyBindingsForComponent
                         )
                     }
                 is GenerativeUiState.Error -> {

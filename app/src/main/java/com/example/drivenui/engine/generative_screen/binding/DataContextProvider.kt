@@ -52,15 +52,6 @@ class DataContextProvider(private val appContext: Context) {
         Log.d(TAG, "Added screen query result: $name")
     }
 
-    /**
-     * Добавляет результат запроса
-     */
-    fun addQueryResult(name: String, result: Any) {
-        val currentResults = dataContext.queryResults.toMutableMap()
-        currentResults[name] = result
-        dataContext = dataContext.copy(queryResults = currentResults)
-        Log.d(TAG, "Added query result: $name")
-    }
 
     /**
      * Добавляет результат screen query как строку
@@ -94,8 +85,6 @@ class DataContextProvider(private val appContext: Context) {
         Log.d(TAG, "=== Data Context Debug ===")
         Log.d(TAG, "JSON Sources (${dataContext.jsonSources.size}): ${dataContext.jsonSources.keys}")
         Log.d(TAG, "Screen Query Results (${dataContext.screenQueryResults.size}): ${dataContext.screenQueryResults.keys}")
-        Log.d(TAG, "Query Results (${dataContext.queryResults.size}): ${dataContext.queryResults.keys}")
-        Log.d(TAG, "Local Variables (${dataContext.localVariables.size}): ${dataContext.localVariables.keys}")
 
         dataContext.screenQueryResults.forEach { (key, value) ->
             Log.d(TAG, "  Screen Query '$key': ${value::class.simpleName}")

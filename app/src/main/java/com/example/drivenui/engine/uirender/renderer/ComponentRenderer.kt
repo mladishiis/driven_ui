@@ -17,10 +17,17 @@ fun ComponentRenderer(
     model: ComponentModel,
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null
+    onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     when (model) {
-        is LayoutModel -> LayoutRenderer(model, onActions, onWidgetValueChange, isRoot)
+        is LayoutModel -> LayoutRenderer(
+            model,
+            onActions,
+            onWidgetValueChange,
+            isRoot,
+            applyBindingsForComponent
+        )
         is InputModel -> InputRenderer(model, onActions, onWidgetValueChange ?: { _, _, _ -> })
         is LabelModel -> LabelRenderer(model, onActions)
         is ImageModel -> ImageRenderer(model, onActions)

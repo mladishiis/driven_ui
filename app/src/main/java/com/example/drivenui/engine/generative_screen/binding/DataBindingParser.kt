@@ -1,8 +1,8 @@
 package com.example.drivenui.engine.generative_screen.binding
 
 import android.util.Log
-import com.example.drivenui.parser.models.DataBinding
 import com.example.drivenui.parser.models.BindingSourceType
+import com.example.drivenui.parser.models.DataBinding
 import com.example.drivenui.parser.models.DataContext
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
@@ -293,7 +293,12 @@ object DataBindingParser {
         }
 
         val result = if (binding.path.isNotEmpty()) {
-            extractValue(sourceData, binding.path)
+            // Специальная обработка для .count на массивах
+            if (binding.path == "count" && sourceData is JsonArray) {
+                sourceData.size()
+            } else {
+                extractValue(sourceData, binding.path)
+            }
         } else {
             when (sourceData) {
                 is JsonObject, is JsonArray -> sourceData.toString()
