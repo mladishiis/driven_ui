@@ -2,6 +2,7 @@ package com.example.drivenui.engine.generative_screen.models
 
 sealed interface UiAction {
     data class OpenScreen(val screenCode: String) : UiAction
+    data class OpenBottomSheet(val screenCode: String) : UiAction
     data class RefreshScreen(val screenCode: String) : UiAction
     data class RefreshWidget(val widgetCode: String) : UiAction
     data class RefreshLayout(val layoutCode: String) : UiAction

@@ -29,6 +29,14 @@ fun EventAction.mapToUiAction(): UiAction {
                 UiAction.Empty
             }
         }
+        "openbottomsheet" -> {
+            val screenCode = properties["screenCode"]
+            if (!screenCode.isNullOrEmpty()) {
+                UiAction.OpenBottomSheet(screenCode)
+            } else {
+                UiAction.Empty
+            }
+        }
         "refreshscreen" -> {
             val screenCode = properties["screenCode"]
             if (!screenCode.isNullOrEmpty()) {
@@ -98,7 +106,7 @@ fun EventAction.mapToUiAction(): UiAction {
                 UiAction.Empty
             }
         }
-        "previousscreen" -> UiAction.Back
+        "navigateback" -> UiAction.Back
         else -> UiAction.Empty
     }
 }

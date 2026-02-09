@@ -34,6 +34,7 @@ class ActionHandler(
         return try {
             when (action) {
                 is UiAction.OpenScreen -> handleOpenScreen(action.screenCode)
+                is UiAction.OpenBottomSheet -> handleOpenBottomSheet(action.screenCode)
                 is UiAction.Back -> handleBack()
                 is UiAction.OpenDeeplink -> handleOpenDeeplink(action.deeplink)
                 is UiAction.RefreshScreen -> handleRefreshScreen(action.screenCode)
@@ -56,6 +57,14 @@ class ActionHandler(
             ?: return ActionResult.Error("Screen not found: $screenCode")
 
         return openResolvedScreen(screenModel)
+    }
+
+    private suspend fun handleOpenBottomSheet(screenCode: String): ActionResult {
+        val screenModel = screenProvider.findScreen(screenCode)
+            ?: return ActionResult.Error("Bottom sheet screen not found: $screenCode")
+
+        val resolvedScreen = resolveScreen(screenModel, contextManager, styleRegistry)
+        return ActionResult.BottomSheetChanged(resolvedScreen)
     }
 
     private fun handleBack(): ActionResult {
@@ -312,6 +321,12 @@ sealed class ActionResult {
 
     // TODO: подумать над рефакторингом
     data class NavigationChanged(val isBack: Boolean) : ActionResult()
+
+    /**
+     * Изменение состояния нижней шторки (bottom sheet).
+     * model == null означает закрытие шторки.
+     */
+    data class BottomSheetChanged(val model: ScreenModel?) : ActionResult()
 
     data class Error(val message: String, val exception: Exception? = null) : ActionResult()
 }

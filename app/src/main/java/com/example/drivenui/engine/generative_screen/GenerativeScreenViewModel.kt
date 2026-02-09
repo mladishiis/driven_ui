@@ -48,6 +48,13 @@ class GenerativeScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<GenerativeUiState>(GenerativeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    /**
+     * Состояние нижней шторки. Отдельный стейт, чтобы изменение шторки
+     * не трогало состояние основного экрана и не вызывало его лишние перерисовки.
+     */
+    private val _bottomSheetState = MutableStateFlow<ComponentModel?>(null)
+    val bottomSheetState = _bottomSheetState.asStateFlow()
+
     //TODO: здесь нужно, чтобы приходил список ScreenModel с подставленными запросами
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
@@ -78,7 +85,7 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun loadInitialScreen() {
-        val firstScreen = parsedScreens?.get(1)
+        val firstScreen = parsedScreens?.get(0)
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
@@ -99,6 +106,13 @@ class GenerativeScreenViewModel @Inject constructor(
             }
 
             for (action in actions) {
+                // Если сейчас открыта нижняя шторка и приходит UiAction.Back,
+                // то воспринимаем это как закрытие шторки, не трогая стек навигации.
+                if (action is UiAction.Back && _bottomSheetState.value != null) {
+                    _bottomSheetState.value = null
+                    continue
+                }
+
                 when (val result = handler.handleAction(action)) {
                     is ActionResult.NavigationChanged -> {
                         if (result.isBack) {
@@ -118,6 +132,10 @@ class GenerativeScreenViewModel @Inject constructor(
                             updateUiStateFromNavigation()
                         }
                     }
+                    is ActionResult.BottomSheetChanged -> {
+                        // Обновляем только состояние шторки, не трогая экран.
+                        _bottomSheetState.value = result.model?.rootComponent
+                    }
                     // TODO: выяснить нужно ли прерывать оставшиеся действия при ошибке одного из
                     is ActionResult.Error -> {
                         Log.e(
@@ -136,11 +154,21 @@ class GenerativeScreenViewModel @Inject constructor(
     fun navigateBack(): Boolean {
         val handler = actionHandler ?: return false
 
+        // Если открыта нижняя шторка — сначала закрываем её, не трогая стек навигации.
+        if (_bottomSheetState.value != null) {
+            _bottomSheetState.value = null
+            return true
+        }
+
         viewModelScope.launch {
             when (val result = handler.handleAction(UiAction.Back)) {
                 is ActionResult.NavigationChanged,
                 is ActionResult.Success -> {
                     updateUiStateFromNavigation()
+                }
+
+                is ActionResult.BottomSheetChanged -> {
+                    // Игнорируем: для команды Back состояние шторки уже обработано выше.
                 }
 
                 is ActionResult.Error -> {
@@ -228,6 +256,7 @@ class GenerativeScreenViewModel @Inject constructor(
         } else {
             navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         }
+        // При смене экрана шторку закрываем (если была открыта)
         _uiState.value = GenerativeUiState.Screen(resolvedScreen.rootComponent)
     }
 
