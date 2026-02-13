@@ -1,6 +1,5 @@
 package com.example.drivenui.engine.generative_screen.binding
 
-
 import android.util.Log
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.uirender.models.AppBarModel

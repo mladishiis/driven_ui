@@ -2,11 +2,9 @@ package com.example.drivenui.engine.mappers
 
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
-import com.example.drivenui.parser.models.AlignmentStyle
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ColorStyle
 import com.example.drivenui.parser.models.ColorTheme
-import com.example.drivenui.parser.models.PaddingStyle
 import com.example.drivenui.parser.models.RoundStyle
 import com.example.drivenui.parser.models.TextStyle
 
@@ -21,12 +19,6 @@ class ComposeStyleRegistry(
 
     fun getColorStyle(code: String): ColorStyle? =
         allStyles?.colorStyles?.firstOrNull { it.code == code }
-
-    fun getAlignmentStyle(code: String): AlignmentStyle? =
-        allStyles?.alignmentStyles?.firstOrNull { it.code == code }
-
-    fun getPaddingStyle(code: String): PaddingStyle? =
-        allStyles?.paddingStyles?.firstOrNull { it.code == code }
 
     fun getRoundStyle(code: String): RoundStyle? =
         allStyles?.roundStyles?.firstOrNull { it.code == code }

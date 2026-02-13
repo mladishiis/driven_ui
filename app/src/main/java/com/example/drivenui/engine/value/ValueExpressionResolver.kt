@@ -137,7 +137,6 @@ private fun resolveContextVariables(
     raw: String,
     contextManager: IContextManager
 ): String {
-
     if (raw.startsWith("@{") && raw.endsWith("}")) {
         val content = raw.substring(2, raw.length - 1)
         val parts = content.split(".", limit = 2)
