@@ -11,7 +11,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
+import com.example.drivenui.engine.uirender.models.AppBarModel
+import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
+import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
@@ -245,10 +250,11 @@ private fun expandComponentWithIndex(
                 children = component.children.map { child ->
                     expandComponentWithIndex(child, forIndexName, index)
                 },
-                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex()
+                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
+                roundStyleCode = component.roundStyleCode.replaceIndex()
             )
         }
-        is com.example.drivenui.engine.uirender.models.LabelModel -> {
+        is LabelModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
@@ -256,7 +262,7 @@ private fun expandComponentWithIndex(
                 colorStyleCode = component.colorStyleCode.replaceIndex()
             )
         }
-        is com.example.drivenui.engine.uirender.models.ButtonModel -> {
+        is ButtonModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
@@ -266,7 +272,7 @@ private fun expandComponentWithIndex(
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex()
             )
         }
-        is com.example.drivenui.engine.uirender.models.AppBarModel -> {
+        is AppBarModel -> {
             component.copy(
                 title = component.title.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
@@ -274,14 +280,14 @@ private fun expandComponentWithIndex(
                 colorStyleCode = component.colorStyleCode.replaceIndex()
             )
         }
-        is com.example.drivenui.engine.uirender.models.InputModel -> {
+        is InputModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
                 hint = component.hint.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex()
             )
         }
-        is com.example.drivenui.engine.uirender.models.ImageModel -> {
+        is ImageModel -> {
             component.copy(
                 url = component.url.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex()

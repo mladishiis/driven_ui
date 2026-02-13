@@ -1,4 +1,3 @@
-// DataBinder.kt
 package com.example.drivenui.engine.generative_screen.binding
 
 
@@ -9,6 +8,7 @@ import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.parser.models.DataContext
 
 private const val TAG = "DataBinder"
@@ -54,43 +54,49 @@ object DataBinder {
         label: LabelModel,
         dataContext: DataContext
     ): LabelModel {
-        val originalText = label.text
-        val bindings = DataBindingParser.parseBindings(originalText)
+        val newText = resolveBindingsInString(label.text, dataContext)
+        val newTextStyleCode = resolveBindingsInString(label.textStyleCode, dataContext)
+        val newColorStyleCode = resolveBindingsInString(label.colorStyleCode, dataContext)
 
-        Log.d(TAG, "Label text: '$originalText'")
-        Log.d(TAG, "Found bindings: $bindings")
-
-        if (bindings.isNotEmpty()) {
-            val newText = DataBindingParser.replaceBindings(originalText, bindings, dataContext)
-            Log.d(TAG, "Replaced text: '$newText' (was: '$originalText')")
-            return label.copy(text = newText)
-        }
-        return label
+        return label.copy(
+            text = newText ?: label.text,
+            textStyleCode = newTextStyleCode ?: label.textStyleCode,
+            colorStyleCode = newColorStyleCode ?: label.colorStyleCode
+        )
     }
 
     private fun applyBindingsToButton(
         button: ButtonModel,
         dataContext: DataContext
     ): ButtonModel {
-        val bindings = DataBindingParser.parseBindings(button.text)
-        if (bindings.isNotEmpty()) {
-            val newText = DataBindingParser.replaceBindings(button.text, bindings, dataContext)
-            return button.copy(text = newText)
-        }
-        return button
+        val newText = resolveBindingsInString(button.text, dataContext)
+        val newTextStyleCode = resolveBindingsInString(button.textStyleCode, dataContext)
+        val newColorStyleCode = resolveBindingsInString(button.colorStyleCode, dataContext)
+        val newBackgroundColorStyleCode = resolveBindingsInString(button.backgroundColorStyleCode, dataContext)
+        val newRoundStyleCode = resolveBindingsInString(button.roundStyleCode, dataContext)
+
+        return button.copy(
+            text = newText ?: button.text,
+            textStyleCode = newTextStyleCode ?: button.textStyleCode,
+            colorStyleCode = newColorStyleCode ?: button.colorStyleCode,
+            backgroundColorStyleCode = newBackgroundColorStyleCode ?: button.backgroundColorStyleCode,
+            roundStyleCode = newRoundStyleCode ?: button.roundStyleCode
+        )
     }
 
     private fun applyBindingsToAppBar(
         appBar: AppBarModel,
         dataContext: DataContext
     ): AppBarModel {
-        val title = appBar.title ?: return appBar
-        val bindings = DataBindingParser.parseBindings(title)
-        if (bindings.isNotEmpty()) {
-            val newTitle = DataBindingParser.replaceBindings(title, bindings, dataContext)
-            return appBar.copy(title = newTitle)
-        }
-        return appBar
+        val newTitle = appBar.title?.let { resolveBindingsInString(it, dataContext) }
+        val newTextStyleCode = resolveBindingsInString(appBar.textStyleCode, dataContext)
+        val newColorStyleCode = resolveBindingsInString(appBar.colorStyleCode, dataContext)
+
+        return appBar.copy(
+            title = newTitle ?: appBar.title,
+            textStyleCode = newTextStyleCode ?: appBar.textStyleCode,
+            colorStyleCode = newColorStyleCode ?: appBar.colorStyleCode
+        )
     }
 
     private fun applyBindingsToLayout(
@@ -98,9 +104,9 @@ object DataBinder {
         dataContext: DataContext
     ): LayoutModel {
         // Если это цикл, НЕ применяем биндинги к шаблону (там есть {#forIndexName}, который нужно заменить сначала)
-        // Только резолвим maxForIndex для использования в LazyColumn/LazyRow
-        if (layout.type == com.example.drivenui.engine.uirender.models.LayoutType.VERTICAL_FOR ||
-            layout.type == com.example.drivenui.engine.uirender.models.LayoutType.HORIZONTAL_FOR
+        // Только резолвим maxForIndex
+        if (layout.type == LayoutType.VERTICAL_FOR ||
+            layout.type == LayoutType.HORIZONTAL_FOR
         ) {
             // НЕ применяем биндинги к шаблону - оставляем как есть
             // Биндинги будут применены в LayoutRenderer после замены {#forIndexName} на индекс
@@ -121,12 +127,23 @@ object DataBinder {
             return layout.copy(children = layout.children, maxForIndex = maxForIndex?.toString())
         }
 
-        // Для обычных лейаутов применяем биндинги ко всем детям
-        val processedChildren = layout.children.map { child ->
-            applyBindingsToComponent(child, dataContext)
-        }.filterNotNull()
+        // Для обычных лейаутов:
+        // 1) применяем биндинги к стилям самого лейаута
+        // 2) применяем биндинги ко всем детям
+        val newBackgroundColorStyleCode =
+            resolveBindingsInString(layout.backgroundColorStyleCode, dataContext)
+        val newRoundStyleCode =
+            resolveBindingsInString(layout.roundStyleCode, dataContext)
 
-        return layout.copy(children = processedChildren)
+        val processedChildren = layout.children.mapNotNull { child ->
+            applyBindingsToComponent(child, dataContext)
+        }
+
+        return layout.copy(
+            children = processedChildren,
+            backgroundColorStyleCode = newBackgroundColorStyleCode ?: layout.backgroundColorStyleCode,
+            roundStyleCode = newRoundStyleCode ?: layout.roundStyleCode
+        )
     }
 
     /**
@@ -167,5 +184,19 @@ object DataBinder {
 
         Log.w(TAG, "No bindings found in maxForIndex: '$maxForIndexStr'")
         return null
+    }
+
+    /**
+     * Если в строке есть биндинги ${}, подставляет их через DataBindingParser.
+     * Возвращает новую строку или null, если биндингов нет.
+     */
+    private fun resolveBindingsInString(
+        value: String?,
+        dataContext: DataContext
+    ): String? {
+        if (value.isNullOrEmpty()) return null
+        val bindings = DataBindingParser.parseBindings(value)
+        if (bindings.isEmpty()) return null
+        return DataBindingParser.replaceBindings(value, bindings, dataContext)
     }
 }

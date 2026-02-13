@@ -29,9 +29,8 @@ fun List<Component>.mapToUiModelList(styleRegistry: ComposeStyleRegistry): List<
 fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): ComponentModel? {
     val heightProperty = properties.find { it.code == "height" }?.resolvedValue.orEmpty()
     val widthProperty = properties.find { it.code == "width" }?.resolvedValue.orEmpty()
-    val paddingStyle = styles.find { it.code == "paddingStyle"}?.value.orEmpty()
     val modifier = Modifier
-        .applyPaddingStyle(getPaddingFromCode(paddingStyle, styleRegistry))
+        .applyPaddingStyle(getPaddingFromProperties(this))
         .applyHeight(heightProperty)
         .applyWidth(widthProperty)
     return when (this) {
@@ -52,6 +51,7 @@ fun LayoutComponent.mapLayoutToUIModel(
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
+        roundStyleCode = styles.find { it.code == "roundStyle" }?.value,
         alignmentStyle = getAlignmentStyle(),
         forIndexName = forIndexName,
         maxForIndex = maxForIndex

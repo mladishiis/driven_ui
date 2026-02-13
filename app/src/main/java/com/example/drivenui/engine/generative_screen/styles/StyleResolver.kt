@@ -1,11 +1,12 @@
 package com.example.drivenui.engine.generative_screen.styles
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
@@ -16,6 +17,7 @@ import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.value.resolveValueExpression
 
 /**
@@ -59,19 +61,43 @@ private fun resolveLayout(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): LayoutModel {
-    val resolvedChildren = layout.children.mapNotNull {
-        resolveComponent(it, contextManager, styleRegistry)
-    }
-
     var modifier = layout.modifier
 
-    layout.backgroundColorStyleCode?.let { rawCode ->
+    var cornerRadius: Int? = null
+    layout.roundStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val colorStyle = styleRegistry.getColorStyle(resolvedCode)
-        if (colorStyle != null) {
-            val color = Color(colorStyle.lightTheme.color.toColorInt())
-            modifier = modifier.background(color)
+        val roundStyle = styleRegistry.getRoundStyle(resolvedCode)
+        cornerRadius = roundStyle?.radiusValue
+    }
+
+    layout.backgroundColorStyleCode?.let { rawCode ->
+        val shouldDeferBackground =
+            (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) &&
+                    (rawCode.contains("\${") || rawCode.contains("{#"))
+
+        if (!shouldDeferBackground) {
+            val resolvedCode = resolveValueExpression(rawCode, contextManager)
+            val color = styleRegistry.getComposeColor(resolvedCode)
+            if (color != null) {
+                modifier = if (cornerRadius != null) {
+                    modifier.background(
+                        color = color,
+                        shape = RoundedCornerShape(cornerRadius!!.dp)
+                    )
+                } else {
+                    modifier.background(color)
+                }
+            }
         }
+    }
+
+    // Для FOR‑лейаутов не трогаем детей на этом этапе
+    if (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) {
+        return layout.copy(modifier = modifier)
+    }
+
+    val resolvedChildren = layout.children.mapNotNull {
+        resolveComponent(it, contextManager, styleRegistry)
     }
 
     return layout.copy(
@@ -94,7 +120,6 @@ private fun resolveButton(
     var backgroundColor: Color = button.backgroundColor
 
     button.roundStyleCode?.let { rawCode ->
-        // На случай, если roundStyleCode тоже станет условным или контекстным
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
         val roundStyle = styleRegistry.getRoundStyle(resolvedCode)
         roundedCornerSize = roundStyle?.radiusValue
@@ -113,18 +138,17 @@ private fun resolveButton(
 
     button.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val cs = styleRegistry.getColorStyle(resolvedCode)
-        if (cs != null) {
-            val color = Color(cs.lightTheme.color.toColorInt())
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
     }
 
     button.backgroundColorStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val cs = styleRegistry.getColorStyle(resolvedCode)
-        if (cs != null) {
-            backgroundColor = Color(cs.lightTheme.color.toColorInt())
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
+            backgroundColor = color
         }
     }
 
@@ -160,9 +184,8 @@ private fun resolveLabel(
 
     label.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val cs = styleRegistry.getColorStyle(resolvedCode)
-        if (cs != null) {
-            val color = Color(cs.lightTheme.color.toColorInt())
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
     }
@@ -197,9 +220,8 @@ private fun resolveAppBar(
 
     appBar.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val cs = styleRegistry.getColorStyle(resolvedCode)
-        if (cs != null) {
-            val color = Color(cs.lightTheme.color.toColorInt())
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
     }

@@ -12,7 +12,7 @@ class AssetsMicroappFileProvider(
         read("resources/allStyles.xml")
 
     override fun readQueries() =
-        read("queries/allQueries.xml")
+        read("resources/queries/allQueries.xml")
 
     override fun readScreens(): List<Pair<String, String>> {
         return context.assets.list("screens")

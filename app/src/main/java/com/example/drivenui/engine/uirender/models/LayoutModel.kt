@@ -10,6 +10,7 @@ data class LayoutModel(
     val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String? = null,
+    val roundStyleCode: String? = null,
     override val alignmentStyle: String,
     val forIndexName: String? = null,
     val maxForIndex: String? = null

@@ -52,7 +52,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.drivenui.presentation.details.model.DetailsEvent
 import com.example.drivenui.presentation.details.model.DetailsState
+import com.example.drivenui.presentation.details.model.EventItem
 import com.example.drivenui.presentation.details.model.LayoutItem
+import com.example.drivenui.presentation.details.model.QueryItem
+import com.example.drivenui.presentation.details.model.ScreenItem
 import com.example.drivenui.presentation.details.model.WidgetItem
 import com.example.drivenui.presentation.details.vm.DetailsViewModel
 
@@ -578,7 +581,7 @@ private fun ExpandableSection(
 
 @Composable
 private fun ScreenCard(
-    screen: com.example.drivenui.presentation.details.model.ScreenItem,
+    screen: ScreenItem,
     onEvent: (DetailsEvent) -> Unit
 ) {
     Card(
@@ -613,7 +616,7 @@ private fun ScreenCard(
 
 @Composable
 private fun QueryCard(
-    query: com.example.drivenui.presentation.details.model.QueryItem,
+    query: QueryItem,
     onEvent: (DetailsEvent) -> Unit
 ) {
     Card(
@@ -642,7 +645,7 @@ private fun QueryCard(
 
 @Composable
 private fun EventCard(
-    event: com.example.drivenui.presentation.details.model.EventItem,
+    event: EventItem,
     onEvent: (DetailsEvent) -> Unit
 ) {
     Card(

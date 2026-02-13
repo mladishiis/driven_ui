@@ -32,7 +32,7 @@ private fun parseConditionalExpression(value: String): ConditionalExpression? {
     val condition = value.substring(4, thenIndex)
     val thenStart = thenIndex + ")*then(".length
     val thenEnd = value.indexOf(")", thenStart)
-    if (thenEnd == -1 || thenEnd >= elseIndex) return null
+    if (thenEnd == -1 || thenEnd > elseIndex) return null
     val thenBranch = value.substring(thenStart, thenEnd)
 
     val elseStart = elseIndex + ")*else(".length
@@ -58,8 +58,13 @@ private fun evalCondition(
     val parts = expression.split(op)
     if (parts.size != 2) return false
 
-    val left = parts[0].trim()
-    val right = parts[1].trim()
+    val leftRaw = parts[0].trim()
+    val rightRaw = parts[1].trim()
+
+    // Удаляем обрамляющие кавычки, если они есть, чтобы
+    // выражения вида value == "value" работали ожидаемо.
+    val left = stripQuotes(leftRaw)
+    val right = stripQuotes(rightRaw)
 
     val leftVal = evalArithmetic(left)
     val rightVal = evalArithmetic(right)
@@ -111,34 +116,48 @@ private fun evalArithmetic(expr: String): Any {
 }
 
 /**
+ * Обрезаем одинарные или двойные кавычки по краям строки,
+ * если они присутствуют.
+ */
+private fun stripQuotes(value: String): String {
+    if (value.length >= 2) {
+        val first = value.first()
+        val last = value.last()
+        if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+            return value.substring(1, value.length - 1)
+        }
+    }
+    return value
+}
+
+/**
  * Подставляет переменные контекста @{microapp.var} и @@{var},.
  */
 private fun resolveContextVariables(
     raw: String,
     contextManager: IContextManager
 ): String {
-    val value = raw
 
-    if (value.startsWith("@{") && value.endsWith("}")) {
-        val content = value.substring(2, value.length - 1)
+    if (raw.startsWith("@{") && raw.endsWith("}")) {
+        val content = raw.substring(2, raw.length - 1)
         val parts = content.split(".", limit = 2)
         if (parts.size == 2) {
             val microappCode = parts[0].trim()
             val variableName = parts[1].trim()
             if (microappCode.isNotEmpty() && variableName.isNotEmpty()) {
                 val resolved = contextManager.getMicroappVariable(microappCode, variableName)
-                return resolved?.toString() ?: value
+                return resolved?.toString() ?: raw
             }
         }
     }
 
-    if (value.startsWith("@@{") && value.endsWith("}")) {
-        val content = value.substring(3, value.length - 1).trim()
+    if (raw.startsWith("@@{") && raw.endsWith("}")) {
+        val content = raw.substring(3, raw.length - 1).trim()
         if (content.isNotEmpty()) {
             val resolved = contextManager.getEngineVariable(content)
-            return resolved?.toString() ?: value
+            return resolved?.toString() ?: raw
         }
     }
 
-    return value
+    return raw
 }

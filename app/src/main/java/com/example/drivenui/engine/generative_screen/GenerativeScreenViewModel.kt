@@ -15,10 +15,12 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.styles.resolveComponent
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -193,7 +195,20 @@ class GenerativeScreenViewModel @Inject constructor(
     fun applyBindingsToComponent(componentModel: ComponentModel): ComponentModel {
         val binder = requestInteractor.getDataBinder()
         val dataContext = requestInteractor.getDataContext()
-        return binder.applyBindingsToComponentPublic(componentModel, dataContext) ?: componentModel
+        // Сначала подставляем данные (${...}) для конкретного экземпляра компонента
+        val withBindings = binder.applyBindingsToComponentPublic(componentModel, dataContext) ?: componentModel
+
+        // Затем резолвим условные выражения *if(...)* и коды стилей уже ПОСЛЕ биндингов.
+        val localStyleRegistry = styleRegistry
+        return if (localStyleRegistry != null) {
+            resolveComponent(
+                withBindings,
+                contextManager,
+                localStyleRegistry
+            ) ?: withBindings
+        } else {
+            withBindings
+        }
     }
 
     private suspend fun handleNavigationChanged() {
@@ -261,7 +276,7 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun extractOnCreateQueries(rootComponent: ComponentModel?): List<String> {
-        if (rootComponent !is com.example.drivenui.engine.uirender.models.LayoutModel) {
+        if (rootComponent !is LayoutModel) {
             return emptyList()
         }
 
