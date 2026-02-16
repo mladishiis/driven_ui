@@ -126,11 +126,13 @@ fun WidgetComponent.mapWidgetToLabelModel(
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
     // TODO может переделать проперти на мапу, чтобы легче доставать?
     val urlProperty = properties.find { it.code == "url" }?.resolvedValue
+    val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     return ImageModel(
         modifier = modifier,
         url = urlProperty,
         widgetCode = code,
         tapActions = getOnTapEvents(events),
+        colorStyleCode = colorStyleCode,
         alignmentStyle = getAlignmentStyle()
     )
 }

@@ -5,6 +5,7 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
@@ -44,6 +45,7 @@ object DataBinder {
             is LabelModel -> applyBindingsToLabel(component, dataContext)
             is ButtonModel -> applyBindingsToButton(component, dataContext)
             is AppBarModel -> applyBindingsToAppBar(component, dataContext)
+            is ImageModel -> applyBindingsToImage(component, dataContext)
             is LayoutModel -> applyBindingsToLayout(component, dataContext)
             else -> component
         }
@@ -95,6 +97,19 @@ object DataBinder {
             title = newTitle ?: appBar.title,
             textStyleCode = newTextStyleCode ?: appBar.textStyleCode,
             colorStyleCode = newColorStyleCode ?: appBar.colorStyleCode
+        )
+    }
+
+    private fun applyBindingsToImage(
+        image: ImageModel,
+        dataContext: DataContext
+    ): ImageModel {
+        val newUrl = resolveBindingsInString(image.url, dataContext)
+        val newColorStyleCode = resolveBindingsInString(image.colorStyleCode, dataContext)
+
+        return image.copy(
+            url = newUrl ?: image.url,
+            colorStyleCode = newColorStyleCode ?: image.colorStyleCode
         )
     }
 

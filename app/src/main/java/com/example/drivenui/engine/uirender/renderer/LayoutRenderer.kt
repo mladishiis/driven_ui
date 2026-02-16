@@ -290,7 +290,8 @@ private fun expandComponentWithIndex(
         is ImageModel -> {
             component.copy(
                 url = component.url.replaceIndex(),
-                widgetCode = component.widgetCode.replaceIndex()
+                widgetCode = component.widgetCode.replaceIndex(),
+                colorStyleCode = component.colorStyleCode.replaceIndex()
             )
         }
         else -> component

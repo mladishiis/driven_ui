@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImage
@@ -37,11 +39,18 @@ fun ImageRenderer(
         resolveImageData(context, model.url)
     }
 
+    val colorFilter = if (model.color != Color.Unspecified) {
+        ColorFilter.tint(model.color)
+    } else {
+        null
+    }
+
     if (data == null) {
         Image(
             modifier = imageModifier,
             painter = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
+            colorFilter = colorFilter
         )
     } else {
         AsyncImage(
@@ -53,6 +62,7 @@ fun ImageRenderer(
             placeholder = painterResource(id = R.drawable.ic_24_close),
             error = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
+            colorFilter = colorFilter
         )
     }
 }

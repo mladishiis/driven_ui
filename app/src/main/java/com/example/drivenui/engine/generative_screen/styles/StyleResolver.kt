@@ -255,5 +255,17 @@ private fun resolveImage(
     // Резолвим текстовые поля
     val resolvedUrl = image.url?.let { resolveValueExpression(it, contextManager) }
 
-    return image.copy(url = resolvedUrl)
+    var imageColor: Color = image.color
+    image.colorStyleCode?.let { rawCode ->
+        val resolvedCode = resolveValueExpression(rawCode, contextManager)
+        val resolvedColor = styleRegistry.getComposeColor(resolvedCode)
+        if (resolvedColor != null) {
+            imageColor = resolvedColor
+        }
+    }
+
+    return image.copy(
+        url = resolvedUrl,
+        color = imageColor
+    )
 }
