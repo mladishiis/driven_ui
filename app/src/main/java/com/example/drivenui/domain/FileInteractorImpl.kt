@@ -46,6 +46,35 @@ internal class FileInteractorImpl @Inject constructor(
             }
         }
 
+    override suspend fun parseTemplate(): SDUIParser.ParsedMicroappResult =
+        withContext(Dispatchers.IO) {
+            try {
+                Log.d("FileInteractor", "Start template parsing, source=$source")
+
+                val stylesXml = fileProvider.readStyles()
+                val screens = fileProvider.readScreens()
+
+                if (screens.isEmpty()) {
+                    throw IllegalStateException("Шаблон должен содержать хотя бы один экран в папке screens")
+                }
+
+                val result = parser.parse(
+                    microappXml = fileProvider.readMicroappOrEmpty(),
+                    stylesXml = stylesXml,
+                    queriesXml = fileProvider.readQueriesOrEmpty(),
+                    screens = screens
+                )
+
+                lastParsedResult = result
+                Log.d("FileInteractor", "Template parsed: ${result.screens.size} screen(s)")
+                result
+
+            } catch (e: Exception) {
+                Log.e("FileInteractor", "Template parsing error", e)
+                throw e
+            }
+        }
+
     override fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult) {
         lastParsedResult = parsedMicroapp
         Log.d("FileInteractor", "Parsed result saved")

@@ -14,4 +14,14 @@ interface MicroappFileProvider {
      * @return список экранов: fileName → xml
      */
     fun readScreens(): List<Pair<String, String>>
+
+    /**
+     * Читает microapp.xml. При отсутствии файла возвращает пустую строку (для шаблона).
+     */
+    fun readMicroappOrEmpty(): String
+
+    /**
+     * Читает allQueries.xml. При отсутствии файла возвращает пустую строку (для шаблона).
+     */
+    fun readQueriesOrEmpty(): String
 }

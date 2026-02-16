@@ -12,8 +12,11 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Жмак по кнопке назад */
     data object OnBackClick : OpenFileEvent
 
-    /** Загрузка*/
+    /** Загрузка микроаппа */
     data object OnUpload : OpenFileEvent
+
+    /** Загрузка шаблона (экран + стили; queries и microapp опциональны) */
+    data object OnLoadTemplate : OpenFileEvent
 
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
@@ -118,7 +121,9 @@ internal data class OpenFileState(
     val errorMessage: String? = null,
     val showJsonSelectionDialog: Boolean = false,
     val bindingStats: Map<String, Any>? = null,
-    val resolvedValues: Map<String, String> = emptyMap()
+    val resolvedValues: Map<String, String> = emptyMap(),
+    /** После сканирования QR выполнить парсинг как шаблон (а не полный микроапп) */
+    val pendingLoadAsTemplate: Boolean = false
 ) : VtbState {
 
     /**

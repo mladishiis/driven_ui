@@ -83,7 +83,7 @@ private fun resolveImageData(context: Context, url: String?): Any? {
 
     val runtimeFile = File(
         context.filesDir,
-        "assets_simulation/microappTavrida/$url"
+        "assets_simulation/test-microapp-tcode/$url"
     )
     if (runtimeFile.exists()) {
         return runtimeFile

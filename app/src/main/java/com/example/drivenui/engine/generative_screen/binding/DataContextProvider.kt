@@ -16,7 +16,7 @@ class DataContextProvider(private val appContext: Context) {
      */
     fun loadJsonSmart(fileName: String): JsonElement? {
         // 1. runtime
-        val runtimeFile = File(appContext.filesDir, "assets_simulation/microappTavrida/resources/mocks/$fileName")
+        val runtimeFile = File(appContext.filesDir, "assets_simulation/test-microapp-tcode/resources/mocks/$fileName")
         if (runtimeFile.exists()) {
             return runtimeFile.readText().let(JsonParser::parseString)
         }

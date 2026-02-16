@@ -25,6 +25,15 @@ interface FileInteractor {
     suspend fun parseMicroapp(): SDUIParser.ParsedMicroappResult
 
     /**
+     * Запускает парсинг шаблона (урезанный микроапп для теста визуала).
+     * Обязательны: экран(ы) и allStyles.xml. microapp.xml и allQueries.xml могут отсутствовать.
+     *
+     * @return результат парсинга
+     * @throws Exception если отсутствуют экраны или allStyles.xml
+     */
+    suspend fun parseTemplate(): SDUIParser.ParsedMicroappResult
+
+    /**
      * Возвращает последний успешно сохранённый результат парсинга.
      *
      * @return последний результат парсинга или `null`, если парсинг ещё не выполнялся

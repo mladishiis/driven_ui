@@ -115,7 +115,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMicroappSource(): MicroappSource {
-        return MicroappSource.ASSETS
+        return MicroappSource.FILE_SYSTEM
     }
 
     /**

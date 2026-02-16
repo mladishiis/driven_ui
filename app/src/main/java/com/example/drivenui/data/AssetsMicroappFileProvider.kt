@@ -14,6 +14,12 @@ class AssetsMicroappFileProvider(
     override fun readQueries() =
         read("resources/queries/allQueries.xml")
 
+    override fun readMicroappOrEmpty(): String =
+        readOrEmpty("microapp.xml")
+
+    override fun readQueriesOrEmpty(): String =
+        readOrEmpty("resources/queries/allQueries.xml")
+
     override fun readScreens(): List<Pair<String, String>> {
         return context.assets.list("screens")
             ?.filter { it.endsWith(".xml") }
@@ -23,4 +29,11 @@ class AssetsMicroappFileProvider(
 
     private fun read(path: String): String =
         context.assets.open(path).bufferedReader().use { it.readText() }
+
+    private fun readOrEmpty(path: String): String =
+        try {
+            context.assets.open(path).bufferedReader().use { it.readText() }
+        } catch (_: Exception) {
+            ""
+        }
 }

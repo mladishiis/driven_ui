@@ -260,6 +260,18 @@ internal fun OpenFileScreen(
                                 }
                             )
                         }
+                        OutlinedButton(
+                            onClick = { onEvent(OpenFileEvent.OnLoadTemplate) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.isUploadFile
+                        ) {
+                            Text(
+                                text = when (state.microappSource) {
+                                    MicroappSource.ASSETS -> "Загрузить шаблон (из assets)"
+                                    MicroappSource.FILE_SYSTEM -> "Загрузить шаблон (по QR)"
+                                }
+                            )
+                        }
                     }
 
                     // Кнопки работы с результатом

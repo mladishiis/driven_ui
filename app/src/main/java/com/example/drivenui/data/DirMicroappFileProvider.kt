@@ -13,7 +13,7 @@ internal class DirMicroappFileProvider @Inject constructor(
 ) : MicroappFileProvider {
 
     private val rootDir =
-        File(context.filesDir, "assets_simulation/microappTavrida")
+        File(context.filesDir, "assets_simulation/test-microapp-tcode")
 
     override fun readMicroapp(): String =
         File(rootDir, "microapp.xml").readText()
@@ -23,6 +23,16 @@ internal class DirMicroappFileProvider @Inject constructor(
 
     override fun readQueries(): String =
         File(rootDir, "queries/allQueries.xml").readText()
+
+    override fun readMicroappOrEmpty(): String {
+        val file = File(rootDir, "microapp.xml")
+        return if (file.exists()) file.readText() else ""
+    }
+
+    override fun readQueriesOrEmpty(): String {
+        val file = File(rootDir, "queries/allQueries.xml")
+        return if (file.exists()) file.readText() else ""
+    }
 
     override fun readScreens(): List<Pair<String, String>> =
         rootDir.resolve("screens")

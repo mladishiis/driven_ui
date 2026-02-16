@@ -16,7 +16,7 @@ internal class FileRepositoryImpl @Inject constructor(
 ) : FileRepository {
 
     private val rootDir: File =
-        File(context.filesDir, "assets_simulation/microappTavrida")
+        File(context.filesDir, "assets_simulation/test-microapp-tcode")
 
     override fun getAvailableFiles(): List<String> =
         try {
