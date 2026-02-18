@@ -14,6 +14,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.drivenui.R
+import com.example.drivenui.data.MicroappRootFinder
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ImageModel
 import java.io.File
@@ -71,7 +72,7 @@ fun ImageRenderer(
  * Резолвит значение из url в источник данных для Coil:
  * - если это полный URL, возвращает его как есть;
  * - если это имя файла (например, "close.svg"), ищет:
- *   1) во временной папке microapp: assets_simulation/microappTavrida/resources/images
+ *   1) во временной папке microapp: microapps/{microappName}/resources/images
  *   2) в assets: resources/images.
  */
 private fun resolveImageData(context: Context, url: String?): Any? {
@@ -81,12 +82,13 @@ private fun resolveImageData(context: Context, url: String?): Any? {
         return url
     }
 
-    val runtimeFile = File(
-        context.filesDir,
-        "assets_simulation/test-microapp-tcode/$url"
-    )
-    if (runtimeFile.exists()) {
-        return runtimeFile
+    // Ищем в динамически определённой папке микроаппа
+    val microappRoot = MicroappRootFinder.findMicroappRoot(context)
+    if (microappRoot != null) {
+        val runtimeFile = File(microappRoot, url)
+        if (runtimeFile.exists()) {
+            return runtimeFile
+        }
     }
 
     return "file:///android_asset/$url"

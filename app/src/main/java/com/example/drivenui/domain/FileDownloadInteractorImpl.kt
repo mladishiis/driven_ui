@@ -2,6 +2,7 @@ package com.example.drivenui.domain
 
 import android.content.Context
 import android.util.Log
+import com.example.drivenui.data.MicroappRootFinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -38,6 +39,15 @@ class FileDownloadInteractorImpl @Inject constructor(
                         unzipSafely(zip)
                     }
 
+                    // После успешной распаковки сохраняем имя первой подпапки как корень микроаппа
+                    val microappsDir = getMicroappsDir()
+                    val firstDir = microappsDir.listFiles()?.firstOrNull { it.isDirectory }
+                    if (firstDir != null) {
+                        MicroappRootFinder.saveMicroappRootName(context, firstDir.name)
+                    } else {
+                        Log.w(TAG, "No subdirectories found in microapps after unzip")
+                    }
+
                     Log.d(TAG, "Zip extracted successfully")
                     true
                 }
@@ -49,48 +59,69 @@ class FileDownloadInteractorImpl @Inject constructor(
 
     // ---------- unzip ----------
 
+    /**
+     * Безопасно распаковывает ZIP архив.
+     * Продолжает работу даже если отдельные файлы не удалось распаковать.
+     */
     private fun unzipSafely(zip: ZipInputStream) {
-        val targetDir = getAssetsSimulationDir().canonicalFile
+        val targetDir = getMicroappsDir().canonicalFile
         var entry = zip.nextEntry
+        var extractedCount = 0
+        var errorCount = 0
 
         while (entry != null) {
-            val file = File(targetDir, entry.name)
+            try {
+                val file = File(targetDir, entry.name)
 
-            // 🔒 защита от Zip Slip
-            val canonicalFile = file.canonicalFile
-            if (!canonicalFile.path.startsWith(targetDir.path)) {
-                throw SecurityException("Zip entry outside target dir: ${entry.name}")
-            }
-
-            if (entry.isDirectory) {
-                canonicalFile.mkdirs()
-            } else {
-                canonicalFile.parentFile?.mkdirs()
-                FileOutputStream(canonicalFile).use { output ->
-                    zip.copyTo(output)
+                // 🔒 защита от Zip Slip
+                val canonicalFile = file.canonicalFile
+                if (!canonicalFile.path.startsWith(targetDir.path)) {
+                    throw SecurityException("Zip entry outside target dir: ${entry.name}")
                 }
-                Log.d(TAG, "Extracted: ${entry.name}")
+
+                if (entry.isDirectory) {
+                    canonicalFile.mkdirs()
+                } else {
+                    canonicalFile.parentFile?.mkdirs()
+                    FileOutputStream(canonicalFile).use { output ->
+                        zip.copyTo(output)
+                    }
+                    extractedCount++
+                    if (extractedCount % 10 == 0) {
+                        Log.d(TAG, "Extracted $extractedCount files...")
+                    }
+                }
+            } catch (e: Exception) {
+                errorCount++
+                Log.e(TAG, "Failed to extract entry: ${entry.name}", e)
+                // Продолжаем распаковку остальных файлов
             }
 
             zip.closeEntry()
             entry = zip.nextEntry
         }
+
+        Log.d(TAG, "Extraction completed: $extractedCount files extracted, $errorCount errors")
     }
 
-    // ---------- assets_simulation ----------
+    // ---------- microapps directory ----------
 
     override suspend fun clearAssetsFolder(): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                val dir = getAssetsSimulationDir()
+                val dir = getMicroappsDir()
                 if (dir.exists()) {
                     dir.deleteRecursively()
                 }
                 dir.mkdirs()
-                Log.d(TAG, "assets_simulation cleared")
+
+                // При очистке также забываем старый корень микроаппа
+                MicroappRootFinder.clearSavedMicroappRoot(context)
+
+                Log.d(TAG, "Microapps directory cleared")
                 true
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear assets_simulation", e)
+                Log.e(TAG, "Failed to clear microapps directory", e)
                 false
             }
         }
@@ -98,12 +129,12 @@ class FileDownloadInteractorImpl @Inject constructor(
     override fun getAssetsFileList(): List<String> =
         try {
             val realAssets = context.assets.list("")?.toList() ?: emptyList()
-            val simulated = getAssetsSimulationDir()
+            val microapps = getMicroappsDir()
                 .listFiles()
                 ?.map { it.name }
                 ?: emptyList()
 
-            (realAssets + simulated).distinct().sorted()
+            (realAssets + microapps).distinct().sorted()
         } catch (e: Exception) {
             Log.e(TAG, "Error listing assets", e)
             emptyList()
@@ -114,9 +145,9 @@ class FileDownloadInteractorImpl @Inject constructor(
             val outputFile = File(context.filesDir, "extracted_assets/$filename")
             outputFile.parentFile?.mkdirs()
 
-            val simulated = File(getAssetsSimulationDir(), filename)
-            if (simulated.exists()) {
-                simulated.copyTo(outputFile, overwrite = true)
+            val microappFile = File(getMicroappsDir(), filename)
+            if (microappFile.exists()) {
+                microappFile.copyTo(outputFile, overwrite = true)
                 return@withContext outputFile
             }
 
@@ -131,11 +162,11 @@ class FileDownloadInteractorImpl @Inject constructor(
 
     // ---------- helpers ----------
 
-    private fun getAssetsSimulationDir(): File =
-        File(context.filesDir, ASSETS_SIMULATION_DIR)
+    private fun getMicroappsDir(): File =
+        File(context.filesDir, MICROAPPS_DIR)
 
     companion object {
         private const val TAG = "FileDownloadInteractor"
-        private const val ASSETS_SIMULATION_DIR = "assets_simulation"
+        private const val MICROAPPS_DIR = "microapps"
     }
 }

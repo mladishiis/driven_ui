@@ -15,12 +15,20 @@ internal class FileRepositoryImpl @Inject constructor(
     private val context: Context
 ) : FileRepository {
 
-    private val rootDir: File =
-        File(context.filesDir, "assets_simulation/test-microapp-tcode")
+    /**
+     * Динамически определяет корневую папку микроаппа при каждом обращении.
+     * Если микроапп не найден, выбрасывает исключение —
+     * это означает, что архив ещё не был загружен/распакован.
+     */
+    private fun getRootDir(): File {
+        val foundRoot = MicroappRootFinder.findMicroappRoot(context)
+        return foundRoot
+            ?: error("Microapp root directory not found in 'microapps'. Please download and extract microapp archive.")
+    }
 
     override fun getAvailableFiles(): List<String> =
         try {
-            rootDir.list()?.toList().orEmpty()
+            getRootDir().list()?.toList().orEmpty()
         } catch (e: Exception) {
             Log.e("FileRepository", "Error listing files", e)
             emptyList()
@@ -28,7 +36,7 @@ internal class FileRepositoryImpl @Inject constructor(
 
     override fun getAvailableJsonFiles(): List<String> =
         try {
-            rootDir.list()?.filter { it.endsWith(".json") }.orEmpty()
+            getRootDir().list()?.filter { it.endsWith(".json") }.orEmpty()
         } catch (e: Exception) {
             Log.e("FileRepository", "Error listing JSON files", e)
             emptyList()
@@ -36,7 +44,7 @@ internal class FileRepositoryImpl @Inject constructor(
 
     override suspend fun loadXmlFile(fileName: String): String =
         withContext(Dispatchers.IO) {
-            val file = File(rootDir, fileName)
+            val file = File(getRootDir(), fileName)
             if (!file.exists()) {
                 throw FileNotFoundException("XML file not found: $fileName")
             }
@@ -45,7 +53,7 @@ internal class FileRepositoryImpl @Inject constructor(
 
     override suspend fun loadJsonFile(fileName: String): String =
         withContext(Dispatchers.IO) {
-            val file = File(rootDir, fileName)
+            val file = File(getRootDir(), fileName)
             if (!file.exists()) {
                 throw FileNotFoundException("JSON file not found: $fileName")
             }
@@ -55,6 +63,7 @@ internal class FileRepositoryImpl @Inject constructor(
     override suspend fun saveJsonResult(jsonResult: String, fileName: String) {
         withContext(Dispatchers.IO) {
             try {
+                val rootDir = getRootDir()
                 if (!rootDir.exists()) {
                     rootDir.mkdirs()
                 }

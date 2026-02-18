@@ -68,20 +68,6 @@ internal sealed interface OpenFileEffect : VtbEffect {
         val resolvedValues: Map<String, String>
     ) : OpenFileEffect
 
-    /** Показать результат парсинга в диалоге */
-    data class ShowParsingResultDialog(
-        val title: String,
-        val screensCount: Int,
-        val textStylesCount: Int,
-        val colorStylesCount: Int,
-        val queriesCount: Int,
-        val componentsCount: Int = 0,
-        val hasComponentStructure: Boolean = false,
-        val bindingsCount: Int = 0,
-        val resolvedBindingsCount: Int = 0,
-        val jsonFilesCount: Int = 0
-    ) : OpenFileEffect
-
     /** Показать статистику биндингов */
     data class ShowBindingStats(
         val stats: Map<String, Any>?,

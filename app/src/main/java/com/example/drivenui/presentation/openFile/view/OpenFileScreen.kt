@@ -224,21 +224,23 @@ internal fun OpenFileScreen(
                     }
 
                     // Информация о выбранном файле
-                    state.selectedFileName?.let { fileName ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
+                    if (state.microappSource == MicroappSource.ASSETS) {
+                        state.selectedFileName?.let { fileName ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = "Выбранный файл:",
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = fileName,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Выбранный файл:",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = fileName,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
                     }
@@ -290,30 +292,27 @@ internal fun OpenFileScreen(
                                 )
                             ) {
                                 Text(
-                                    text = "Показать результат парсинга",
+                                    text = "Показать детали парсинга",
                                     fontSize = 16.sp
                                 )
                             }
 
-                            // Кнопка деталей парсинга
-                            OutlinedButton(
-                                onClick = { onEvent(OpenFileEvent.OnShowParsingDetails) },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Детали парсинга")
-                            }
-
-                            OutlinedButton(
+                            Button(
                                 onClick = { onEvent(OpenFileEvent.OnShowTestScreen) },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = state.hasParsingResult,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
                             ) {
-                                Text("Показать экран")
+                                Text(
+                                    text = "Показать результат",
+                                    fontSize = 16.sp
+                                )
                             }
                         }
-                    }
 
-                    // Статус парсинга
-                    if (state.hasParsingResult) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
@@ -390,28 +389,6 @@ internal fun OpenFileScreen(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
-                        }
-                    }
-
-                    // Информация
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Возможности парсера:",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("• Парсинг XML микроаппов Driven UI")
-                            Text("• Поддержка JSON биндингов для данных")
-                            Text("• Автоматический поиск файлов в assets")
-                            Text("• Визуализация структуры компонентов")
-                            Text("• Статистика по биндингам")
-                            Text("• Тестирование с кастомными данными")
                         }
                     }
                 }

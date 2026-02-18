@@ -9,33 +9,41 @@ import javax.inject.Inject
  * Чтение microapp из файловой системы
  */
 internal class DirMicroappFileProvider @Inject constructor(
-    context: Context
+    private val context: Context
 ) : MicroappFileProvider {
 
-    private val rootDir =
-        File(context.filesDir, "assets_simulation/test-microapp-tcode")
+    /**
+     * Динамически определяет корневую папку микроаппа при каждом обращении.
+     * Если микроапп не найден, выбрасывает исключение —
+     * это означает, что архив ещё не был загружен/распакован.
+     */
+    private fun getRootDir(): File {
+        val foundRoot = MicroappRootFinder.findMicroappRoot(context)
+        return foundRoot
+            ?: error("Microapp root directory not found in 'microapps'. Please download and extract microapp archive.")
+    }
 
     override fun readMicroapp(): String =
-        File(rootDir, "microapp.xml").readText()
+        File(getRootDir(), "microapp.xml").readText()
 
     override fun readStyles(): String =
-        File(rootDir, "resources/allStyles.xml").readText()
+        File(getRootDir(), "resources/allStyles.xml").readText()
 
     override fun readQueries(): String =
-        File(rootDir, "queries/allQueries.xml").readText()
+        File(getRootDir(), "queries/allQueries.xml").readText()
 
     override fun readMicroappOrEmpty(): String {
-        val file = File(rootDir, "microapp.xml")
+        val file = File(getRootDir(), "microapp.xml")
         return if (file.exists()) file.readText() else ""
     }
 
     override fun readQueriesOrEmpty(): String {
-        val file = File(rootDir, "queries/allQueries.xml")
+        val file = File(getRootDir(), "queries/allQueries.xml")
         return if (file.exists()) file.readText() else ""
     }
 
     override fun readScreens(): List<Pair<String, String>> =
-        rootDir.resolve("screens")
+        getRootDir().resolve("screens")
             .listFiles()
             ?.filter { it.extension == "xml" }
             ?.map { it.name to it.readText() }

@@ -33,7 +33,13 @@ internal class TestRenderFragment : Fragment() {
 
         return ComposeView(requireContext()).apply {
             setContent {
-                GenerativeScreen(viewModel = viewModel)
+                GenerativeScreen(
+                    viewModel = viewModel,
+                    onExit = {
+                        // Если навигации внутри микроаппа больше нет, выходим с экрана целиком
+                        parentFragmentManager.popBackStack()
+                    }
+                )
             }
         }
     }

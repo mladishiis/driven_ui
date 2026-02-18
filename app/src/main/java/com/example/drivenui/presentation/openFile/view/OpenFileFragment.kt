@@ -21,11 +21,11 @@ import com.example.drivenui.presentation.render.TestRenderFragment
 import com.example.drivenui.theme.DrivenUITheme
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 
 @AndroidEntryPoint
 internal class OpenFileFragment : Fragment() {
@@ -92,10 +92,6 @@ internal class OpenFileFragment : Fragment() {
 
                 is OpenFileEffect.ShowSuccessWithBindings -> {
                     showSuccessWithBindings(effect)
-                }
-
-                is OpenFileEffect.ShowParsingResultDialog -> {
-                    showParsingResultDialog(effect)
                 }
 
                 is OpenFileEffect.ShowBindingStats -> {
@@ -206,41 +202,6 @@ internal class OpenFileFragment : Fragment() {
             .setPositiveButton("OK", null)
             .setNeutralButton("Детали биндингов") { _, _ ->
                 viewModel.handleEvent(OpenFileEvent.OnShowBindingStats)
-            }
-            .show()
-    }
-
-    private fun showParsingResultDialog(effect: OpenFileEffect.ShowParsingResultDialog) {
-        val message = buildString {
-            append("Результат парсинга:\n\n")
-            append("Микроапп: ${effect.title}\n")
-            append("Экран${if (effect.screensCount != 1) "ов" else ""}: ${effect.screensCount}\n")
-            append("Стилей текста: ${effect.textStylesCount}\n")
-            append("Стилей цвета: ${effect.colorStylesCount}\n")
-            append("Запросов API: ${effect.queriesCount}\n")
-
-            if (effect.componentsCount > 0) {
-                append("Компонентов: ${effect.componentsCount}\n")
-            }
-
-            if (effect.bindingsCount > 0) {
-                append("Биндингов: ${effect.bindingsCount}\n")
-                append("Разрешено биндингов: ${effect.resolvedBindingsCount}\n")
-            }
-
-            if (effect.jsonFilesCount > 0) {
-                append("Использовано JSON файлов: ${effect.jsonFilesCount}\n")
-            }
-
-            append("\nНажмите \"Показать результат парсинга\" для деталей.")
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Парсинг завершен")
-            .setMessage(message)
-            .setPositiveButton("OK", null)
-            .setNeutralButton("Детали") { _, _ ->
-                viewModel.handleEvent(OpenFileEvent.OnShowParsingDetails)
             }
             .show()
     }

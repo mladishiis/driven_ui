@@ -2,6 +2,7 @@ package com.example.drivenui.engine.generative_screen.binding
 
 import android.content.Context
 import android.util.Log
+import com.example.drivenui.data.MicroappRootFinder
 import com.example.drivenui.parser.models.DataContext
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
@@ -15,10 +16,13 @@ class DataContextProvider(private val appContext: Context) {
      * Загружает JSON файл из assets
      */
     fun loadJsonSmart(fileName: String): JsonElement? {
-        // 1. runtime
-        val runtimeFile = File(appContext.filesDir, "assets_simulation/test-microapp-tcode/resources/mocks/$fileName")
-        if (runtimeFile.exists()) {
-            return runtimeFile.readText().let(JsonParser::parseString)
+        // ищем в динамически определённой папке микроаппа
+        val microappRoot = MicroappRootFinder.findMicroappRoot(appContext)
+        if (microappRoot != null) {
+            val runtimeFile = File(microappRoot, "resources/mocks/$fileName")
+            if (runtimeFile.exists()) {
+                return runtimeFile.readText().let(JsonParser::parseString)
+            }
         }
 
         // 2. assets
