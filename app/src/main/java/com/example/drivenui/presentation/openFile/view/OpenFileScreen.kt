@@ -27,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -245,7 +244,7 @@ internal fun OpenFileScreen(
                         }
                     }
 
-                    // Кнопки загрузки
+                    // Кнопка загрузки (единый поток для микроаппа и шаблона)
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -259,18 +258,6 @@ internal fun OpenFileScreen(
                                 text = when (state.microappSource) {
                                     MicroappSource.ASSETS -> "Загрузить из assets"
                                     MicroappSource.FILE_SYSTEM -> "Загрузить через QR-код"
-                                }
-                            )
-                        }
-                        OutlinedButton(
-                            onClick = { onEvent(OpenFileEvent.OnLoadTemplate) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isUploadFile
-                        ) {
-                            Text(
-                                text = when (state.microappSource) {
-                                    MicroappSource.ASSETS -> "Загрузить шаблон (из assets)"
-                                    MicroappSource.FILE_SYSTEM -> "Загрузить шаблон (по QR)"
                                 }
                             )
                         }

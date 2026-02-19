@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -41,7 +42,8 @@ fun GenerativeScreen(
             }
         },
         onWidgetValueChange = viewModel::onWidgetValueChange,
-        applyBindingsForComponent = viewModel::applyBindingsToComponent
+        applyBindingsForComponent = viewModel::applyBindingsToComponent,
+        getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
     )
 }
 
@@ -53,7 +55,8 @@ fun GenerativeScreenUi(
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
+    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null }
 ) {
     DrivenUITheme {
         BackHandler { onBack() }
@@ -74,7 +77,8 @@ fun GenerativeScreenUi(
                 onActions = onActions,
                 onBack = onBack,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent
+                applyBindingsForComponent = applyBindingsForComponent,
+                getSheetCornerRadiusDp = getSheetCornerRadiusDp
             )
         }
     }
@@ -120,13 +124,22 @@ private fun BottomSheetHost(
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
+    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null }
 ) {
     val bottomSheet = bottomSheetState.collectAsStateWithLifecycle().value
 
     bottomSheet?.also { sheetModel ->
         val configuration = LocalConfiguration.current
         val maxSheetHeight = (configuration.screenHeightDp * 0.99f).dp
+
+        val cornerRadiusDp = getSheetCornerRadiusDp(sheetModel) ?: 0
+        val sheetShape = RoundedCornerShape(
+            topStart = cornerRadiusDp.dp,
+            topEnd = cornerRadiusDp.dp,
+            bottomStart = 0.dp,
+            bottomEnd = 0.dp
+        )
 
         val sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true
@@ -137,6 +150,7 @@ private fun BottomSheetHost(
                 onBack()
             },
             sheetState = sheetState,
+            shape = sheetShape,
             dragHandle = null
         ) {
             Box(

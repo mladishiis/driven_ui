@@ -1,7 +1,14 @@
 package com.example.drivenui.parser.parsers
 
 import android.util.Log
-import com.example.drivenui.parser.models.*
+import com.example.drivenui.parser.models.Component
+import com.example.drivenui.parser.models.ComponentProperty
+import com.example.drivenui.parser.models.EventAction
+import com.example.drivenui.parser.models.LayoutComponent
+import com.example.drivenui.parser.models.ParsedScreen
+import com.example.drivenui.parser.models.WidgetComponent
+import com.example.drivenui.parser.models.WidgetEvent
+import com.example.drivenui.parser.models.WidgetStyle
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
@@ -400,9 +407,9 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "event_code" -> {
+                        "eventСode" -> {
                             eventCode = parser.nextText().trim()
-                            Log.d("ComponentParser", "Найден event_code: $eventCode")
+                            Log.d("ComponentParser", "Найден eventСode: $eventCode")
                         }
                         "order" -> {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
@@ -414,7 +421,7 @@ class ComponentParser {
                             Log.d("ComponentParser", "Добавлено действий: ${actions.size}")
                         }
                         else -> {
-                            // Если это не тег event_code, возможно это просто текст события
+                            // Если это не тег eventСode, возможно это просто текст события
                             if (eventCode.isEmpty()) {
                                 try {
                                     eventCode = parser.nextText().trim()
@@ -489,7 +496,7 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "code" -> {
+                        "eventActionCode" -> {
                             code = parser.nextText().trim()
                             Log.d("ComponentParser", "Найден код действия: $code")
                         }

@@ -21,6 +21,7 @@ import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.engine.value.resolveValueExpression
 import com.example.drivenui.parser.models.AllStyles
 import com.example.drivenui.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -187,6 +188,18 @@ class GenerativeScreenViewModel @Inject constructor(
      */
     fun onWidgetValueChange(widgetCode: String, parameter: String, value: Any) {
         widgetValueProvider.setWidgetValue(widgetCode, parameter, value)
+    }
+
+    /**
+     * Возвращает радиус скругления (в dp) для корневого layout шторки.
+     * Берётся из roundStyle корневого компонента шторки; если корень не layout или стиль не задан — null.
+     */
+    fun getSheetCornerRadiusDp(sheetRoot: ComponentModel): Int? {
+        if (sheetRoot !is LayoutModel) return null
+        val code = sheetRoot.roundStyleCode ?: return null
+        val registry = styleRegistry ?: return null
+        val resolvedCode = resolveValueExpression(code, contextManager)
+        return registry.getRoundStyle(resolvedCode)?.radiusValue
     }
 
     /**

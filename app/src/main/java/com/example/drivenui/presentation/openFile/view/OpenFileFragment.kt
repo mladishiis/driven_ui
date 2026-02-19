@@ -105,7 +105,7 @@ internal class OpenFileFragment : Fragment() {
                 is OpenFileEffect.OpenQrScanner -> {
                     val options = ScanOptions().apply {
                         setPrompt("Отсканируйте QR-код с ссылкой на microapp")
-                        setBeepEnabled(true)
+                        setBeepEnabled(false)
                         setOrientationLocked(true)
                         setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                         setCameraId(0) // задняя камера

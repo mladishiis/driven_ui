@@ -35,15 +35,7 @@ internal class OpenFileViewModel @Inject constructor(
         when (event) {
             OpenFileEvent.OnBackClick -> setEffect { OpenFileEffect.GoBack }
             OpenFileEvent.OnUpload -> {
-                updateState { copy(pendingLoadAsTemplate = false) }
                 handleUpload()
-            }
-            OpenFileEvent.OnLoadTemplate -> {
-                updateState { copy(pendingLoadAsTemplate = true) }
-                when (microappSource) {
-                    MicroappSource.ASSETS -> handleLoadTemplate()
-                    MicroappSource.FILE_SYSTEM -> setEffect { OpenFileEffect.OpenQrScanner }
-                }
             }
             OpenFileEvent.OnShowFile -> handleShowFile()
             OpenFileEvent.OnShowParsingDetails -> handleShowParsingDetails()
@@ -68,58 +60,8 @@ internal class OpenFileViewModel @Inject constructor(
     }
 
     /**
-     * Обрабатывает загрузку и парсинг шаблона (экран + allStyles; microapp и queries опциональны).
-     */
-    private fun handleLoadTemplate() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                withContext(Dispatchers.Main) {
-                    updateState {
-                        copy(
-                            isUploadFile = true,
-                            isParsing = true,
-                            errorMessage = null,
-                            selectedFileName = "шаблон"
-                        )
-                    }
-                }
-
-                val parsedResult = fileInteractor.parseTemplate()
-
-                withContext(Dispatchers.Main) {
-                    updateState {
-                        copy(
-                            isUploadFile = false,
-                            isParsing = false,
-                            parsingResult = parsedResult,
-                            errorMessage = null,
-                            pendingLoadAsTemplate = false
-                        )
-                    }
-                    setEffect { OpenFileEffect.ShowSuccess("Шаблон успешно загружен") }
-                }
-
-                logParsingResult(parsedResult)
-
-            } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при загрузке шаблона", e)
-                withContext(Dispatchers.Main) {
-                    updateState {
-                        copy(
-                            isUploadFile = false,
-                            isParsing = false,
-                            errorMessage = e.localizedMessage,
-                            pendingLoadAsTemplate = false
-                        )
-                    }
-                    setEffect { OpenFileEffect.ShowError("Ошибка шаблона: ${e.localizedMessage}") }
-                }
-            }
-        }
-    }
-
-    /**
-     * Обрабатывает загрузку и парсинг файла
+     * Обрабатывает загрузку и парсинг файла (полный микроапп или шаблон).
+     * Логика парсинга единая и допускает отсутствие microapp.xml / allQueries.xml.
      */
     private fun handleUploadFile() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -130,12 +72,13 @@ internal class OpenFileViewModel @Inject constructor(
                             isUploadFile = true,
                             isParsing = true,
                             errorMessage = null,
-                            selectedFileName = "microapp.xml"
+                            selectedFileName = "microapps"
                         )
                     }
                 }
 
-                val parsedResult = fileInteractor.parseMicroapp()
+                // Единый путь парсинга: full microapp ИЛИ шаблон (экраны + стили)
+                val parsedResult = fileInteractor.parseTemplate()
 
                 withContext(Dispatchers.Main) {
                     updateState {
@@ -146,7 +89,7 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = null
                         )
                     }
-                    setEffect { OpenFileEffect.ShowSuccess("Микроапп успешно загружен") }
+                    setEffect { OpenFileEffect.ShowSuccess("Конфигурация успешно загружена") }
                 }
 
                 logParsingResult(parsedResult)
@@ -186,18 +129,12 @@ internal class OpenFileViewModel @Inject constructor(
                     updateState { copy(isUploadFile = false, isParsing = false) }
                     return@launch
                 }
-
-                val loadAsTemplate = uiState.value.pendingLoadAsTemplate
-                updateState { copy(pendingLoadAsTemplate = false) }
-                if (loadAsTemplate) {
-                    handleLoadTemplate()
-                } else {
-                    handleUploadFile()
-                }
+                // После успешной загрузки и распаковки единообразно парсим содержимое microapps
+                handleUploadFile()
 
             } catch (e: Exception) {
                 Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
-                updateState { copy(isUploadFile = false, isParsing = false, pendingLoadAsTemplate = false) }
+                updateState { copy(isUploadFile = false, isParsing = false) }
                 setEffect { OpenFileEffect.ShowError("Ошибка загрузки: ${e.localizedMessage}") }
             }
         }
