@@ -11,4 +11,6 @@ data class InputModel(
     val widgetCode: String,
     val finishTypingActions: List<UiAction>,
     override val alignmentStyle: String,
+    override val visibility: Boolean = true,
+    val visibilityCode: String? = null
 ) : ComponentModel

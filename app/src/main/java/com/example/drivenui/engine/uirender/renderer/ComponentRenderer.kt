@@ -20,6 +20,7 @@ fun ComponentRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
+    if (!model.visibility) return
     when (model) {
         is LayoutModel -> LayoutRenderer(
             model,

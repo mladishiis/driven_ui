@@ -13,7 +13,9 @@ data class LayoutModel(
     val roundStyleCode: String? = null,
     override val alignmentStyle: String,
     val forIndexName: String? = null,
-    val maxForIndex: String? = null
+    val maxForIndex: String? = null,
+    override val visibility: Boolean = true,
+    val visibilityCode: String? = null
 ) : ComponentModel
 
 enum class LayoutType {

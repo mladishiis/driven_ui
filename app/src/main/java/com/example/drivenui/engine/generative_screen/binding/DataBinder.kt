@@ -2,10 +2,12 @@ package com.example.drivenui.engine.generative_screen.binding
 
 import android.util.Log
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.mappers.parseVisibility
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
@@ -46,6 +48,7 @@ object DataBinder {
             is ButtonModel -> applyBindingsToButton(component, dataContext)
             is AppBarModel -> applyBindingsToAppBar(component, dataContext)
             is ImageModel -> applyBindingsToImage(component, dataContext)
+            is InputModel -> applyBindingsToInput(component, dataContext)
             is LayoutModel -> applyBindingsToLayout(component, dataContext)
             else -> component
         }
@@ -58,11 +61,15 @@ object DataBinder {
         val newText = resolveBindingsInString(label.text, dataContext)
         val newTextStyleCode = resolveBindingsInString(label.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(label.colorStyleCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(label.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: label.visibilityCode)
 
         return label.copy(
             text = newText ?: label.text,
             textStyleCode = newTextStyleCode ?: label.textStyleCode,
-            colorStyleCode = newColorStyleCode ?: label.colorStyleCode
+            colorStyleCode = newColorStyleCode ?: label.colorStyleCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: label.visibilityCode
         )
     }
 
@@ -75,13 +82,17 @@ object DataBinder {
         val newColorStyleCode = resolveBindingsInString(button.colorStyleCode, dataContext)
         val newBackgroundColorStyleCode = resolveBindingsInString(button.backgroundColorStyleCode, dataContext)
         val newRoundStyleCode = resolveBindingsInString(button.roundStyleCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(button.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: button.visibilityCode)
 
         return button.copy(
             text = newText ?: button.text,
             textStyleCode = newTextStyleCode ?: button.textStyleCode,
             colorStyleCode = newColorStyleCode ?: button.colorStyleCode,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: button.backgroundColorStyleCode,
-            roundStyleCode = newRoundStyleCode ?: button.roundStyleCode
+            roundStyleCode = newRoundStyleCode ?: button.roundStyleCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: button.visibilityCode
         )
     }
 
@@ -92,11 +103,34 @@ object DataBinder {
         val newTitle = appBar.title?.let { resolveBindingsInString(it, dataContext) }
         val newTextStyleCode = resolveBindingsInString(appBar.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(appBar.colorStyleCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(appBar.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: appBar.visibilityCode)
 
         return appBar.copy(
             title = newTitle ?: appBar.title,
             textStyleCode = newTextStyleCode ?: appBar.textStyleCode,
-            colorStyleCode = newColorStyleCode ?: appBar.colorStyleCode
+            colorStyleCode = newColorStyleCode ?: appBar.colorStyleCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: appBar.visibilityCode
+        )
+    }
+
+    private fun applyBindingsToInput(
+        input: InputModel,
+        dataContext: DataContext
+    ): InputModel {
+        val newText = resolveBindingsInString(input.text, dataContext)
+        val newHint = resolveBindingsInString(input.hint, dataContext)
+        val newWidgetCode = resolveBindingsInString(input.widgetCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(input.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: input.visibilityCode)
+
+        return input.copy(
+            text = newText ?: input.text,
+            hint = newHint ?: input.hint,
+            widgetCode = newWidgetCode ?: input.widgetCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: input.visibilityCode
         )
     }
 
@@ -106,10 +140,14 @@ object DataBinder {
     ): ImageModel {
         val newUrl = resolveBindingsInString(image.url, dataContext)
         val newColorStyleCode = resolveBindingsInString(image.colorStyleCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(image.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: image.visibilityCode)
 
         return image.copy(
             url = newUrl ?: image.url,
-            colorStyleCode = newColorStyleCode ?: image.colorStyleCode
+            colorStyleCode = newColorStyleCode ?: image.colorStyleCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: image.visibilityCode
         )
     }
 
@@ -148,6 +186,8 @@ object DataBinder {
             resolveBindingsInString(layout.backgroundColorStyleCode, dataContext)
         val newRoundStyleCode =
             resolveBindingsInString(layout.roundStyleCode, dataContext)
+        val newVisibilityCode = resolveBindingsInString(layout.visibilityCode, dataContext)
+        val visibility = parseVisibility(newVisibilityCode ?: layout.visibilityCode)
 
         val processedChildren = layout.children.mapNotNull { child ->
             applyBindingsToComponent(child, dataContext)
@@ -156,7 +196,9 @@ object DataBinder {
         return layout.copy(
             children = processedChildren,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: layout.backgroundColorStyleCode,
-            roundStyleCode = newRoundStyleCode ?: layout.roundStyleCode
+            roundStyleCode = newRoundStyleCode ?: layout.roundStyleCode,
+            visibility = visibility,
+            visibilityCode = newVisibilityCode ?: layout.visibilityCode
         )
     }
 

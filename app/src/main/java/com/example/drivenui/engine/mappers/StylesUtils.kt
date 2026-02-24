@@ -9,6 +9,19 @@ import com.example.drivenui.parser.models.Component
 fun Component.getAlignmentStyle(): String =
     this.styles.find { it.code == "alignmentStyle" }?.value ?: ""
 
+/**
+ * Парсит значение visibility из строки.
+ * Только "true" или "false", иначе -> true (по умолчанию видим).
+ */
+fun parseVisibility(resolvedValue: String?): Boolean {
+    if (resolvedValue.isNullOrBlank()) return true
+    return when (resolvedValue.trim().lowercase()) {
+        "true" -> true
+        "false" -> false
+        else -> true
+    }
+}
+
 fun Modifier.applyPaddingStyle(paddingStyle: PaddingValues): Modifier =
     this.padding(paddingStyle)
 

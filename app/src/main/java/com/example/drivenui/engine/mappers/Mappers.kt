@@ -43,8 +43,10 @@ fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): Compon
 fun LayoutComponent.mapLayoutToUIModel(
     modifier: Modifier,
     styleRegistry: ComposeStyleRegistry
-) =
-    LayoutModel(
+): LayoutModel {
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
+    return LayoutModel(
         modifier = modifier,
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
@@ -54,8 +56,11 @@ fun LayoutComponent.mapLayoutToUIModel(
         roundStyleCode = styles.find { it.code == "roundStyle" }?.value,
         alignmentStyle = getAlignmentStyle(),
         forIndexName = forIndexName,
-        maxForIndex = maxForIndex
+        maxForIndex = maxForIndex,
+        visibility = visibility,
+        visibilityCode = visibilityRaw
     )
+}
 
 fun WidgetComponent.mapWidgetToUiModel(
     modifier: Modifier,
@@ -109,6 +114,8 @@ fun WidgetComponent.mapWidgetToLabelModel(
     val textProperty = properties.find { it.code == "text" }
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
     return if (textProperty != null) {
         LabelModel(
             modifier = modifier,
@@ -117,23 +124,28 @@ fun WidgetComponent.mapWidgetToLabelModel(
             textStyleCode = textStyleCode,
             colorStyleCode = colorStyleCode,
             tapActions = getOnTapEvents(events),
-            alignmentStyle = getAlignmentStyle()
+            alignmentStyle = getAlignmentStyle(),
+            visibility = visibility,
+            visibilityCode = visibilityRaw
         )
     } else null
 }
 
 
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
-    // TODO может переделать проперти на мапу, чтобы легче доставать?
     val urlProperty = properties.find { it.code == "url" }?.resolvedValue
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
     return ImageModel(
         modifier = modifier,
         url = urlProperty,
         widgetCode = code,
         tapActions = getOnTapEvents(events),
         colorStyleCode = colorStyleCode,
-        alignmentStyle = getAlignmentStyle()
+        alignmentStyle = getAlignmentStyle(),
+        visibility = visibility,
+        visibilityCode = visibilityRaw
     )
 }
 
@@ -146,6 +158,8 @@ fun WidgetComponent.mapWidgetToButtonModel(
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
     return ButtonModel(
         modifier = modifier,
         text = textProperty,
@@ -158,6 +172,8 @@ fun WidgetComponent.mapWidgetToButtonModel(
         tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
+        visibility = visibility,
+        visibilityCode = visibilityRaw
     )
 }
 
@@ -168,6 +184,8 @@ fun WidgetComponent.mapWidgetToAppbarModel(
     val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
     return AppBarModel(
         modifier = modifier,
         title = titleProperty,
@@ -176,7 +194,9 @@ fun WidgetComponent.mapWidgetToAppbarModel(
         iconLeftUrl = iconProperty,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
-        alignmentStyle = getAlignmentStyle()
+        alignmentStyle = getAlignmentStyle(),
+        visibility = visibility,
+        visibilityCode = visibilityRaw
     )
 }
 
@@ -186,6 +206,8 @@ fun WidgetComponent.mapWidgetToInputModel(
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val hintProperty = properties.find { it.code == "hint" }?.resolvedValue ?: ""
     val readOnlyProperty = properties.find { it.code == "readOnly" }?.resolvedValue?.toBoolean() ?: false
+    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibility = parseVisibility(visibilityRaw)
     return InputModel(
         modifier = modifier,
         text = textProperty,
@@ -193,6 +215,8 @@ fun WidgetComponent.mapWidgetToInputModel(
         readOnly = readOnlyProperty,
         widgetCode = code,
         finishTypingActions = getOnFinishTypingEvents(events),
-        alignmentStyle = getAlignmentStyle()
+        alignmentStyle = getAlignmentStyle(),
+        visibility = visibility,
+        visibilityCode = visibilityRaw
     )
 }

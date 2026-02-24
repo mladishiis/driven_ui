@@ -14,4 +14,6 @@ data class AppBarModel(
     val tapActions: List<UiAction>,
     val widgetCode: String,
     override val alignmentStyle: String,
+    override val visibility: Boolean = true,
+    val visibilityCode: String? = null
 ) : ComponentModel

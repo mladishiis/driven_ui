@@ -251,7 +251,8 @@ private fun expandComponentWithIndex(
                     expandComponentWithIndex(child, forIndexName, index)
                 },
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
-                roundStyleCode = component.roundStyleCode.replaceIndex()
+                roundStyleCode = component.roundStyleCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         is LabelModel -> {
@@ -259,7 +260,8 @@ private fun expandComponentWithIndex(
                 text = component.text.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
-                colorStyleCode = component.colorStyleCode.replaceIndex()
+                colorStyleCode = component.colorStyleCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         is ButtonModel -> {
@@ -269,7 +271,8 @@ private fun expandComponentWithIndex(
                 roundStyleCode = component.roundStyleCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
-                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex()
+                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         is AppBarModel -> {
@@ -277,21 +280,24 @@ private fun expandComponentWithIndex(
                 title = component.title.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
-                colorStyleCode = component.colorStyleCode.replaceIndex()
+                colorStyleCode = component.colorStyleCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         is InputModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
                 hint = component.hint.replaceIndex(),
-                widgetCode = component.widgetCode.replaceIndex()
+                widgetCode = component.widgetCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         is ImageModel -> {
             component.copy(
                 url = component.url.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
-                colorStyleCode = component.colorStyleCode.replaceIndex()
+                colorStyleCode = component.colorStyleCode.replaceIndex(),
+                visibilityCode = component.visibilityCode.replaceIndex()
             )
         }
         else -> component

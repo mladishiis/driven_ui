@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.sp
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
+import com.example.drivenui.engine.mappers.parseVisibility
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -91,9 +92,13 @@ private fun resolveLayout(
         }
     }
 
+    // Резолвим visibility (условные выражения *if...*then...*else и @{}/@@{})
+    val resolvedVisibilityCode = layout.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: layout.visibilityCode)
+
     // Для FOR‑лейаутов не трогаем детей на этом этапе
     if (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) {
-        return layout.copy(modifier = modifier)
+        return layout.copy(modifier = modifier, visibility = visibility, visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode)
     }
 
     val resolvedChildren = layout.children.mapNotNull {
@@ -102,7 +107,9 @@ private fun resolveLayout(
 
     return layout.copy(
         modifier = modifier,
-        children = resolvedChildren
+        children = resolvedChildren,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode
     )
 }
 
@@ -152,11 +159,16 @@ private fun resolveButton(
         }
     }
 
+    val resolvedVisibilityCode = button.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: button.visibilityCode)
+
     return button.copy(
         text = resolvedText,
         roundedCornerSize = roundedCornerSize,
         textStyle = textStyle,
-        backgroundColor = backgroundColor
+        backgroundColor = backgroundColor,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: button.visibilityCode
     )
 }
 
@@ -190,9 +202,14 @@ private fun resolveLabel(
         }
     }
 
+    val resolvedVisibilityCode = label.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: label.visibilityCode)
+
     return label.copy(
         text = resolvedText,
-        textStyle = textStyle
+        textStyle = textStyle,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: label.visibilityCode
     )
 }
 
@@ -226,9 +243,14 @@ private fun resolveAppBar(
         }
     }
 
+    val resolvedVisibilityCode = appBar.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: appBar.visibilityCode)
+
     return appBar.copy(
         title = resolvedTitle,
-        textStyle = textStyle
+        textStyle = textStyle,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: appBar.visibilityCode
     )
 }
 
@@ -241,9 +263,14 @@ private fun resolveInput(
     val resolvedText = resolveValueExpression(input.text, contextManager)
     val resolvedHint = resolveValueExpression(input.hint, contextManager)
 
+    val resolvedVisibilityCode = input.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: input.visibilityCode)
+
     return input.copy(
         text = resolvedText,
-        hint = resolvedHint
+        hint = resolvedHint,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: input.visibilityCode
     )
 }
 
@@ -264,8 +291,13 @@ private fun resolveImage(
         }
     }
 
+    val resolvedVisibilityCode = image.visibilityCode?.let { resolveValueExpression(it, contextManager) }
+    val visibility = parseVisibility(resolvedVisibilityCode ?: image.visibilityCode)
+
     return image.copy(
         url = resolvedUrl,
-        color = imageColor
+        color = imageColor,
+        visibility = visibility,
+        visibilityCode = resolvedVisibilityCode ?: image.visibilityCode
     )
 }
