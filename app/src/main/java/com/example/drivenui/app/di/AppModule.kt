@@ -84,12 +84,13 @@ object AppModule {
     fun provideMicroappFileProvider(
         @ApplicationContext context: Context,
         source: MicroappSource,
-    ): MicroappFileProvider =
-        when (source) {
-            MicroappSource.ASSETS -> AssetsMicroappFileProvider(context)
-            MicroappSource.FILE_SYSTEM,
-            MicroappSource.FILE_SYSTEM_JSON -> DirMicroappFileProvider(context),
+    ): MicroappFileProvider {
+        return if (source == MicroappSource.ASSETS) {
+            AssetsMicroappFileProvider(context)
+        } else {
+            DirMicroappFileProvider(context)
         }
+    }
 
     @Provides
     @Singleton

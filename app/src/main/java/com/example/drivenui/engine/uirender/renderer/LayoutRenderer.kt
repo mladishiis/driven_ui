@@ -38,14 +38,15 @@ fun LayoutRenderer(
         }
     }
 
+    val baseModifier = model.modifierParams.applyParams(Modifier)
     val layoutModifier = if (model.onTapActions.isNotEmpty()) {
-        model.modifier.then(
+        baseModifier.then(
             Modifier.clickable {
                 onActions(model.onTapActions)
             }
         )
     } else {
-        model.modifier
+        baseModifier
     }
 
     val modelWithClickable = model.copy(modifier = layoutModifier)

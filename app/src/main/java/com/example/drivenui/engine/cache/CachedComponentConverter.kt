@@ -1,5 +1,6 @@
 package com.example.drivenui.engine.cache
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
@@ -107,7 +108,7 @@ fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
  */
 fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
     is CachedLayoutModel -> LayoutModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         type = type,
         children = children.map { it.toComponentModel() },
@@ -122,7 +123,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         visibilityCode = visibilityCode
     )
     is CachedLabelModel -> LabelModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         text = text,
         widgetCode = widgetCode,
@@ -135,7 +136,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         visibilityCode = visibilityCode
     )
     is CachedButtonModel -> ButtonModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         enabled = enabled,
         text = text,
@@ -153,7 +154,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         visibilityCode = visibilityCode
     )
     is CachedImageModel -> ImageModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         url = url,
         widgetCode = widgetCode,
@@ -165,7 +166,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         visibilityCode = visibilityCode
     )
     is CachedAppBarModel -> AppBarModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         title = title,
         iconLeftUrl = iconLeftUrl,
@@ -179,7 +180,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         visibilityCode = visibilityCode
     )
     is CachedInputModel -> InputModel(
-        modifier = modifierParams.toModifier(),
+        modifier = Modifier,
         modifierParams = modifierParams,
         text = text,
         hint = hint,

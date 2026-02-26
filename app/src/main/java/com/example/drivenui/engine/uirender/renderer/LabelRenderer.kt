@@ -12,14 +12,15 @@ fun LabelRenderer(
     model: LabelModel,
     onActions: (List<UiAction>) -> Unit,
 ) {
+    val baseModifier = model.modifierParams.applyParams(Modifier)
     val labelModifier = if (model.tapActions.isNotEmpty()) {
-        model.modifier.then(
+        baseModifier.then(
             Modifier.clickable {
                 onActions(model.tapActions)
             }
         )
     } else {
-        model.modifier
+        baseModifier
     }
 
     Text(

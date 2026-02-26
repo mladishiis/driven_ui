@@ -8,7 +8,7 @@ import javax.inject.Inject
 /**
  * Чтение microapp из файловой системы
  */
-internal class DirMicroappFileProvider @Inject constructor(
+class DirMicroappFileProvider @Inject constructor(
     private val context: Context
 ) : MicroappFileProvider {
 

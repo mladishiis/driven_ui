@@ -83,7 +83,7 @@ internal class FileInteractorImpl @Inject constructor(
             }
         }
 
-    private fun saveMappedAfterParse(result: SDUIParser.ParsedMicroappResult) {
+    private suspend fun saveMappedAfterParse(result: SDUIParser.ParsedMicroappResult) {
         if (!result.hasData()) return
         val styleRegistry = ComposeStyleRegistry(result.styles)
         val screenMapper = ScreenMapper(styleRegistry)

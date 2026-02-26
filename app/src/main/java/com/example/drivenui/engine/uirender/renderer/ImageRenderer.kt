@@ -26,14 +26,15 @@ fun ImageRenderer(
 ) {
     val context = LocalContext.current
 
+    val baseModifier = model.modifierParams.applyParams(Modifier)
     val imageModifier = if (model.tapActions.isNotEmpty()) {
-        model.modifier.then(
+        baseModifier.then(
             Modifier.clickable {
                 onActions(model.tapActions)
             }
         )
     } else {
-        model.modifier
+        baseModifier
     }
 
     val data = remember(model.url) {

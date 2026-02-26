@@ -29,10 +29,9 @@ fun List<Component>.mapToUiModelList(styleRegistry: ComposeStyleRegistry): List<
 
 fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): ComponentModel? {
     val modifierParams = getModifierParamsFromComponent(this)
-    val modifier = modifierParams.toModifier()
     return when (this) {
-        is LayoutComponent -> mapLayoutToUIModel(modifier, modifierParams, styleRegistry)
-        is WidgetComponent -> mapWidgetToUiModel(modifier, modifierParams),
+        is LayoutComponent -> mapLayoutToUIModel(Modifier, modifierParams, styleRegistry)
+        is WidgetComponent -> mapWidgetToUiModel(Modifier, modifierParams),
     }
 }
 

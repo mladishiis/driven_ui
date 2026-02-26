@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
@@ -19,7 +20,7 @@ fun AppBarRenderer(
     onActions: (List<UiAction>) -> Unit,
 ) {
     CenterAlignedTopAppBar(
-        modifier = model.modifier,
+        modifier = model.modifierParams.applyParams(Modifier),
         title = {
             if (model.title != null) {
                 Text(

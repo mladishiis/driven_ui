@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.InputModel
@@ -38,7 +39,7 @@ fun InputRenderer(
     }
 
     BasicTextField(
-        modifier = model.modifier,
+        modifier = model.modifierParams.applyParams(Modifier),
         value = text,
         onValueChange = { newText ->
             text = newText
