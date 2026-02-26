@@ -11,7 +11,7 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
-import com.example.drivenui.parser.models.DataContext
+import com.example.drivenui.engine.parser.models.DataContext
 
 private const val TAG = "DataBinder"
 

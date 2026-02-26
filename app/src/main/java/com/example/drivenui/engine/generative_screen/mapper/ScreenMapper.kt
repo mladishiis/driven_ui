@@ -3,8 +3,8 @@ package com.example.drivenui.engine.generative_screen.mapper
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
-import com.example.drivenui.parser.models.AllStyles
-import com.example.drivenui.parser.models.ParsedScreen
+import com.example.drivenui.engine.parser.models.AllStyles
+import com.example.drivenui.engine.parser.models.ParsedScreen
 
 class ScreenMapper(
     private val styleRegistry: ComposeStyleRegistry

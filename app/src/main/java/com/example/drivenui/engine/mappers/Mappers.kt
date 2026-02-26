@@ -8,11 +8,12 @@ import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
-import com.example.drivenui.parser.models.Component
-import com.example.drivenui.parser.models.LayoutComponent
-import com.example.drivenui.parser.models.ParsedScreen
-import com.example.drivenui.parser.models.WidgetComponent
+import com.example.drivenui.engine.parser.models.Component
+import com.example.drivenui.engine.parser.models.LayoutComponent
+import com.example.drivenui.engine.parser.models.ParsedScreen
+import com.example.drivenui.engine.parser.models.WidgetComponent
 
 fun mapParsedScreenToUI(
     screen: ParsedScreen,
@@ -27,27 +28,25 @@ fun List<Component>.mapToUiModelList(styleRegistry: ComposeStyleRegistry): List<
     }
 
 fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): ComponentModel? {
-    val heightProperty = properties.find { it.code == "height" }?.resolvedValue.orEmpty()
-    val widthProperty = properties.find { it.code == "width" }?.resolvedValue.orEmpty()
-    val modifier = Modifier
-        .applyPaddingStyle(getPaddingFromProperties(this))
-        .applyHeight(heightProperty)
-        .applyWidth(widthProperty)
+    val modifierParams = getModifierParamsFromComponent(this)
+    val modifier = modifierParams.toModifier()
     return when (this) {
-        is LayoutComponent -> mapLayoutToUIModel(modifier, styleRegistry)
-        is WidgetComponent -> mapWidgetToUiModel(modifier)
+        is LayoutComponent -> mapLayoutToUIModel(modifier, modifierParams, styleRegistry)
+        is WidgetComponent -> mapWidgetToUiModel(modifier, modifierParams)
     }
 }
 
 
 fun LayoutComponent.mapLayoutToUIModel(
     modifier: Modifier,
+    modifierParams: ModifierParams,
     styleRegistry: ComposeStyleRegistry
 ): LayoutModel {
     val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
     val visibility = parseVisibility(visibilityRaw)
     return LayoutModel(
         modifier = modifier,
+        modifierParams = modifierParams,
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
         onCreateActions = getOnCreateEvents(events),
@@ -64,26 +63,27 @@ fun LayoutComponent.mapLayoutToUIModel(
 
 fun WidgetComponent.mapWidgetToUiModel(
     modifier: Modifier,
+    modifierParams: ModifierParams
 ): ComponentModel? {
     return when (widgetCode) {
         "appbar" -> {
-            mapWidgetToAppbarModel(modifier)
+            mapWidgetToAppbarModel(modifier, modifierParams)
         }
 
         "label" -> {
-            mapWidgetToLabelModel(modifier)
+            mapWidgetToLabelModel(modifier, modifierParams)
         }
 
         "button" -> {
-            mapWidgetToButtonModel(modifier)
+            mapWidgetToButtonModel(modifier, modifierParams)
         }
 
         "image" -> {
-            mapWidgetToImageModel(modifier)
+            mapWidgetToImageModel(modifier, modifierParams)
         }
 
         "input" -> {
-            mapWidgetToInputModel(modifier)
+            mapWidgetToInputModel(modifier, modifierParams)
         }
 // TODO: остальные виджеты
 
@@ -99,6 +99,7 @@ fun WidgetComponent.mapWidgetToUiModel(
             //TODO тут какой-то кастомный виджет
             LabelModel(
                 modifier = Modifier,
+                modifierParams = modifierParams,
                 text = "Custom Widget",
                 widgetCode = widgetCode,
                 tapActions = getOnTapEvents(events),
@@ -109,7 +110,8 @@ fun WidgetComponent.mapWidgetToUiModel(
 }
 
 fun WidgetComponent.mapWidgetToLabelModel(
-    modifier: Modifier
+    modifier: Modifier,
+    modifierParams: ModifierParams
 ): LabelModel? {
     val textProperty = properties.find { it.code == "text" }
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
@@ -119,6 +121,7 @@ fun WidgetComponent.mapWidgetToLabelModel(
     return if (textProperty != null) {
         LabelModel(
             modifier = modifier,
+            modifierParams = modifierParams,
             text = textProperty.resolvedValue, // Используем resolvedValue
             widgetCode = code,
             textStyleCode = textStyleCode,
@@ -132,13 +135,14 @@ fun WidgetComponent.mapWidgetToLabelModel(
 }
 
 
-fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
+fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: ModifierParams): ImageModel {
     val urlProperty = properties.find { it.code == "url" }?.resolvedValue
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
     val visibility = parseVisibility(visibilityRaw)
     return ImageModel(
         modifier = modifier,
+        modifierParams = modifierParams,
         url = urlProperty,
         widgetCode = code,
         tapActions = getOnTapEvents(events),
@@ -150,7 +154,8 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier): ImageModel {
 }
 
 fun WidgetComponent.mapWidgetToButtonModel(
-    modifier: Modifier
+    modifier: Modifier,
+    modifierParams: ModifierParams
 ): ButtonModel {
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val enabledProperty = properties.find { it.code == "enabled" }?.resolvedValue?.toBoolean() ?: true
@@ -162,6 +167,7 @@ fun WidgetComponent.mapWidgetToButtonModel(
     val visibility = parseVisibility(visibilityRaw)
     return ButtonModel(
         modifier = modifier,
+        modifierParams = modifierParams,
         text = textProperty,
         enabled = enabledProperty,
         roundedCornerSize = null,
@@ -179,6 +185,7 @@ fun WidgetComponent.mapWidgetToButtonModel(
 
 fun WidgetComponent.mapWidgetToAppbarModel(
     modifier: Modifier,
+    modifierParams: ModifierParams
 ): AppBarModel {
     val titleProperty = properties.find { it.code == "title" }?.resolvedValue ?: ""
     val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
@@ -188,6 +195,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(
     val visibility = parseVisibility(visibilityRaw)
     return AppBarModel(
         modifier = modifier,
+        modifierParams = modifierParams,
         title = titleProperty,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
@@ -201,7 +209,8 @@ fun WidgetComponent.mapWidgetToAppbarModel(
 }
 
 fun WidgetComponent.mapWidgetToInputModel(
-    modifier: Modifier
+    modifier: Modifier,
+    modifierParams: ModifierParams
 ): InputModel? {
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val hintProperty = properties.find { it.code == "hint" }?.resolvedValue ?: ""
@@ -210,6 +219,7 @@ fun WidgetComponent.mapWidgetToInputModel(
     val visibility = parseVisibility(visibilityRaw)
     return InputModel(
         modifier = modifier,
+        modifierParams = modifierParams,
         text = textProperty,
         hint = hintProperty,
         readOnly = readOnlyProperty,

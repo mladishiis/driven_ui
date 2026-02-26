@@ -2,11 +2,11 @@ package com.example.drivenui.engine.mappers
 
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
-import com.example.drivenui.parser.models.AllStyles
-import com.example.drivenui.parser.models.ColorStyle
-import com.example.drivenui.parser.models.ColorTheme
-import com.example.drivenui.parser.models.RoundStyle
-import com.example.drivenui.parser.models.TextStyle
+import com.example.drivenui.engine.parser.models.AllStyles
+import com.example.drivenui.engine.parser.models.ColorStyle
+import com.example.drivenui.engine.parser.models.ColorTheme
+import com.example.drivenui.engine.parser.models.RoundStyle
+import com.example.drivenui.engine.parser.models.TextStyle
 
 /**
  * Простая реализация реестра стилей для Compose

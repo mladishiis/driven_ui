@@ -1,7 +1,7 @@
 package com.example.drivenui.engine.generative_screen.models
 
 import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.parser.models.ScreenQuery
+import com.example.drivenui.engine.parser.models.ScreenQuery
 
 data class ScreenModel(
     val id: String,

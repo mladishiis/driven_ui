@@ -14,7 +14,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.drivenui.R
-import com.example.drivenui.data.MicroappRootFinder
+import com.example.drivenui.app.data.MicroappRootFinder
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ImageModel
 import java.io.File

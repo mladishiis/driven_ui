@@ -2,8 +2,8 @@ package com.example.drivenui.engine.generative_screen.binding
 
 import android.content.Context
 import android.util.Log
-import com.example.drivenui.data.MicroappRootFinder
-import com.example.drivenui.parser.models.DataContext
+import com.example.drivenui.app.data.MicroappRootFinder
+import com.example.drivenui.engine.parser.models.DataContext
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import java.io.File

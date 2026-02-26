@@ -1,8 +1,8 @@
 package com.example.drivenui.engine.mappers
 
 import com.example.drivenui.engine.generative_screen.models.UiAction
-import com.example.drivenui.parser.models.EventAction
-import com.example.drivenui.parser.models.WidgetEvent
+import com.example.drivenui.engine.parser.models.EventAction
+import com.example.drivenui.engine.parser.models.WidgetEvent
 
 fun getOnTapEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onTap" }?.eventActions?.mapToUiActionsList()

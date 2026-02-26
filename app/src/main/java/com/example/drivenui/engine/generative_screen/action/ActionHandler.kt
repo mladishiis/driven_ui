@@ -1,7 +1,7 @@
 package com.example.drivenui.engine.generative_screen.action
 
 import android.util.Log
-import com.example.drivenui.data.RequestInteractor
+import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState

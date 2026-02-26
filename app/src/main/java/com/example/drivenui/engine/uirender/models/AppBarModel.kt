@@ -6,6 +6,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 
 data class AppBarModel(
     val modifier: Modifier,
+    val modifierParams: ModifierParams = ModifierParams(),
     val title: String?,
     val iconLeftUrl: String?,
     val textStyle: TextStyle = TextStyle.Default,

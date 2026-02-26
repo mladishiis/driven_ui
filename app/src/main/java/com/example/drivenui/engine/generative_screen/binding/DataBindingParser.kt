@@ -1,9 +1,9 @@
 package com.example.drivenui.engine.generative_screen.binding
 
 import android.util.Log
-import com.example.drivenui.parser.models.BindingSourceType
-import com.example.drivenui.parser.models.DataBinding
-import com.example.drivenui.parser.models.DataContext
+import com.example.drivenui.engine.parser.models.BindingSourceType
+import com.example.drivenui.engine.parser.models.DataBinding
+import com.example.drivenui.engine.parser.models.DataContext
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject

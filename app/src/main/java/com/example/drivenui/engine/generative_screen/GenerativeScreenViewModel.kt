@@ -3,7 +3,7 @@ package com.example.drivenui.engine.generative_screen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.drivenui.data.RequestInteractor
+import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
@@ -22,8 +22,10 @@ import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.value.resolveValueExpression
-import com.example.drivenui.parser.models.AllStyles
-import com.example.drivenui.parser.models.ParsedScreen
+import com.example.drivenui.engine.cache.CachedMicroappData
+import com.example.drivenui.engine.cache.toScreenModel
+import com.example.drivenui.engine.parser.models.AllStyles
+import com.example.drivenui.engine.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +41,7 @@ class GenerativeScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
+    private var mappedScreens: List<ScreenModel>? = null
     private var allStyles: AllStyles? = null
     private var microappCode: String? = null
 
@@ -46,7 +49,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private var screenMapper: ScreenMapper? = null
     private var styleRegistry: ComposeStyleRegistry? = null
     private var actionHandler: ActionHandler? = null
-    private var screenProvider: ScreenProviderImpl? = null
+    private var screenProvider: ScreenProvider? = null
 
     private val _uiState = MutableStateFlow<GenerativeUiState>(GenerativeUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -58,13 +61,13 @@ class GenerativeScreenViewModel @Inject constructor(
     private val _bottomSheetState = MutableStateFlow<ComponentModel?>(null)
     val bottomSheetState = _bottomSheetState.asStateFlow()
 
-    //TODO: здесь нужно, чтобы приходил список ScreenModel с подставленными запросами
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
         allStyles: AllStyles?,
         microappCode: String? = null
     ) {
         this.parsedScreens = parsedScreens
+        this.mappedScreens = null
         this.allStyles = allStyles
         this.microappCode = microappCode
 
@@ -87,14 +90,56 @@ class GenerativeScreenViewModel @Inject constructor(
         loadInitialScreen()
     }
 
+    /**
+     * Устанавливает замапленный результат (быстрая загрузка без парсинга и маппинга).
+     */
+    fun setMappedResult(mappedData: CachedMicroappData) {
+        val screens = mappedData.screens.map { it.toScreenModel() }
+        this.mappedScreens = screens
+        this.parsedScreens = null
+        this.allStyles = mappedData.allStyles
+        this.microappCode = mappedData.microappCode.takeIf { it.isNotBlank() }
+
+        val localStyleRegistry = ComposeStyleRegistry(mappedData.allStyles)
+        styleRegistry = localStyleRegistry
+
+        screenMapper = null
+        screenProvider = MappedScreenProviderImpl(screens)
+        actionHandler = ActionHandler(
+            navigationManager,
+            screenProvider!!,
+            externalDeeplinkHandler,
+            contextManager,
+            widgetValueProvider,
+            requestInteractor,
+            microappCode,
+            localStyleRegistry
+        )
+
+        loadInitialScreenFromMapped(screens)
+    }
+
     private fun loadInitialScreen() {
+        val screens = mappedScreens
+        if (screens != null) {
+            loadInitialScreenFromMapped(screens)
+            return
+        }
         val firstScreen = parsedScreens?.get(0)
         val mapper = screenMapper ?: return
 
         if (firstScreen != null) {
             val screenModel = mapper.mapToScreenModel(firstScreen)
-
             navigateToScreen(screenModel)
+        } else {
+            _uiState.value = GenerativeUiState.Error("No screens available")
+        }
+    }
+
+    private fun loadInitialScreenFromMapped(screens: List<ScreenModel>) {
+        val firstScreen = screens.firstOrNull()
+        if (firstScreen != null) {
+            navigateToScreen(firstScreen)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
@@ -316,6 +361,19 @@ class GenerativeScreenViewModel @Inject constructor(
         override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {
             return parsedScreens.find { it.deeplink == deeplink }
                 ?.let { mapper.mapToScreenModel(it) }
+        }
+    }
+
+    private class MappedScreenProviderImpl(
+        private val screens: List<ScreenModel>
+    ) : ScreenProvider {
+
+        override suspend fun findScreen(screenCode: String): ScreenModel? {
+            return screens.find { it.id == screenCode }
+        }
+
+        override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {
+            return null
         }
     }
 }

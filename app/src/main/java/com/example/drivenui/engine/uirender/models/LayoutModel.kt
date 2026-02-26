@@ -5,6 +5,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 
 data class LayoutModel(
     val modifier: Modifier,
+    val modifierParams: ModifierParams = ModifierParams(),
     val type: LayoutType,
     val children: List<ComponentModel>,
     val onCreateActions: List<UiAction>,
