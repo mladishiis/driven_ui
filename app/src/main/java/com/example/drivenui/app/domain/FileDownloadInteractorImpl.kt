@@ -1,12 +1,15 @@
 package com.example.drivenui.app.domain
 
 import android.content.Context
+import android.util.Base64
 import android.util.Log
 import com.example.drivenui.app.data.MicroappRootFinder
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
@@ -14,16 +17,26 @@ import javax.inject.Inject
 
 class FileDownloadInteractorImpl @Inject constructor(
     private val context: Context,
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
+    private val gson: Gson,
 ) : FileDownloadInteractor {
 
-    override suspend fun downloadAndExtractZip(url: String): Boolean =
+    override suspend fun downloadAndExtractZip(
+        url: String,
+        format: ArchiveDownloadFormat,
+    ): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Downloading zip from: $url")
+                Log.d(TAG, "Downloading from: $url, format=$format")
+
+                val acceptHeader = when (format) {
+                    ArchiveDownloadFormat.OCTET_STREAM -> "application/octet-stream"
+                    ArchiveDownloadFormat.JSON -> "application/json"
+                }
 
                 val request = Request.Builder()
                     .url(url)
+                    .header("Accept", acceptHeader)
                     .build()
 
                 client.newCall(request).execute().use { response ->
@@ -35,15 +48,33 @@ class FileDownloadInteractorImpl @Inject constructor(
 
                     clearAssetsFolder()
 
-                    ZipInputStream(body.byteStream()).use { zip ->
+                    var extractedMicroappCode: String? = null
+
+                    val zipStream = when (format) {
+                        ArchiveDownloadFormat.OCTET_STREAM -> ZipInputStream(body.byteStream())
+                        ArchiveDownloadFormat.JSON -> {
+                            val jsonString = body.string()
+                            val parsed = gson.fromJson(jsonString, ArchiveJsonResponse::class.java)
+                                ?: throw IllegalArgumentException("Invalid JSON response: parse returned null")
+                            if (parsed.archiveBase64.isBlank()) {
+                                throw IllegalArgumentException("Invalid JSON response: archive field is empty")
+                            }
+                            extractedMicroappCode = parsed.microappCode?.takeIf { it.isNotBlank() }
+                            val archiveBytes = Base64.decode(parsed.archiveBase64, Base64.DEFAULT)
+                            ZipInputStream(ByteArrayInputStream(archiveBytes))
+                        }
+                    }
+
+                    zipStream.use { zip ->
                         unzipSafely(zip)
                     }
 
-                    // После успешной распаковки сохраняем имя первой подпапки как корень микроаппа
+                    // Сохраняем корень микроаппа: из JSON microappCode или первая подпапка
                     val microappsDir = getMicroappsDir()
-                    val firstDir = microappsDir.listFiles()?.firstOrNull { it.isDirectory }
-                    if (firstDir != null) {
-                        MicroappRootFinder.saveMicroappRootName(context, firstDir.name)
+                    val rootName = extractedMicroappCode
+                        ?: microappsDir.listFiles()?.firstOrNull { it.isDirectory }?.name
+                    if (rootName != null) {
+                        MicroappRootFinder.saveMicroappRootName(context, rootName)
                     } else {
                         Log.w(TAG, "No subdirectories found in microapps after unzip")
                     }
@@ -142,7 +173,7 @@ class FileDownloadInteractorImpl @Inject constructor(
 
     override suspend fun copyAssetFileToInternalStorage(filename: String): File =
         withContext(Dispatchers.IO) {
-            val outputFile = File(context.filesDir, "extracted_assets/$filename")
+            val outputFile = File(context.filesDir, "$EXTRACTED_ASSETS_DIR/$filename")
             outputFile.parentFile?.mkdirs()
 
             val microappFile = File(getMicroappsDir(), filename)
@@ -168,5 +199,6 @@ class FileDownloadInteractorImpl @Inject constructor(
     companion object {
         private const val TAG = "FileDownloadInteractor"
         private const val MICROAPPS_DIR = "microapps"
+        private const val EXTRACTED_ASSETS_DIR = "extracted_assets"
     }
 }

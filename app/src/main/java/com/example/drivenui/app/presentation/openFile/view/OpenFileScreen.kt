@@ -339,7 +339,8 @@ internal fun OpenFileScreen(
                             Text(
                                 text = when (state.microappSource) {
                                     MicroappSource.ASSETS -> "Загрузить из assets"
-                                    MicroappSource.FILE_SYSTEM -> "Загрузить через QR-код"
+                                    MicroappSource.FILE_SYSTEM -> "Загрузить через QR (архив)"
+                                    MicroappSource.FILE_SYSTEM_JSON -> "Загрузить через QR (JSON)"
                                 }
                             )
                         }

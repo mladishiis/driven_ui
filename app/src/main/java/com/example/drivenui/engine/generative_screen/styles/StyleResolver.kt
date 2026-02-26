@@ -80,10 +80,11 @@ private fun resolveLayout(
             val resolvedCode = resolveValueExpression(rawCode, contextManager)
             val color = styleRegistry.getComposeColor(resolvedCode)
             if (color != null) {
-                modifier = if (cornerRadius != null) {
+                val cr = cornerRadius
+                modifier = if (cr != null) {
                     modifier.background(
                         color = color,
-                        shape = RoundedCornerShape(cornerRadius!!.dp)
+                        shape = RoundedCornerShape(cr.dp),
                     )
                 } else {
                     modifier.background(color)

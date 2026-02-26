@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
 import com.example.drivenui.app.domain.MicroappSource
+import com.example.drivenui.app.domain.toArchiveDownloadFormat
 import com.example.drivenui.app.domain.MicroappStorage
 import com.example.drivenui.engine.parser.SDUIParser
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
@@ -57,7 +58,8 @@ internal class OpenFileViewModel @Inject constructor(
                 handleUploadFile()
             },
 
-            MicroappSource.FILE_SYSTEM -> {
+            MicroappSource.FILE_SYSTEM,
+            MicroappSource.FILE_SYSTEM_JSON -> {
                 setEffect { OpenFileEffect.OpenQrScanner }
             },
         }
@@ -121,12 +123,18 @@ internal class OpenFileViewModel @Inject constructor(
             return
         }
 
+        val format = microappSource.toArchiveDownloadFormat()
+        if (format == null) {
+            setEffect { OpenFileEffect.ShowError("Режим загрузки по QR недоступен для текущего источника") }
+            return
+        }
+
         viewModelScope.launch {
             try {
                 updateState { copy(isUploadFile = true, isParsing = true, errorMessage = null) }
 
                 val success = withContext(Dispatchers.IO) {
-                    fileDownloadInteractor.downloadAndExtractZip(url)
+                    fileDownloadInteractor.downloadAndExtractZip(url, format)
                 }
 
                 if (!success) {
@@ -134,13 +142,18 @@ internal class OpenFileViewModel @Inject constructor(
                     updateState { copy(isUploadFile = false, isParsing = false) }
                     return@launch
                 }
-                // После успешной загрузки и распаковки единообразно парсим содержимое microapps
                 handleUploadFile()
-
             } catch (e: Exception) {
                 Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
                 updateState { copy(isUploadFile = false, isParsing = false) }
-                setEffect { OpenFileEffect.ShowError("Ошибка загрузки: ${e.localizedMessage}") }
+                val message = when (e) {
+                    is java.net.UnknownHostException -> "Нет подключения к сети"
+                    is java.net.SocketTimeoutException -> "Превышено время ожидания ответа сервера"
+                    is java.io.IOException -> "Ошибка сети: ${e.message ?: e.localizedMessage}"
+                    is IllegalArgumentException -> "Некорректные данные: ${e.message ?: e.localizedMessage}"
+                    else -> "Ошибка загрузки: ${e.message ?: e.localizedMessage}"
+                }
+                setEffect { OpenFileEffect.ShowError(message) }
             }
         }
     }

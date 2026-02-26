@@ -74,11 +74,13 @@ class GenerativeScreenViewModel @Inject constructor(
         val localStyleRegistry = ComposeStyleRegistry(allStyles)
         styleRegistry = localStyleRegistry
 
-        screenMapper = ScreenMapper(localStyleRegistry)
-        screenProvider = ScreenProviderImpl(parsedScreens, screenMapper!!)
+        val mapper = ScreenMapper(localStyleRegistry)
+        screenMapper = mapper
+        val provider = ScreenProviderImpl(parsedScreens, mapper)
+        screenProvider = provider
         actionHandler = ActionHandler(
             navigationManager,
-            screenProvider!!,
+            provider,
             externalDeeplinkHandler,
             contextManager,
             widgetValueProvider,
@@ -104,10 +106,11 @@ class GenerativeScreenViewModel @Inject constructor(
         styleRegistry = localStyleRegistry
 
         screenMapper = null
-        screenProvider = MappedScreenProviderImpl(screens)
+        val provider = MappedScreenProviderImpl(screens)
+        screenProvider = provider
         actionHandler = ActionHandler(
             navigationManager,
-            screenProvider!!,
+            provider,
             externalDeeplinkHandler,
             contextManager,
             widgetValueProvider,

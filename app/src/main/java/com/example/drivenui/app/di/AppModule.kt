@@ -1,7 +1,7 @@
 package com.example.drivenui.app.di
 
-import com.example.drivenui.app.data.AssetsMicroappFileProvider
 import android.content.Context
+import com.example.drivenui.app.data.AssetsMicroappFileProvider
 import com.example.drivenui.app.data.DirMicroappFileProvider
 import com.example.drivenui.app.data.FileRepository
 import com.example.drivenui.app.data.FileRepositoryImpl
@@ -25,6 +25,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -82,14 +83,12 @@ object AppModule {
     @Singleton
     fun provideMicroappFileProvider(
         @ApplicationContext context: Context,
-        source: MicroappSource
+        source: MicroappSource,
     ): MicroappFileProvider =
         when (source) {
-            MicroappSource.ASSETS ->
-                AssetsMicroappFileProvider(context),
-
-            MicroappSource.FILE_SYSTEM ->
-                DirMicroappFileProvider(context),
+            MicroappSource.ASSETS -> AssetsMicroappFileProvider(context)
+            MicroappSource.FILE_SYSTEM,
+            MicroappSource.FILE_SYSTEM_JSON -> DirMicroappFileProvider(context),
         }
 
     @Provides
@@ -100,31 +99,32 @@ object AppModule {
         microappSource: MicroappSource,
         fileProvider: MicroappFileProvider,
         microappStorage: MicroappStorage,
-    ): FileInteractor {
-        return FileInteractorImpl(
+    ): FileInteractor =
+        FileInteractorImpl(
             fileRepository = fileRepository,
             context = context,
             source = microappSource,
             fileProvider = fileProvider,
             microappStorage = microappStorage,
         )
-    }
 
-    /**
-     * Предоставляет FileDownloadInteractor
-     */
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
+
     @Provides
     @Singleton
     fun provideFileDownloadInteractor(
         @ApplicationContext context: Context,
-        client: OkHttpClient
-    ): FileDownloadInteractor {
-        return FileDownloadInteractorImpl(context, client)
-    }
+        client: OkHttpClient,
+        gson: Gson,
+    ): FileDownloadInteractor =
+        FileDownloadInteractorImpl(context, client, gson)
 
     @Provides
     @Singleton
     fun provideMicroappSource(): MicroappSource {
+        // ASSETS | FILE_SYSTEM (архив напрямую) | FILE_SYSTEM_JSON (архив в JSON base64)
         return MicroappSource.FILE_SYSTEM
     }
 

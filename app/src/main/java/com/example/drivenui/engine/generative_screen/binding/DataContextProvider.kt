@@ -13,21 +13,19 @@ class DataContextProvider(private val appContext: Context) {
     private var dataContext = DataContext()
 
     /**
-     * Загружает JSON файл из assets
+     * Загружает JSON файл из assets или из папки микроаппа.
      */
     fun loadJsonSmart(fileName: String): JsonElement? {
-        // ищем в динамически определённой папке микроаппа
         val microappRoot = MicroappRootFinder.findMicroappRoot(appContext)
         if (microappRoot != null) {
-            val runtimeFile = File(microappRoot, "resources/mocks/$fileName")
+            val runtimeFile = File(microappRoot, "$MOCKS_PATH/$fileName")
             if (runtimeFile.exists()) {
                 return runtimeFile.readText().let(JsonParser::parseString)
             }
         }
 
-        // 2. assets
         return try {
-            appContext.assets.open("resources/mocks/$fileName")
+            appContext.assets.open("$MOCKS_PATH/$fileName")
                 .bufferedReader()
                 .use { JsonParser.parseString(it.readText()) }
         } catch (e: Exception) {
@@ -111,5 +109,6 @@ class DataContextProvider(private val appContext: Context) {
 
     companion object {
         private const val TAG = "DataContextProvider"
+        private const val MOCKS_PATH = "resources/mocks"
     }
 }
