@@ -26,7 +26,7 @@ fun LayoutRenderer(
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     isRoot: Boolean = false,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     LaunchedEffect(Unit) {
         if (isRoot) {
@@ -56,37 +56,37 @@ fun LayoutRenderer(
             isRoot,
             onActions,
             onWidgetValueChange,
-            applyBindingsForComponent
-        )
+            applyBindingsForComponent,
+        ),
         LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
-            applyBindingsForComponent
-        )
+            applyBindingsForComponent,
+        ),
 
         LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
-            applyBindingsForComponent
-        )
+            applyBindingsForComponent,
+        ),
         LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
-            applyBindingsForComponent
-        )
+            applyBindingsForComponent,
+        ),
         LayoutType.LAYER -> BoxRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
-            applyBindingsForComponent
-        )
+            applyBindingsForComponent,
+        ),
     }
 }
 
@@ -96,7 +96,7 @@ private fun ColumnRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
@@ -105,7 +105,7 @@ private fun ColumnRenderer(
                 isRoot = isRoot,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent
+                applyBindingsForComponent = applyBindingsForComponent,
             )
         }
     }
@@ -117,7 +117,7 @@ private fun RowRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
@@ -126,7 +126,7 @@ private fun RowRenderer(
                 isRoot = isRoot,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent
+                applyBindingsForComponent = applyBindingsForComponent,
             )
         }
     }
@@ -138,7 +138,7 @@ private fun LazyColumnRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val forIndexName = model.forIndexName ?: return
     val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
@@ -154,7 +154,7 @@ private fun LazyColumnRenderer(
                     isRoot = isRoot,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent
+                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
@@ -167,7 +167,7 @@ private fun LazyRowRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val forIndexName = model.forIndexName ?: return
     val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
@@ -183,7 +183,7 @@ private fun LazyRowRenderer(
                     isRoot = isRoot,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent
+                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
@@ -196,7 +196,7 @@ private fun BoxRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
@@ -214,9 +214,9 @@ private fun BoxRenderer(
                     .align(Alignment.TopCenter)
 
                 "alignbottom" -> Modifier
-                    .align(Alignment.BottomCenter)
+                    .align(Alignment.BottomCenter),
 
-                else -> Modifier
+                else -> Modifier,
             }
             Box(modifier = modifier) {
                 ComponentRenderer(
@@ -224,7 +224,7 @@ private fun BoxRenderer(
                     isRoot = isRoot,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent
+                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
@@ -238,7 +238,7 @@ private fun BoxRenderer(
 private fun expandComponentWithIndex(
     component: ComponentModel,
     forIndexName: String,
-    index: String
+    index: String,
 ): ComponentModel {
     val pattern = "{#$forIndexName}"
     fun String?.replaceIndex(): String? = this?.replace(pattern, index)
@@ -252,7 +252,7 @@ private fun expandComponentWithIndex(
                 },
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
                 roundStyleCode = component.roundStyleCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
         is LabelModel -> {
@@ -261,7 +261,7 @@ private fun expandComponentWithIndex(
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
         is ButtonModel -> {
@@ -272,7 +272,7 @@ private fun expandComponentWithIndex(
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
         is AppBarModel -> {
@@ -281,7 +281,7 @@ private fun expandComponentWithIndex(
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
         is InputModel -> {
@@ -289,7 +289,7 @@ private fun expandComponentWithIndex(
                 text = component.text.replaceIndex(),
                 hint = component.hint.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
         is ImageModel -> {
@@ -297,9 +297,9 @@ private fun expandComponentWithIndex(
                 url = component.url.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
-                visibilityCode = component.visibilityCode.replaceIndex()
+                visibilityCode = component.visibilityCode.replaceIndex(),
             )
-        }
-        else -> component
+        },
+        else -> component,
     }
 }

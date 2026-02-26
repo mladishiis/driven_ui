@@ -229,7 +229,7 @@ class ComponentParser {
                 properties = properties,
                 styles = styles,
                 events = events, // События виджета
-                bindingProperties = bindingProperties
+                bindingProperties = bindingProperties,
             )
         } else {
             null
@@ -294,7 +294,7 @@ class ComponentParser {
             ComponentProperty(
                 code = code,
                 rawValue = value,
-                resolvedValue = value // Пока без подстановки
+                resolvedValue = value, // Пока без подстановки
             )
         } else {
             null
@@ -452,7 +452,7 @@ class ComponentParser {
             WidgetEvent(
                 eventCode = eventCode,
                 order = order,
-                eventActions = eventActions
+                eventActions = eventActions,
             )
         } else {
             null
@@ -520,7 +520,7 @@ class ComponentParser {
             EventAction(
                 code = code,
                 order = order,
-                properties = properties
+                properties = properties,
             )
         } else {
             null

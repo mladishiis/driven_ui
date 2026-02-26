@@ -11,7 +11,7 @@ data class CachedMicroappData(
     val microappCode: String,
     val microappTitle: String,
     val allStyles: AllStyles?,
-    val screens: List<CachedScreenModel>
+    val screens: List<CachedScreenModel>,
 ) {
     fun hasData(): Boolean =
         microappCode.isNotBlank() || screens.isNotEmpty() || allStyles != null
@@ -23,5 +23,5 @@ data class CachedMicroappData(
 data class CachedScreenModel(
     val id: String,
     val requests: List<ScreenQuery>,
-    val rootComponent: CachedComponentModel?
+    val rootComponent: CachedComponentModel?,
 )

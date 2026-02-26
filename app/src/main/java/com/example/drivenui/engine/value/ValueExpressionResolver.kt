@@ -43,7 +43,7 @@ private fun parseConditionalExpression(value: String): ConditionalExpression? {
     return ConditionalExpression(
         condition = condition.trim(),
         thenBranch = thenBranch,
-        elseBranch = elseBranch
+        elseBranch = elseBranch,
     )
 }
 

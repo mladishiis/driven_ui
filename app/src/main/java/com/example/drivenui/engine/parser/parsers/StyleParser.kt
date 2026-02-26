@@ -63,7 +63,7 @@ class StyleParser {
             colorStyles = colorStyles,
             alignmentStyles = alignmentStyles,
             paddingStyles = paddingStyles,
-            roundStyles = roundStyles
+            roundStyles = roundStyles,
         )
     }
 

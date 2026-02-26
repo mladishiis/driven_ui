@@ -22,7 +22,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
 import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
-import com.example.drivenui.app.theme.DrivenUITheme
+import com.example.drivenui.theme.DrivenUITheme
 import kotlinx.coroutines.flow.StateFlow
 
 
@@ -43,9 +43,12 @@ fun GenerativeScreen(
         },
         onWidgetValueChange = viewModel::onWidgetValueChange,
         applyBindingsForComponent = viewModel::applyBindingsToComponent,
-        getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
+        getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp
     )
 }
+
+/** Радиус скругления шторки по умолчанию (dp), если у корневого layout не задан roundStyle. */
+private const val DEFAULT_SHEET_CORNER_RADIUS_DP = 0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +71,7 @@ fun GenerativeScreenUi(
                 state = state,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent
+                applyBindingsForComponent = applyBindingsForComponent,
             )
 
             // Нижняя шторка поверх экрана
@@ -78,7 +81,7 @@ fun GenerativeScreenUi(
                 onBack = onBack,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
-                getSheetCornerRadiusDp = getSheetCornerRadiusDp
+                getSheetCornerRadiusDp = getSheetCornerRadiusDp,
             )
         }
     }
@@ -95,7 +98,7 @@ private fun ScreenContent(
         is GenerativeUiState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator()
             }
@@ -107,7 +110,7 @@ private fun ScreenContent(
                     isRoot = true,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent
+                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
@@ -133,7 +136,7 @@ private fun BottomSheetHost(
         val configuration = LocalConfiguration.current
         val maxSheetHeight = (configuration.screenHeightDp * 0.99f).dp
 
-        val cornerRadiusDp = getSheetCornerRadiusDp(sheetModel) ?: 0
+        val cornerRadiusDp = getSheetCornerRadiusDp(sheetModel) ?: DEFAULT_SHEET_CORNER_RADIUS_DP
         val sheetShape = RoundedCornerShape(
             topStart = cornerRadiusDp.dp,
             topEnd = cornerRadiusDp.dp,

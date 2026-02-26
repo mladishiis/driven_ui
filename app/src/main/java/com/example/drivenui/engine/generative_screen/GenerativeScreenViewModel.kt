@@ -37,7 +37,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private val externalDeeplinkHandler: ExternalDeeplinkHandler,
     private val requestInteractor: RequestInteractor,
     private val contextManager: IContextManager,
-    private val widgetValueProvider: IWidgetValueProvider
+    private val widgetValueProvider: IWidgetValueProvider,
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
@@ -64,7 +64,7 @@ class GenerativeScreenViewModel @Inject constructor(
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
         allStyles: AllStyles?,
-        microappCode: String? = null
+        microappCode: String? = null,
     ) {
         this.parsedScreens = parsedScreens
         this.mappedScreens = null
@@ -84,7 +84,7 @@ class GenerativeScreenViewModel @Inject constructor(
             widgetValueProvider,
             requestInteractor,
             microappCode,
-            localStyleRegistry
+            localStyleRegistry,
         )
 
         loadInitialScreen()
@@ -113,7 +113,7 @@ class GenerativeScreenViewModel @Inject constructor(
             widgetValueProvider,
             requestInteractor,
             microappCode,
-            localStyleRegistry
+            localStyleRegistry,
         )
 
         loadInitialScreenFromMapped(screens)
@@ -280,7 +280,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
         processScreenForNavigation(
             baseScreen = definition,
-            replaceCurrent = true
+            replaceCurrent = true,
         )
     }
 
@@ -296,14 +296,14 @@ class GenerativeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             processScreenForNavigation(
                 baseScreen = screen,
-                replaceCurrent = false
+                replaceCurrent = false,
             )
         }
     }
 
     private suspend fun processScreenForNavigation(
         baseScreen: ScreenModel,
-        replaceCurrent: Boolean
+        replaceCurrent: Boolean,
     ) {
         val onCreateQueries = extractOnCreateQueries(baseScreen.rootComponent)
 
@@ -314,7 +314,7 @@ class GenerativeScreenViewModel @Inject constructor(
             for (queryCode in onCreateQueries) {
                 processedScreen = requestInteractor.executeQueryAndUpdateScreen(
                     screenModel = processedScreen,
-                    queryCode = queryCode
+                    queryCode = queryCode,
                 )
             }
             processedScreen
@@ -350,7 +350,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
     private class ScreenProviderImpl(
         private val parsedScreens: List<ParsedScreen>,
-        private val mapper: ScreenMapper
+        private val mapper: ScreenMapper,
     ) : ScreenProvider {
 
         override suspend fun findScreen(screenCode: String): ScreenModel? {
@@ -365,7 +365,7 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private class MappedScreenProviderImpl(
-        private val screens: List<ScreenModel>
+        private val screens: List<ScreenModel>,
     ) : ScreenProvider {
 
         override suspend fun findScreen(screenCode: String): ScreenModel? {

@@ -44,7 +44,7 @@ class ActionHandler(
                 is UiAction.NativeCode -> handleNativeCode(action)
                 is UiAction.RefreshWidget -> handleRefreshWidget(action.widgetCode)
                 is UiAction.RefreshLayout -> handleRefreshLayout(action.layoutCode)
-                is UiAction.Empty -> ActionResult.Success
+                is UiAction.Empty -> ActionResult.Success,
             }
         } catch (e: Exception) {
             Log.e("ActionHandler", "Error handling action: ${action::class.simpleName}", e)
@@ -146,14 +146,14 @@ class ActionHandler(
     //TODO: рефакторинг или вынести куда-то вообще
     private fun refreshWidgetInComponent(
         component: ComponentModel?,
-        widgetCode: String
+        widgetCode: String,
     ): ComponentModel? {
         return when (component) {
             null -> null
             is LayoutModel -> component.copy(
                 children = component.children.map { child ->
                     refreshWidgetInComponent(child, widgetCode) ?: child
-                }
+                },
             )
             is InputModel -> {
                 if (component.widgetCode == widgetCode) {
@@ -189,8 +189,8 @@ class ActionHandler(
                 } else {
                     component
                 }
-            }
-            else -> component
+            },
+            else -> component,
         }
     }
 
@@ -202,7 +202,7 @@ class ActionHandler(
 
         val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
             screenModel = currentScreen.definition,
-            queryCode = queryCode
+            queryCode = queryCode,
         )
 
         val resolvedScreen = resolveScreen(processedScreen, contextManager, styleRegistry)
@@ -221,7 +221,7 @@ class ActionHandler(
             contextManager.setMicroappVariable(
                 microappCode = microappCode,
                 variableName = variableName,
-                value = sourceValue
+                value = sourceValue,
             )
             return ActionResult.Success
         }
@@ -229,13 +229,13 @@ class ActionHandler(
         parseEngineContextTarget(action.valueTo)?.let { variableName ->
             contextManager.setEngineVariable(
                 variableName = variableName,
-                value = sourceValue
+                value = sourceValue,
             )
             return ActionResult.Success
         }
 
         return ActionResult.Error(
-            "Invalid target format for saveToContext: ${action.valueTo}. Expected @{microappCode.variableName} or @@{variableName}"
+            "Invalid target format for saveToContext: ${action.valueTo}. Expected @{microappCode.variableName} or @@{variableName}",
         )
     }
 
@@ -243,7 +243,7 @@ class ActionHandler(
         parseWidgetVariable(expression)?.let { (widgetCode, parameter) ->
             return widgetValueProvider.getWidgetValue(
                 widgetCode = widgetCode,
-                parameter = parameter
+                parameter = parameter,
             )
         }
 
@@ -297,7 +297,7 @@ class ActionHandler(
                             contextManager.setMicroappVariable(
                                 microappCode = microappCode,
                                 variableName = key,
-                                value = value
+                                value = value,
                             )
                         }
                     } else {
@@ -328,7 +328,7 @@ sealed class ActionResult {
      */
     data class BottomSheetChanged(val model: ScreenModel?) : ActionResult()
 
-    data class Error(val message: String, val exception: Exception? = null) : ActionResult()
+    data class Error(val message: String, val exception: Exception? = null,) : ActionResult()
 }
 
 interface ScreenProvider {

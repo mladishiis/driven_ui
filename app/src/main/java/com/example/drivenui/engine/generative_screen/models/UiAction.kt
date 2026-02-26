@@ -12,7 +12,7 @@ sealed interface UiAction {
     data class SaveToContext(val valueTo: String, val valueFrom: String) : UiAction
     data class NativeCode(
         val actionCode: String,
-        val parameters: Map<String, String> = emptyMap()
+        val parameters: Map<String, String> = emptyMap(),
     ) : UiAction
     data object Back : UiAction
     data object Empty : UiAction

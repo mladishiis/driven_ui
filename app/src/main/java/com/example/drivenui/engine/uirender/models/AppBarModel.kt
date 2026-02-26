@@ -16,5 +16,5 @@ data class AppBarModel(
     val widgetCode: String,
     override val alignmentStyle: String,
     override val visibility: Boolean = true,
-    val visibilityCode: String? = null
+    val visibilityCode: String? = null,
 ) : ComponentModel

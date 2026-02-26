@@ -78,7 +78,7 @@ class QueryParser {
             type = type,
             endpoint = endpoint,
             mockFile = mockFile,
-            properties = properties
+            properties = properties,
         )
     }
 
@@ -196,7 +196,7 @@ class QueryParser {
             queryCode = queryCode,
             mockFile = mockFile,
             properties = propertiesMap,
-            order = order
+            order = order,
         )
     }
 

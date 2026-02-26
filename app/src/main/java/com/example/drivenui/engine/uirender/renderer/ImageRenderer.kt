@@ -51,7 +51,7 @@ fun ImageRenderer(
             modifier = imageModifier,
             painter = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
-            colorFilter = colorFilter
+            colorFilter = colorFilter,
         )
     } else {
         AsyncImage(
@@ -63,7 +63,7 @@ fun ImageRenderer(
             placeholder = painterResource(id = R.drawable.ic_24_close),
             error = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
-            colorFilter = colorFilter
+            colorFilter = colorFilter,
         )
     }
 }

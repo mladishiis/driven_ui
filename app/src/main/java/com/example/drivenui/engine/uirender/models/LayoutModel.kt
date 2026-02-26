@@ -16,7 +16,7 @@ data class LayoutModel(
     val forIndexName: String? = null,
     val maxForIndex: String? = null,
     override val visibility: Boolean = true,
-    val visibilityCode: String? = null
+    val visibilityCode: String? = null,
 ) : ComponentModel
 
 enum class LayoutType {
@@ -34,5 +34,5 @@ fun getLayoutTypeFromString(type: String) =
         "layers" -> LayoutType.LAYER
         "verticalFor" -> LayoutType.VERTICAL_FOR
         "horizontalFor" -> LayoutType.HORIZONTAL_FOR
-        else -> LayoutType.VERTICAL_LAYOUT
+        else -> LayoutType.VERTICAL_LAYOUT,
     }

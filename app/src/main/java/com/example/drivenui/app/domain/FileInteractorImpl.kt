@@ -40,7 +40,7 @@ internal class FileInteractorImpl @Inject constructor(
                     microappXml = fileProvider.readMicroapp(),
                     stylesXml = fileProvider.readStyles(),
                     queriesXml = fileProvider.readQueries(),
-                    screens = fileProvider.readScreens()
+                    screens = fileProvider.readScreens(),
                 )
 
                 lastParsedResult = result
@@ -69,7 +69,7 @@ internal class FileInteractorImpl @Inject constructor(
                     microappXml = fileProvider.readMicroappOrEmpty(),
                     stylesXml = stylesXml,
                     queriesXml = fileProvider.readQueriesOrEmpty(),
-                    screens = screens
+                    screens = screens,
                 )
 
                 lastParsedResult = result
@@ -92,7 +92,7 @@ internal class FileInteractorImpl @Inject constructor(
             microappCode = result.microapp?.code?.takeIf { it.isNotBlank() } ?: "template",
             microappTitle = result.microapp?.title ?: "",
             allStyles = result.styles,
-            screens = cachedScreens
+            screens = cachedScreens,
         )
         microappStorage.saveMapped(cachedData)
     }
@@ -144,7 +144,7 @@ internal class FileInteractorImpl @Inject constructor(
             mapOf(
                 "resolvedBindings" to result.getResolvedValues().size,
                 "screenQueries" to result.screenQueries.size,
-                "hasDataContext" to (result.dataContext != null)
+                "hasDataContext" to (result.dataContext != null),
             )
         }
 

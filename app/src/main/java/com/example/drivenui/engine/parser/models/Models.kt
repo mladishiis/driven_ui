@@ -11,7 +11,7 @@ enum class ComponentType {
     SCREEN_LAYOUT,  // Контейнерный лэйаут на экране
     LAYOUT,         // Базовый лэйаут (vertical, horizontal, layers)
     WIDGET,         // Виджет (button, label, image и т.д.)
-    SCREEN          // Экран
+    SCREEN,         // Экран
 }
 
 /**
@@ -21,7 +21,7 @@ enum class ComponentType {
 data class ComponentProperty(
     val code: String,
     val rawValue: String,           // Исходное значение (может содержать макросы)
-    val resolvedValue: String = rawValue            // Значение после подстановки
+    val resolvedValue: String = rawValue,            // Значение после подстановки
 ): Parcelable
 
 /**
@@ -33,7 +33,7 @@ data class DataBinding(
     val sourceName: String,          // Имя источника (например, "carriers_allCarriers")
     val path: String,                // Путь к данным (например, "[0].carrierName")
     val expression: String,          // Полное выражение (например, "${carriers_allCarriers.[0].carrierName}")
-    val defaultValue: String = ""
+    val defaultValue: String = "",
 ): Parcelable
 
 /**
@@ -45,7 +45,7 @@ enum class BindingSourceType {
     SCREEN_QUERY_RESULT, // Результат screen query (новый тип)
     APP_STATE,      // Состояние приложения
     LOCAL_VAR,      // Локальная переменная
-    SCREEN_CONTEXT  // Контекст экрана
+    SCREEN_CONTEXT,  // Контекст экрана
 }
 
 /**
@@ -56,7 +56,7 @@ data class DataContext(
     val queryResults: Map<String, Any> = emptyMap(),
     val screenQueryResults: Map<String, Any> = emptyMap(), // Добавляем отдельный тип для screenQuery
     val appState: Map<String, Any> = emptyMap(),
-    val localVariables: Map<String, Any> = emptyMap()
+    val localVariables: Map<String, Any> = emptyMap(),
 )
 
 /**
@@ -91,7 +91,7 @@ data class LayoutComponent(
     override val bindingProperties: List<String> = emptyList(),
     override val type: ComponentType = ComponentType.LAYOUT,
     override val index: Int = 0,
-    override val forIndexName: String? = null
+    override val forIndexName: String? = null,
 ) : Component()
 
 /**
@@ -109,7 +109,7 @@ data class WidgetComponent(
     override val bindingProperties: List<String> = emptyList(),
     override val type: ComponentType = ComponentType.WIDGET,
     override val index: Int = 0,
-    override val forIndexName: String? = null
+    override val forIndexName: String? = null,
 ) : Component()
 
 //event
@@ -127,7 +127,7 @@ data class  EventAction(
     val title: String = "",
     val code: String = "",
     val order: Int = 0,
-    val properties: Map<String, String> = emptyMap()
+    val properties: Map<String, String> = emptyMap(),
 ): Parcelable
 
 /**
@@ -142,7 +142,7 @@ data class Event(
     val title: String = "",
     val code: String = "",
     val order: Int = 0,
-    val eventActions: List<EventAction> = emptyList()
+    val eventActions: List<EventAction> = emptyList(),
 )
 
 /**
@@ -151,7 +151,7 @@ data class Event(
  * @property events Список всех событий
  */
 data class AllEvents(
-    val events: List<Event> = emptyList()
+    val events: List<Event> = emptyList(),
 )
 
 /**
@@ -160,7 +160,7 @@ data class AllEvents(
  * @property eventActions Список всех действий событий
  */
 data class AllEventActions(
-    val eventActions: List<EventAction>
+    val eventActions: List<EventAction>,
 )
 
 /**
@@ -177,7 +177,7 @@ data class Microapp(
     val code: String,
     val shortCode: String,
     val deeplink: String,
-    val persistents: List<String>
+    val persistents: List<String>,
 )
 
 /**
@@ -190,7 +190,7 @@ data class ParsedScreen(
     val screenShortCode: String,
     val deeplink: String,
     val rootComponent: Component? = null,
-    val requests: List<ScreenQuery> = emptyList()
+    val requests: List<ScreenQuery> = emptyList(),
 ): Parcelable
 
 //queries
@@ -205,7 +205,7 @@ data class ParsedScreen(
 data class QueryProperty(
     val paramType: String,
     val variableName: String,
-    val variableValue: String
+    val variableValue: String,
 )
 
 /**
@@ -216,7 +216,7 @@ data class QueryProperty(
  */
 data class QueryCondition(
     val code: String,
-    val value: String
+    val value: String,
 )
 
 /**
@@ -276,7 +276,7 @@ data class ScreenLayoutWidget(
     val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val events: List<WidgetEvent> = emptyList(),
-    val bindingProperties: List<String> = emptyList()
+    val bindingProperties: List<String> = emptyList(),
 )
 
 /**
@@ -301,7 +301,7 @@ data class ScreenLayout(
     val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val children: List<ScreenLayout> = emptyList(),
-    val widgets: List<ScreenLayoutWidget> = emptyList()
+    val widgets: List<ScreenLayoutWidget> = emptyList(),
 )
 
 /**
@@ -322,7 +322,7 @@ data class Screen(
     val deeplink: String,
     val properties: Map<String, String> = emptyMap(),
     val events: List<WidgetEvent> = emptyList(),
-    val screenLayouts: List<ScreenLayout> = emptyList()
+    val screenLayouts: List<ScreenLayout> = emptyList(),
 )
 
 //styles
@@ -340,7 +340,7 @@ data class TextStyle(
     val code: String,
     val fontFamily: String,
     val fontSize: Int,
-    val fontWeight: Int
+    val fontWeight: Int,
 ): Parcelable
 
 /**
@@ -352,7 +352,7 @@ data class TextStyle(
 @Parcelize
 data class ColorTheme(
     val color: String,
-    val opacity: Int = 100
+    val opacity: Int = 100,
 ): Parcelable
 
 /**
@@ -366,7 +366,7 @@ data class ColorTheme(
 data class ColorStyle(
     val code: String,
     val lightTheme: ColorTheme,
-    val darkTheme: ColorTheme
+    val darkTheme: ColorTheme,
 ): Parcelable
 
 /**
@@ -376,7 +376,7 @@ data class ColorStyle(
  */
 @Parcelize
 data class AlignmentStyle(
-    val code: String
+    val code: String,
 ): Parcelable
 
 /**
@@ -394,7 +394,7 @@ data class PaddingStyle(
     val paddingLeft: Int,
     val paddingTop: Int,
     val paddingRight: Int,
-    val paddingBottom: Int
+    val paddingBottom: Int,
 ): Parcelable
 
 /**
@@ -406,7 +406,7 @@ data class PaddingStyle(
 @Parcelize
 data class RoundStyle(
     val code: String,
-    val radiusValue: Int
+    val radiusValue: Int,
 ): Parcelable
 
 /**
@@ -424,7 +424,7 @@ data class AllStyles(
     val colorStyles: List<ColorStyle>,
     val alignmentStyles: List<AlignmentStyle>,
     val paddingStyles: List<PaddingStyle>,
-    val roundStyles: List<RoundStyle>
+    val roundStyles: List<RoundStyle>,
 ): Parcelable
 
 //widgets
@@ -437,7 +437,7 @@ data class AllStyles(
 @Parcelize
 data class WidgetStyle(
     val code: String = "",
-    val value: String = ""
+    val value: String = "",
 ): Parcelable
 
 /**
@@ -451,7 +451,7 @@ data class WidgetStyle(
 data class WidgetEvent(
     val eventCode: String = "",
     val order: Int = 0,
-    val eventActions: List<EventAction> = emptyList()
+    val eventActions: List<EventAction> = emptyList(),
 ): Parcelable
 
 /**
@@ -472,7 +472,7 @@ data class Widget(
     val properties: Map<String, String> = emptyMap(),
     val styles: List<WidgetStyle> = emptyList(),
     val events: List<WidgetEvent> = emptyList(),
-    val bindingProperties: List<String> = emptyList()
+    val bindingProperties: List<String> = emptyList(),
 )
 
 /**

@@ -37,7 +37,7 @@ fun getPaddingFromProperties(component: Component): PaddingValues {
         start = p[0].dp,
         top = p[1].dp,
         end = p[2].dp,
-        bottom = p[3].dp
+        bottom = p[3].dp,
     )
 }
 
@@ -54,7 +54,7 @@ fun getModifierParamsFromComponent(component: Component): ModifierParams {
         paddingRight = paddings[2],
         paddingBottom = paddings[3],
         height = heightProperty,
-        width = widthProperty
+        width = widthProperty,
     )
 }
 

@@ -19,7 +19,7 @@ data class ModifierParams(
     val paddingRight: Int = 0,
     val paddingBottom: Int = 0,
     val height: String = "",
-    val width: String = ""
+    val width: String = "",
 ) {
     fun toModifier(): Modifier {
         var mod = Modifier
@@ -28,18 +28,18 @@ data class ModifierParams(
                 start = paddingLeft.dp,
                 top = paddingTop.dp,
                 end = paddingRight.dp,
-                bottom = paddingBottom.dp
+                bottom = paddingBottom.dp,
             )
         }
         mod = when (height.lowercase()) {
             "fillmax" -> mod.fillMaxHeight()
             "wrapcontent" -> mod.wrapContentHeight()
-            else -> height.toIntOrNull()?.let { mod.height(it.dp) } ?: mod.fillMaxHeight()
+            else -> height.toIntOrNull()?.let { mod.height(it.dp) } ?: mod.fillMaxHeight(),
         }
         mod = when (width.lowercase()) {
             "fillmax" -> mod.fillMaxWidth()
             "wrapcontent" -> mod.wrapContentWidth()
-            else -> width.toIntOrNull()?.let { mod.width(it.dp) } ?: mod.fillMaxWidth()
+            else -> width.toIntOrNull()?.let { mod.width(it.dp) } ?: mod.fillMaxWidth(),
         }
         return mod
     }

@@ -62,19 +62,19 @@ internal sealed interface OpenFileEffect : VtbEffect {
     data class ShowSuccessWithBindings(
         val message: String,
         val bindingStats: Map<String, Any>?,
-        val resolvedValues: Map<String, String>
+        val resolvedValues: Map<String, String>,
     ) : OpenFileEffect
 
     /** Показать статистику биндингов */
     data class ShowBindingStats(
         val stats: Map<String, Any>?,
-        val resolvedValues: Map<String, String>
+        val resolvedValues: Map<String, String>,
     ) : OpenFileEffect
 
     /** Показать диалог выбора JSON файлов */
     data class ShowJsonFileSelectionDialog(
         val availableFiles: List<String>,
-        val selectedFiles: List<String>
+        val selectedFiles: List<String>,
     ) : OpenFileEffect
 }
 
@@ -95,7 +95,7 @@ internal sealed interface OpenFileEffect : VtbEffect {
 /** Элемент списка сохранённых микроаппов */
 internal data class MicroappItem(
     val code: String,
-    val title: String
+    val title: String,
 )
 
 internal data class OpenFileState(
@@ -111,7 +111,7 @@ internal data class OpenFileState(
     val errorMessage: String? = null,
     val showJsonSelectionDialog: Boolean = false,
     val bindingStats: Map<String, Any>? = null,
-    val resolvedValues: Map<String, String> = emptyMap()
+    val resolvedValues: Map<String, String> = emptyMap(),
 ) : VtbState {
 
     /**

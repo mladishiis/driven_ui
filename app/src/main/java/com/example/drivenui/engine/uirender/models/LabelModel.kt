@@ -15,5 +15,5 @@ data class LabelModel(
     val tapActions: List<UiAction>,
     override val alignmentStyle: String,
     override val visibility: Boolean = true,
-    val visibilityCode: String? = null
+    val visibilityCode: String? = null,
 ) : ComponentModel

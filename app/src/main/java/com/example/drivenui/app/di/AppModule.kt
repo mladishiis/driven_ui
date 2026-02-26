@@ -86,10 +86,10 @@ object AppModule {
     ): MicroappFileProvider =
         when (source) {
             MicroappSource.ASSETS ->
-                AssetsMicroappFileProvider(context)
+                AssetsMicroappFileProvider(context),
 
             MicroappSource.FILE_SYSTEM ->
-                DirMicroappFileProvider(context)
+                DirMicroappFileProvider(context),
         }
 
     @Provides

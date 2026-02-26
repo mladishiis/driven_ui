@@ -32,7 +32,7 @@ fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): Compon
     val modifier = modifierParams.toModifier()
     return when (this) {
         is LayoutComponent -> mapLayoutToUIModel(modifier, modifierParams, styleRegistry)
-        is WidgetComponent -> mapWidgetToUiModel(modifier, modifierParams)
+        is WidgetComponent -> mapWidgetToUiModel(modifier, modifierParams),
     }
 }
 
@@ -57,7 +57,7 @@ fun LayoutComponent.mapLayoutToUIModel(
         forIndexName = forIndexName,
         maxForIndex = maxForIndex,
         visibility = visibility,
-        visibilityCode = visibilityRaw
+        visibilityCode = visibilityRaw,
     )
 }
 
@@ -68,23 +68,23 @@ fun WidgetComponent.mapWidgetToUiModel(
     return when (widgetCode) {
         "appbar" -> {
             mapWidgetToAppbarModel(modifier, modifierParams)
-        }
+        },
 
         "label" -> {
             mapWidgetToLabelModel(modifier, modifierParams)
-        }
+        },
 
         "button" -> {
             mapWidgetToButtonModel(modifier, modifierParams)
-        }
+        },
 
         "image" -> {
             mapWidgetToImageModel(modifier, modifierParams)
-        }
+        },
 
         "input" -> {
             mapWidgetToInputModel(modifier, modifierParams)
-        }
+        },
 // TODO: остальные виджеты
 
 //        "checkbox" -> {
@@ -103,9 +103,9 @@ fun WidgetComponent.mapWidgetToUiModel(
                 text = "Custom Widget",
                 widgetCode = widgetCode,
                 tapActions = getOnTapEvents(events),
-                alignmentStyle = this.getAlignmentStyle()
+                alignmentStyle = this.getAlignmentStyle(),
             )
-        }
+        },
     }
 }
 
@@ -129,7 +129,7 @@ fun WidgetComponent.mapWidgetToLabelModel(
             tapActions = getOnTapEvents(events),
             alignmentStyle = getAlignmentStyle(),
             visibility = visibility,
-            visibilityCode = visibilityRaw
+            visibilityCode = visibilityRaw,
         )
     } else null
 }
@@ -149,7 +149,7 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: Mo
         colorStyleCode = colorStyleCode,
         alignmentStyle = getAlignmentStyle(),
         visibility = visibility,
-        visibilityCode = visibilityRaw
+        visibilityCode = visibilityRaw,
     )
 }
 
@@ -179,7 +179,7 @@ fun WidgetComponent.mapWidgetToButtonModel(
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
         visibility = visibility,
-        visibilityCode = visibilityRaw
+        visibilityCode = visibilityRaw,
     )
 }
 
@@ -204,7 +204,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
         visibility = visibility,
-        visibilityCode = visibilityRaw
+        visibilityCode = visibilityRaw,
     )
 }
 
@@ -227,6 +227,6 @@ fun WidgetComponent.mapWidgetToInputModel(
         finishTypingActions = getOnFinishTypingEvents(events),
         alignmentStyle = getAlignmentStyle(),
         visibility = visibility,
-        visibilityCode = visibilityRaw
+        visibilityCode = visibilityRaw,
     )
 }

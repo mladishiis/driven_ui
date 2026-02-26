@@ -87,7 +87,7 @@ class MicroappParser {
             code = code,
             shortCode = shortCode,
             deeplink = deeplink,
-            persistents = persistents
+            persistents = persistents,
         )
     }
 

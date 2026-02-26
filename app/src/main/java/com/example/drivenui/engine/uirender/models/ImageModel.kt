@@ -14,5 +14,5 @@ data class ImageModel(
     val color: Color = Color.Unspecified,
     override val alignmentStyle: String,
     override val visibility: Boolean = true,
-    val visibilityCode: String? = null
+    val visibilityCode: String? = null,
 ) : ComponentModel

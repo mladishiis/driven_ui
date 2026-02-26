@@ -18,7 +18,7 @@ fun ComponentRenderer(
     isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     if (!model.visibility) return
     when (model) {
@@ -27,7 +27,7 @@ fun ComponentRenderer(
             onActions,
             onWidgetValueChange,
             isRoot,
-            applyBindingsForComponent
+            applyBindingsForComponent,
         )
         is InputModel -> InputRenderer(model, onActions, onWidgetValueChange ?: { _, _, _ -> })
         is LabelModel -> LabelRenderer(model, onActions)
@@ -36,6 +36,6 @@ fun ComponentRenderer(
         is CheckboxModel -> CheckboxRenderer(model, onActions)
         is SwitcherModel -> SwitcherRenderer(model, onActions)
         is AppBarModel -> AppBarRenderer(model, onActions)
-        else -> {}
+        else -> {},
     }
 }

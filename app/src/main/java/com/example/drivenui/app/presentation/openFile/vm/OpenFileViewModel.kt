@@ -23,7 +23,7 @@ internal class OpenFileViewModel @Inject constructor(
     private val fileInteractor: FileInteractor,
     private val fileDownloadInteractor: FileDownloadInteractor,
     private val microappStorage: MicroappStorage,
-    private val microappSource: MicroappSource
+    private val microappSource: MicroappSource,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
     init {
@@ -32,7 +32,7 @@ internal class OpenFileViewModel @Inject constructor(
     }
 
     override fun createInitialState() = OpenFileState(
-        microappSource = microappSource
+        microappSource = microappSource,
     )
 
     override fun handleEvent(event: OpenFileEvent) {
@@ -47,7 +47,7 @@ internal class OpenFileViewModel @Inject constructor(
             OpenFileEvent.OnShowBindingStats -> handleShowBindingStats()
             OpenFileEvent.OnLoadJsonFiles -> handleLoadJsonFiles()
             is OpenFileEvent.OnQrScanned -> handleQrScanned(event.url)
-            is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files)
+            is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files),
         }
     }
 
@@ -55,11 +55,11 @@ internal class OpenFileViewModel @Inject constructor(
         when (microappSource) {
             MicroappSource.ASSETS -> {
                 handleUploadFile()
-            }
+            },
 
             MicroappSource.FILE_SYSTEM -> {
                 setEffect { OpenFileEffect.OpenQrScanner }
-            }
+            },
         }
     }
 
@@ -76,7 +76,7 @@ internal class OpenFileViewModel @Inject constructor(
                             isUploadFile = true,
                             isParsing = true,
                             errorMessage = null,
-                            selectedFileName = "microapps"
+                            selectedFileName = "microapps",
                         )
                     }
                 }
@@ -90,7 +90,7 @@ internal class OpenFileViewModel @Inject constructor(
                             isUploadFile = false,
                             isParsing = false,
                             parsingResult = parsedResult,
-                            errorMessage = null
+                            errorMessage = null,
                         )
                     }
                     setEffect { OpenFileEffect.ShowSuccess("Конфигурация успешно загружена") }
@@ -106,7 +106,7 @@ internal class OpenFileViewModel @Inject constructor(
                         copy(
                             isUploadFile = false,
                             isParsing = false,
-                            errorMessage = e.localizedMessage
+                            errorMessage = e.localizedMessage,
                         )
                     }
                     setEffect { OpenFileEffect.ShowError("Ошибка: ${e.localizedMessage}") }
@@ -184,7 +184,7 @@ internal class OpenFileViewModel @Inject constructor(
         setEffect {
             OpenFileEffect.ShowJsonFileSelectionDialog(
                 availableFiles = uiState.value.availableJsonFiles,
-                selectedFiles = files
+                selectedFiles = files,
             )
         }
     }
@@ -205,7 +205,7 @@ internal class OpenFileViewModel @Inject constructor(
         setEffect {
             OpenFileEffect.ShowBindingStats(
                 stats = bindingStats,
-                resolvedValues = resolvedValues
+                resolvedValues = resolvedValues,
             )
         }
     }
@@ -224,7 +224,7 @@ internal class OpenFileViewModel @Inject constructor(
                 microappStorage.loadMapped(code)?.let { data ->
                     MicroappItem(
                         code = data.microappCode,
-                        title = data.microappTitle.takeIf { it.isNotBlank() } ?: data.microappCode
+                        title = data.microappTitle.takeIf { it.isNotBlank() } ?: data.microappCode,
                     )
                 }
             }

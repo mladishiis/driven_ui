@@ -30,7 +30,7 @@ class SDUIParser {
         val screenQueries: List<ScreenQuery> = emptyList(),
         val widgets: List<Widget> = emptyList(),
         val layouts: List<Layout> = emptyList(),
-        val dataContext: DataContext? = null
+        val dataContext: DataContext? = null,
     ) {
 
         /**
@@ -71,7 +71,7 @@ class SDUIParser {
             "screenQueries" to screenQueries.size,
             "widgets" to widgets.size,
             "layouts" to layouts.size,
-            "componentsCount" to countAllComponents()
+            "componentsCount" to countAllComponents(),
         )
 
         fun logSummary() {
@@ -142,7 +142,7 @@ class SDUIParser {
 
             val screensWithQueries = parsedScreens.map { screen ->
                 screen.copy(
-                    requests = queriesByScreen[screen.screenCode].orEmpty()
+                    requests = queriesByScreen[screen.screenCode].orEmpty(),
                 )
             }
 
@@ -151,7 +151,7 @@ class SDUIParser {
                 styles = styles,
                 screens = screensWithQueries,
                 queries = queries,
-                screenQueries = screenQueries
+                screenQueries = screenQueries,
             ).also { it.logSummary() }
 
         } catch (e: Exception) {
