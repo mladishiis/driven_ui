@@ -20,12 +20,12 @@ import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHand
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.generative_screen.widget.WidgetValueProvider
 import com.example.drivenui.engine.parser.SDUIParser
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -126,7 +126,7 @@ object AppModule {
     @Singleton
     fun provideMicroappSource(): MicroappSource {
         // ASSETS | FILE_SYSTEM (архив напрямую) | FILE_SYSTEM_JSON (архив в JSON base64)
-        return MicroappSource.FILE_SYSTEM
+        return MicroappSource.FILE_SYSTEM_JSON
     }
 
     /**

@@ -93,7 +93,7 @@ internal fun OpenFileScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "SDUI Парсер с биндингами",
+                        "SDUI",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -237,16 +237,10 @@ internal fun OpenFileScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "SDUI Парсер с биндингами",
+                            text = "SDUI",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Парсинг XML с поддержкой JSON биндингов",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
