@@ -1,6 +1,10 @@
 package com.example.drivenui.engine.mappers
 
 import androidx.compose.ui.Modifier
+import com.example.drivenui.engine.parser.models.Component
+import com.example.drivenui.engine.parser.models.LayoutComponent
+import com.example.drivenui.engine.parser.models.ParsedScreen
+import com.example.drivenui.engine.parser.models.WidgetComponent
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -10,10 +14,6 @@ import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
-import com.example.drivenui.engine.parser.models.Component
-import com.example.drivenui.engine.parser.models.LayoutComponent
-import com.example.drivenui.engine.parser.models.ParsedScreen
-import com.example.drivenui.engine.parser.models.WidgetComponent
 
 fun mapParsedScreenToUI(
     screen: ParsedScreen,
@@ -31,7 +31,7 @@ fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): Compon
     val modifierParams = getModifierParamsFromComponent(this)
     return when (this) {
         is LayoutComponent -> mapLayoutToUIModel(Modifier, modifierParams, styleRegistry)
-        is WidgetComponent -> mapWidgetToUiModel(Modifier, modifierParams),
+        is WidgetComponent -> mapWidgetToUiModel(Modifier, modifierParams)
     }
 }
 
@@ -67,23 +67,23 @@ fun WidgetComponent.mapWidgetToUiModel(
     return when (widgetCode) {
         "appbar" -> {
             mapWidgetToAppbarModel(modifier, modifierParams)
-        },
+        }
 
         "label" -> {
             mapWidgetToLabelModel(modifier, modifierParams)
-        },
+        }
 
         "button" -> {
             mapWidgetToButtonModel(modifier, modifierParams)
-        },
+        }
 
         "image" -> {
             mapWidgetToImageModel(modifier, modifierParams)
-        },
+        }
 
         "input" -> {
             mapWidgetToInputModel(modifier, modifierParams)
-        },
+        }
 // TODO: остальные виджеты
 
 //        "checkbox" -> {
@@ -104,7 +104,7 @@ fun WidgetComponent.mapWidgetToUiModel(
                 tapActions = getOnTapEvents(events),
                 alignmentStyle = this.getAlignmentStyle(),
             )
-        },
+        }
     }
 }
 

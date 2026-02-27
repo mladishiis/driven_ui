@@ -17,12 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.drivenui.app.theme.DrivenUITheme
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
 import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
-import com.example.drivenui.theme.DrivenUITheme
 import kotlinx.coroutines.flow.StateFlow
 
 

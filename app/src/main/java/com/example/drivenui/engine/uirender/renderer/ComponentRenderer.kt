@@ -36,6 +36,6 @@ fun ComponentRenderer(
         is CheckboxModel -> CheckboxRenderer(model, onActions)
         is SwitcherModel -> SwitcherRenderer(model, onActions)
         is AppBarModel -> AppBarRenderer(model, onActions)
-        else -> {},
+        else -> {}
     }
 }

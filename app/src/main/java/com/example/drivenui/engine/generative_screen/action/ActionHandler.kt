@@ -44,7 +44,7 @@ class ActionHandler(
                 is UiAction.NativeCode -> handleNativeCode(action)
                 is UiAction.RefreshWidget -> handleRefreshWidget(action.widgetCode)
                 is UiAction.RefreshLayout -> handleRefreshLayout(action.layoutCode)
-                is UiAction.Empty -> ActionResult.Success,
+                is UiAction.Empty -> ActionResult.Success
             }
         } catch (e: Exception) {
             Log.e("ActionHandler", "Error handling action: ${action::class.simpleName}", e)
@@ -189,8 +189,8 @@ class ActionHandler(
                 } else {
                     component
                 }
-            },
-            else -> component,
+            }
+            else -> component
         }
     }
 

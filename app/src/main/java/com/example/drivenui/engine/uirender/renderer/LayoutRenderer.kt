@@ -58,36 +58,35 @@ fun LayoutRenderer(
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
-        ),
+        )
         LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
-        ),
-
+        )
         LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
-        ),
+        )
         LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
-        ),
+        )
         LayoutType.LAYER -> BoxRenderer(
             modelWithClickable,
             isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
-        ),
+        )
     }
 }
 
@@ -215,9 +214,9 @@ private fun BoxRenderer(
                     .align(Alignment.TopCenter)
 
                 "alignbottom" -> Modifier
-                    .align(Alignment.BottomCenter),
+                    .align(Alignment.BottomCenter)
 
-                else -> Modifier,
+                else -> Modifier
             }
             Box(modifier = modifier) {
                 ComponentRenderer(
@@ -300,7 +299,7 @@ private fun expandComponentWithIndex(
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
-        },
-        else -> component,
+        }
+        else -> component
     }
 }

@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -39,12 +39,12 @@ data class ModifierParams(
         result = when (height.lowercase()) {
             "fillmax" -> result.fillMaxHeight()
             "wrapcontent" -> result.wrapContentHeight()
-            else -> height.toIntOrNull()?.let { result.height(it.dp) } ?: result.fillMaxHeight(),
+            else -> height.toIntOrNull()?.let { result.height(it.dp) } ?: result.fillMaxHeight()
         }
         result = when (width.lowercase()) {
             "fillmax" -> result.fillMaxWidth()
             "wrapcontent" -> result.wrapContentWidth()
-            else -> width.toIntOrNull()?.let { result.width(it.dp) } ?: result.fillMaxWidth(),
+            else -> width.toIntOrNull()?.let { result.width(it.dp) } ?: result.fillMaxWidth()
         }
         return result
     }

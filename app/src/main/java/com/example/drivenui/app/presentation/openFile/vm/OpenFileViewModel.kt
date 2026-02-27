@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
 import com.example.drivenui.app.domain.MicroappSource
-import com.example.drivenui.app.domain.toArchiveDownloadFormat
 import com.example.drivenui.app.domain.MicroappStorage
-import com.example.drivenui.engine.parser.SDUIParser
+import com.example.drivenui.app.domain.toArchiveDownloadFormat
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
+import com.example.drivenui.engine.parser.SDUIParser
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +48,7 @@ internal class OpenFileViewModel @Inject constructor(
             OpenFileEvent.OnShowBindingStats -> handleShowBindingStats()
             OpenFileEvent.OnLoadJsonFiles -> handleLoadJsonFiles()
             is OpenFileEvent.OnQrScanned -> handleQrScanned(event.url)
-            is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files),
+            is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files)
         }
     }
 
@@ -56,12 +56,12 @@ internal class OpenFileViewModel @Inject constructor(
         when (microappSource) {
             MicroappSource.ASSETS -> {
                 handleUploadFile()
-            },
+            }
 
             MicroappSource.FILE_SYSTEM,
             MicroappSource.FILE_SYSTEM_JSON -> {
                 setEffect { OpenFileEffect.OpenQrScanner }
-            },
+            }
         }
     }
 

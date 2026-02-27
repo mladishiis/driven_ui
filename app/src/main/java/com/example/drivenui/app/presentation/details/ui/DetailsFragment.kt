@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.app.presentation.details.model.ComponentTreeItem
 import com.example.drivenui.app.presentation.details.model.DetailsEffect
-import com.example.drivenui.app.presentation.details.ui.DetailsScreen
+import com.example.drivenui.app.presentation.details.view.DetailsScreen
 import com.example.drivenui.app.presentation.details.vm.DetailsViewModel
 import com.example.drivenui.app.theme.DrivenUITheme
 import dagger.hilt.android.AndroidEntryPoint

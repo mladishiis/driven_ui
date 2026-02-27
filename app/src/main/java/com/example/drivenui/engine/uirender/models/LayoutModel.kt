@@ -34,5 +34,5 @@ fun getLayoutTypeFromString(type: String) =
         "layers" -> LayoutType.LAYER
         "verticalFor" -> LayoutType.VERTICAL_FOR
         "horizontalFor" -> LayoutType.HORIZONTAL_FOR
-        else -> LayoutType.VERTICAL_LAYOUT,
+        else -> LayoutType.VERTICAL_LAYOUT
     }
