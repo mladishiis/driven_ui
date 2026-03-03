@@ -81,6 +81,14 @@ internal class OpenFileFragment : Fragment() {
                     showSuccessSnackbar(effect.message)
                 }
 
+                is OpenFileEffect.ShowParsingSuccessDialog -> {
+                    showParsingSuccessDialog(effect)
+                }
+
+                is OpenFileEffect.ShowParsingErrorDialog -> {
+                    showParsingErrorDialog(effect.message)
+                }
+
                 is OpenFileEffect.ShowSuccessWithBindings -> {
                     showSuccessWithBindings(effect)
                 }
@@ -101,8 +109,18 @@ internal class OpenFileFragment : Fragment() {
                         setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                         setCameraId(0) // задняя камера
                     }
-
                     qrScannerLauncher.launch(options)
+                }
+
+                is OpenFileEffect.OpenQrScannerForCollection -> {
+                    val options = ScanOptions().apply {
+                        setPrompt("Отсканируйте QR-код с ID коллекции")
+                        setBeepEnabled(false)
+                        setOrientationLocked(true)
+                        setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                        setCameraId(0)
+                    }
+                    qrCollectionScannerLauncher.launch(options)
                 }
             }
         }.launchIn(lifecycleScope)
@@ -110,12 +128,16 @@ internal class OpenFileFragment : Fragment() {
 
     private val qrScannerLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
-            // QR успешно считан
-            viewModel.handleEvent(
-                OpenFileEvent.OnQrScanned(result.contents)
-            )
+            viewModel.handleEvent(OpenFileEvent.OnQrScanned(result.contents))
         } else {
-            // Пользователь отменил
+            showErrorDialog("Сканирование отменено")
+        }
+    }
+
+    private val qrCollectionScannerLauncher = registerForActivityResult(ScanContract()) { result ->
+        if (result.contents != null) {
+            viewModel.handleEvent(OpenFileEvent.OnQrScannedCollectionId(result.contents))
+        } else {
             showErrorDialog("Сканирование отменено")
         }
     }
@@ -139,6 +161,39 @@ internal class OpenFileFragment : Fragment() {
     private fun showErrorDialog(message: String) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
+    private fun showParsingSuccessDialog(effect: OpenFileEffect.ShowParsingSuccessDialog) {
+        val message = buildString {
+            append("Микроапп: ${effect.microappTitle}\n")
+            append("Экранов: ${effect.screensCount}\n")
+            append("Стилей текста: ${effect.textStylesCount}\n")
+            append("Стилей цвета: ${effect.colorStylesCount}\n")
+            append("Запросов API: ${effect.queriesCount}\n")
+            if (effect.componentsCount > 0) {
+                append("Компонентов: ${effect.componentsCount}\n")
+            }
+            if (effect.hasBindings) {
+                append("JSON файлов: ${effect.jsonFilesCount}\n")
+            }
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Файл успешно спарсен")
+            .setMessage(message.trim())
+            .setPositiveButton("Перейти к деталям парсинга") { _, _ ->
+                viewModel.handleEvent(OpenFileEvent.OnShowParsingDetails)
+            }
+            .setNegativeButton("OK", null)
+            .show()
+    }
+
+    private fun showParsingErrorDialog(message: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Ошибка парсинга")
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()

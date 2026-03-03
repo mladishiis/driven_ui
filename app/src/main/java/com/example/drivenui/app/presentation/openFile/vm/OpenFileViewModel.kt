@@ -2,6 +2,9 @@ package com.example.drivenui.app.presentation.openFile.vm
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.app.data.MicroappCollectionApi
+import com.example.drivenui.app.domain.ArchiveDownloadFormat
+import com.example.drivenui.app.domain.CollectionIdStorage
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
 import com.example.drivenui.app.domain.MicroappSource
@@ -24,12 +27,15 @@ internal class OpenFileViewModel @Inject constructor(
     private val fileInteractor: FileInteractor,
     private val fileDownloadInteractor: FileDownloadInteractor,
     private val microappStorage: MicroappStorage,
+    private val collectionIdStorage: CollectionIdStorage,
+    private val collectionApi: MicroappCollectionApi,
     private val microappSource: MicroappSource,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
     init {
         loadJsonFilesOnInit()
         loadSavedMicroapps()
+        syncCollectionOnStart()
     }
 
     override fun createInitialState() = OpenFileState(
@@ -42,12 +48,17 @@ internal class OpenFileViewModel @Inject constructor(
             OpenFileEvent.OnUpload -> {
                 handleUpload()
             }
+            OpenFileEvent.OnClearSavedMicroapps -> {
+                handleClearSavedMicroapps()
+            }
             OpenFileEvent.OnShowFile -> handleShowFile()
             OpenFileEvent.OnShowParsingDetails -> handleShowParsingDetails()
             is OpenFileEvent.OnShowTestScreen -> handleShowTestScreen(event.microappCode)
             OpenFileEvent.OnShowBindingStats -> handleShowBindingStats()
             OpenFileEvent.OnLoadJsonFiles -> handleLoadJsonFiles()
             is OpenFileEvent.OnQrScanned -> handleQrScanned(event.url)
+            OpenFileEvent.OnAddCollection -> setEffect { OpenFileEffect.OpenQrScannerForCollection }
+            is OpenFileEvent.OnQrScannedCollectionId -> handleQrScannedCollectionId(event.collectionId)
             is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files)
         }
     }
@@ -87,6 +98,7 @@ internal class OpenFileViewModel @Inject constructor(
                 val parsedResult = fileInteractor.parseTemplate()
 
                 withContext(Dispatchers.Main) {
+                    val state = uiState.value
                     updateState {
                         copy(
                             isUploadFile = false,
@@ -95,7 +107,18 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = null,
                         )
                     }
-                    setEffect { OpenFileEffect.ShowSuccess("Конфигурация успешно загружена") }
+                    setEffect {
+                        OpenFileEffect.ShowParsingSuccessDialog(
+                            microappTitle = parsedResult.microapp?.title ?: "Неизвестный микроапп",
+                            screensCount = parsedResult.screens.size,
+                            textStylesCount = parsedResult.styles?.textStyles?.size ?: 0,
+                            colorStylesCount = parsedResult.styles?.colorStyles?.size ?: 0,
+                            queriesCount = parsedResult.queries.size,
+                            componentsCount = parsedResult.screens.sumOf { countComponents(it.rootComponent) },
+                            hasBindings = state.selectedJsonFiles.isNotEmpty(),
+                            jsonFilesCount = state.selectedJsonFiles.size,
+                        )
+                    }
                     loadSavedMicroapps()
                 }
 
@@ -111,7 +134,7 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = e.localizedMessage,
                         )
                     }
-                    setEffect { OpenFileEffect.ShowError("Ошибка: ${e.localizedMessage}") }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog(e.localizedMessage ?: "Неизвестная ошибка") }
                 }
             }
         }
@@ -138,7 +161,7 @@ internal class OpenFileViewModel @Inject constructor(
                 }
 
                 if (!success) {
-                    setEffect { OpenFileEffect.ShowError("Не удалось загрузить архив") }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog("Не удалось загрузить архив") }
                     updateState { copy(isUploadFile = false, isParsing = false) }
                     return@launch
                 }
@@ -153,7 +176,7 @@ internal class OpenFileViewModel @Inject constructor(
                     is IllegalArgumentException -> "Некорректные данные: ${e.message ?: e.localizedMessage}"
                     else -> "Ошибка загрузки: ${e.message ?: e.localizedMessage}"
                 }
-                setEffect { OpenFileEffect.ShowError(message) }
+                setEffect { OpenFileEffect.ShowParsingErrorDialog(message) }
             }
         }
     }
@@ -243,6 +266,107 @@ internal class OpenFileViewModel @Inject constructor(
             }
             withContext(Dispatchers.Main) {
                 updateState { copy(savedMicroapps = items) }
+            }
+        }
+    }
+
+    private fun handleClearSavedMicroapps() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val codes = microappStorage.getAllCodes()
+                codes.forEach { code ->
+                    microappStorage.delete(code)
+                }
+                collectionIdStorage.clearCollectionId()
+                withContext(Dispatchers.Main) {
+                    updateState { copy(savedMicroapps = emptyList()) }
+                }
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка при очистке списка микроаппов", e)
+            }
+        }
+    }
+
+    private fun handleQrScannedCollectionId(collectionId: String) {
+        val id = collectionId.trim().takeIf { it.isNotBlank() }
+            ?: run {
+                setEffect { OpenFileEffect.ShowError("QR не содержит ID коллекции") }
+                return
+            }
+        viewModelScope.launch {
+            syncCollection(id, downloadOnlyMissing = false)
+        }
+    }
+
+    private fun syncCollectionOnStart() {
+        viewModelScope.launch {
+            val savedId = collectionIdStorage.getCollectionId() ?: return@launch
+            syncCollection(savedId, downloadOnlyMissing = true)
+        }
+    }
+
+    /**
+     * Синхронизирует коллекцию: запрашивает список микроаппов, скачивает и парсит.
+     * @param downloadOnlyMissing если true — скачивает только отсутствующие на устройстве
+     */
+    private suspend fun syncCollection(collectionId: String, downloadOnlyMissing: Boolean) {
+        withContext(Dispatchers.Main) {
+            updateState {
+                copy(
+                    isSyncingCollection = true,
+                    errorMessage = null,
+                )
+            }
+        }
+        try {
+            collectionIdStorage.saveCollectionId(collectionId)
+            val codesResult = collectionApi.fetchMicroappCodes(collectionId)
+            val allCodes = codesResult.getOrElse {
+                withContext(Dispatchers.Main) {
+                    updateState { copy(isSyncingCollection = false) }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog(it.message ?: "Не удалось загрузить список") }
+                }
+                return
+            }
+            val existingCodes = if (downloadOnlyMissing) {
+                microappStorage.getAllCodes().toSet()
+            } else {
+                emptySet()
+            }
+            val toDownload = if (downloadOnlyMissing) {
+                allCodes.filter { it !in existingCodes }
+            } else {
+                allCodes
+            }
+            for (microappCode in toDownload) {
+                val url = collectionApi.getMicroappZipUrl(microappCode)
+                val success = fileDownloadInteractor.downloadAndExtractZip(url, ArchiveDownloadFormat.OCTET_STREAM)
+                if (!success) {
+                    Log.e("OpenFileViewModel", "Не удалось загрузить: $microappCode")
+                    continue
+                }
+                try {
+                    fileInteractor.parseTemplate()
+                } catch (e: Exception) {
+                    Log.e("OpenFileViewModel", "Ошибка парсинга $microappCode", e)
+                }
+            }
+            withContext(Dispatchers.Main) {
+                loadSavedMicroapps()
+                updateState { copy(isSyncingCollection = false) }
+                if (toDownload.isNotEmpty()) {
+                    setEffect { OpenFileEffect.ShowSuccess("Добавлено ${toDownload.size} прототипов") }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("OpenFileViewModel", "Ошибка синхронизации коллекции", e)
+            withContext(Dispatchers.Main) {
+                updateState { copy(isSyncingCollection = false) }
+                setEffect {
+                    OpenFileEffect.ShowParsingErrorDialog(
+                        e.message ?: e.localizedMessage ?: "Ошибка синхронизации",
+                    )
+                }
             }
         }
     }

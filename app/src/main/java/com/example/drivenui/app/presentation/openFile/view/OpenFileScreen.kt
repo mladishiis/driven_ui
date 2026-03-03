@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
@@ -36,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivenui.app.domain.MicroappSource
@@ -72,11 +74,47 @@ private fun MicroappListItem(
                     text = item.title,
                     fontWeight = FontWeight.Medium
                 )
-                Text(
-                    text = item.code,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomActionsBar(
+    state: OpenFileState,
+    onEvent: (OpenFileEvent) -> Unit,
+) {
+    val buttonsEnabled = !state.isUploadFile && !state.isSyncingCollection
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Button(
+            onClick = { onEvent(OpenFileEvent.OnUpload) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = buttonsEnabled
+        ) {
+            Text(
+                text = when (state.microappSource) {
+                    MicroappSource.ASSETS -> "Загрузить из assets"
+                    MicroappSource.FILE_SYSTEM,
+                    MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
+                }
+            )
+        }
+        Button(
+            onClick = { onEvent(OpenFileEvent.OnAddCollection) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = buttonsEnabled
+        ) {
+            Text(text = "Добавить коллекцию прототипов")
+        }
+        if (state.savedMicroapps.isNotEmpty() && !state.isSyncingCollection) {
+            Button(
+                onClick = { onEvent(OpenFileEvent.OnClearSavedMicroapps) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(text = "Очистить список")
             }
         }
     }
@@ -149,7 +187,7 @@ internal fun OpenFileScreen(
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isUploadFile || state.isParsing) {
+            if (state.isUploadFile || state.isParsing || state.isSyncingCollection) {
                 // Показываем индикатор загрузки
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -158,7 +196,11 @@ internal fun OpenFileScreen(
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = if (state.isParsing) "Парсинг файла..." else "Загрузка...",
+                        text = when {
+                            state.isSyncingCollection -> "Синхронизация коллекции..."
+                            state.isParsing -> "Парсинг файла..."
+                            else -> "Загрузка..."
+                        },
                         style = MaterialTheme.typography.bodyLarge
                     )
                     if (state.selectedJsonFiles.isNotEmpty()) {
@@ -175,40 +217,73 @@ internal fun OpenFileScreen(
                         )
                     }
                 }
+            } else if (state.savedMicroapps.isEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(64.dp)
+                            )
+                            Text(
+                                text = "Список пуст",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Сканируйте QR-коды на Портале для\u00a0добавления прототипов",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    BottomActionsBar(state = state, onEvent = onEvent)
+                }
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    // Список микроаппов
                     Column(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = "Микроаппы",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (state.savedMicroapps.isEmpty()) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Text(
-                                    text = "Список микроаппов пуст",
-                                    modifier = Modifier.padding(16.dp),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
+                        // Список прототипов
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Список прототипов",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -221,226 +296,111 @@ internal fun OpenFileScreen(
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Заголовок
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "SDUI",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    // Информация о JSON файлах
-                    if (state.availableJsonFiles.isNotEmpty()) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Description,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = "JSON файлы",
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Доступно: ${state.availableJsonFiles.size} файлов",
-                                    fontSize = 14.sp
-                                )
-                                if (state.selectedJsonFiles.isNotEmpty()) {
-                                    Text(
-                                        text = "Выбрано: ${state.selectedJsonFiles.size} файлов",
-                                        fontSize = 14.sp,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Button(
-                                        onClick = {
-                                            onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
-                                    ) {
-                                        Text("Изменить выбор JSON")
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Информация о выбранном файле
-                    if (state.microappSource == MicroappSource.ASSETS) {
-                        state.selectedFileName?.let { fileName ->
+                        // Информация о JSON файлах
+                        if (state.availableJsonFiles.isNotEmpty()) {
                             Card(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp)
                                 ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Description,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = "JSON файлы",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Выбранный файл:",
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = fileName,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Кнопка загрузки (единый поток для микроаппа и шаблона)
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            onClick = { onEvent(OpenFileEvent.OnUpload) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !state.isUploadFile
-                        ) {
-                            Text(
-                                text = when (state.microappSource) {
-                                    MicroappSource.ASSETS -> "Загрузить из assets"
-                                    MicroappSource.FILE_SYSTEM -> "Загрузить через QR (архив)"
-                                    MicroappSource.FILE_SYSTEM_JSON -> "Загрузить через QR (JSON)"
-                                }
-                            )
-                        }
-                    }
-
-                    // Кнопки работы с результатом
-                    if (state.hasParsingResult) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Button(
-                                onClick = { onEvent(OpenFileEvent.OnShowFile) },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = state.hasParsingResult,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            ) {
-                                Text(
-                                    text = "Показать детали парсинга",
-                                    fontSize = 16.sp
-                                )
-                            }
-
-                        }
-
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = "✓ Файл успешно спарсен",
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        text = "Доступно: ${state.availableJsonFiles.size} файлов",
+                                        fontSize = 14.sp
                                     )
                                     if (state.selectedJsonFiles.isNotEmpty()) {
-                                        Badge(
-                                            containerColor = MaterialTheme.colorScheme.tertiary
-                                        ) {
-                                            Text(
-                                                text = "с биндингами",
-                                                fontSize = 10.sp
+                                        Text(
+                                            text = "Выбрано: ${state.selectedJsonFiles.size} файлов",
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Button(
+                                            onClick = {
+                                                onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                             )
+                                        ) {
+                                            Text("Изменить выбор JSON")
                                         }
                                     }
                                 }
+                            }
+                        }
 
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Основная статистика
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        // Информация о выбранном файле
+                        if (state.microappSource == MicroappSource.ASSETS) {
+                            state.selectedFileName?.let { fileName ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Микроапп: ${state.microappTitle}")
-                                    Text("Экранов: ${state.screensCount}")
-                                    Text("Стилей текста: ${state.textStylesCount}")
-                                    Text("Стилей цвета: ${state.colorStylesCount}")
-                                    Text("Запросов API: ${state.queriesCount}")
-
-                                    if (state.componentsCount > 0) {
-                                        Text("Компонентов: ${state.componentsCount}")
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = "Выбранный файл:",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = fileName,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
+                                }
+                            }
+                        }
 
-                                    if (state.selectedJsonFiles.isNotEmpty()) {
-                                        Text("JSON файлов: ${state.selectedJsonFiles.size}")
-                                    }
+                        // Сообщение об ошибке
+                        state.errorMessage?.let { error ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⚠",
+                                        fontSize = 24.sp,
+                                        modifier = Modifier.padding(end = 12.dp)
+                                    )
+                                    Text(
+                                        text = error,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             }
                         }
                     }
 
-                    // Сообщение об ошибке
-                    state.errorMessage?.let { error ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "⚠",
-                                    fontSize = 24.sp,
-                                    modifier = Modifier.padding(end = 12.dp)
-                                )
-                                Text(
-                                    text = error,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    BottomActionsBar(state = state, onEvent = onEvent)
                 }
             }
         }

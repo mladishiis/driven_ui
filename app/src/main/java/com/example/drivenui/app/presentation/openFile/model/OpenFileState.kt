@@ -15,6 +15,9 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Загрузка конфигурации (микроапп или шаблон) */
     data object OnUpload : OpenFileEvent
 
+    /** Очистить список сохранённых микроаппов */
+    data object OnClearSavedMicroapps : OpenFileEvent
+
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
 
@@ -35,6 +38,12 @@ internal sealed interface OpenFileEvent : VtbEvent {
 
     /** QR успешно отсканирован */
     data class OnQrScanned(val url: String) : OpenFileEvent
+
+    /** Добавить коллекцию прототипов (открыть сканер QR с ID коллекции) */
+    data object OnAddCollection : OpenFileEvent
+
+    /** QR с ID коллекции успешно отсканирован */
+    data class OnQrScannedCollectionId(val collectionId: String) : OpenFileEvent
 }
 
 /** События с вью-модели на экран */
@@ -55,8 +64,26 @@ internal sealed interface OpenFileEffect : VtbEffect {
     /** Показать сообщение об успехе */
     data class ShowSuccess(val message: String) : OpenFileEffect
 
-    /** Открыть экран сканирования QR */
+    /** Показать диалог результата парсинга (успех) с переходом к деталям */
+    data class ShowParsingSuccessDialog(
+        val microappTitle: String,
+        val screensCount: Int,
+        val textStylesCount: Int,
+        val colorStylesCount: Int,
+        val queriesCount: Int,
+        val componentsCount: Int,
+        val hasBindings: Boolean,
+        val jsonFilesCount: Int,
+    ) : OpenFileEffect
+
+    /** Показать диалог результата парсинга (ошибка) */
+    data class ShowParsingErrorDialog(val message: String) : OpenFileEffect
+
+    /** Открыть экран сканирования QR для одного микроаппа */
     data object OpenQrScanner : OpenFileEffect
+
+    /** Открыть экран сканирования QR для ID коллекции */
+    data object OpenQrScannerForCollection : OpenFileEffect
 
     /** Показать сообщение об успехе с информацией о биндингах */
     data class ShowSuccessWithBindings(
@@ -103,6 +130,7 @@ internal data class OpenFileState(
     val savedMicroapps: List<MicroappItem> = emptyList(),
     val isUploadFile: Boolean = false,
     val isParsing: Boolean = false,
+    val isSyncingCollection: Boolean = false,
     val parsingResult: SDUIParser.ParsedMicroappResult? = null,
     val availableFiles: List<String> = emptyList(),
     val availableJsonFiles: List<String> = emptyList(),
