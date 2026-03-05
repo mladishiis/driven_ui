@@ -38,41 +38,332 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivenui.app.domain.MicroappSource
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
+import com.example.drivenui.app.theme.DrivenUITheme
+
+// ---------------------------------------------------------------------------
+// Публичный компонент
+// ---------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun OpenFileScreen(
+    state: OpenFileState,
+    onEvent: (OpenFileEvent) -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            OpenFileTopBar(
+                state = state,
+                onEvent = onEvent,
+            )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center,
+        ) {
+            when {
+                state.isUploadFile || state.isParsing || state.isSyncingCollection -> {
+                    LoadingContent(
+                        isLoading = state.isUploadFile || state.isParsing,
+                        isSyncing = state.isSyncingCollection,
+                        selectedJsonFiles = state.selectedJsonFiles,
+                    )
+                }
+                state.collectionMicroapps.isEmpty() && state.singleMicroapps.isEmpty() -> {
+                    EmptyStateContent(
+                        state = state,
+                        onEvent = onEvent,
+                    )
+                }
+                else -> {
+                    ContentWithMicroapps(
+                        state = state,
+                        onEvent = onEvent,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Приватные субкомпоненты — TopBar и контент
+// ---------------------------------------------------------------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OpenFileTopBar(
+    state: OpenFileState,
+    onEvent: (OpenFileEvent) -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "SDUI",
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.primary,
+        ),
+        actions = {
+            if (state.hasJsonFiles) {
+                IconButton(
+                    onClick = { onEvent(OpenFileEvent.OnLoadJsonFiles) },
+                    enabled = !state.isParsing,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Description,
+                        contentDescription = "Загрузить JSON файлы",
+                    )
+                }
+            }
+            if (state.availableJsonFiles.isNotEmpty()) {
+                IconButton(
+                    onClick = { onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles)) },
+                    enabled = !state.isParsing,
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (state.selectedJsonFiles.isNotEmpty()) {
+                                Badge {
+                                    Text(
+                                        text = state.selectedJsonFiles.size.toString(),
+                                        fontSize = 10.sp,
+                                    )
+                                }
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Настройки JSON",
+                        )
+                    }
+                }
+            }
+        },
+    )
+}
 
 @Composable
-private fun MicroappListItem(
-    item: MicroappItem,
-    onClick: () -> Unit
+private fun LoadingContent(
+    isLoading: Boolean,
+    isSyncing: Boolean,
+    selectedJsonFiles: List<String>,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+    val statusText = when {
+        isSyncing -> "Синхронизация коллекции..."
+        isLoading -> "Парсинг файла..."
+        else -> "Загрузка..."
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = statusText,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        if (selectedJsonFiles.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Используются JSON файлы:",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    fontWeight = FontWeight.Medium
+            Text(
+                text = selectedJsonFiles.joinToString(", "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyStateContent(
+    state: OpenFileState,
+    onEvent: (OpenFileEvent) -> Unit,
+) {
+    val buttonsEnabled = !state.isUploadFile && !state.isSyncingCollection
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            EmptyStateMessage()
+        }
+        BottomActionsBar(
+            uploadButtonText = when (state.microappSource) {
+                MicroappSource.ASSETS -> "Загрузить из assets"
+                MicroappSource.FILE_SYSTEM,
+                MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
+            },
+            buttonsEnabled = buttonsEnabled,
+            onUpload = { onEvent(OpenFileEvent.OnUpload) },
+            onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
+        )
+    }
+}
+
+@Composable
+private fun EmptyStateMessage() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(64.dp),
+        )
+        Text(
+            text = "Список пуст",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = "Сканируйте QR-коды на Портале для\u00a0добавления прототипов",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun ContentWithMicroapps(
+    state: OpenFileState,
+    onEvent: (OpenFileEvent) -> Unit,
+) {
+    val buttonsEnabled = !state.isUploadFile && !state.isSyncingCollection
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            if (state.collectionMicroapps.isNotEmpty()) {
+                MicroappSection(
+                    title = "Коллекция",
+                    items = state.collectionMicroapps,
+                    showClearButton = !state.isSyncingCollection,
+                    onClear = { onEvent(OpenFileEvent.OnClearCollection) },
+                    onItemClick = { code -> onEvent(OpenFileEvent.OnShowTestScreen(code)) },
+                )
+            }
+            if (state.singleMicroapps.isNotEmpty()) {
+                MicroappSection(
+                    title = "Список прототипов",
+                    items = state.singleMicroapps,
+                    showClearButton = !state.isSyncingCollection,
+                    onClear = { onEvent(OpenFileEvent.OnClearSingleList) },
+                    onItemClick = { code -> onEvent(OpenFileEvent.OnShowTestScreen(code)) },
+                )
+            }
+            if (state.availableJsonFiles.isNotEmpty()) {
+                JsonFilesCard(
+                    availableCount = state.availableJsonFiles.size,
+                    selectedCount = state.selectedJsonFiles.size,
+                    onSelectJson = { onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles)) },
+                )
+            }
+            if (state.microappSource == MicroappSource.ASSETS) {
+                state.selectedFileName?.let { fileName ->
+                    SelectedFileCard(fileName = fileName)
+                }
+            }
+            state.errorMessage?.let { error ->
+                ErrorCard(message = error)
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        BottomActionsBar(
+            uploadButtonText = when (state.microappSource) {
+                MicroappSource.ASSETS -> "Загрузить из assets"
+                MicroappSource.FILE_SYSTEM,
+                MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
+            },
+            buttonsEnabled = buttonsEnabled,
+            onUpload = { onEvent(OpenFileEvent.OnUpload) },
+            onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
+        )
+    }
+}
+
+@Composable
+private fun MicroappSection(
+    title: String,
+    items: List<MicroappItem>,
+    showClearButton: Boolean,
+    onClear: () -> Unit,
+    onItemClick: (String) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            if (showClearButton) {
+                Button(
+                    onClick = onClear,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    ),
+                ) {
+                    Text("Очистить")
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items.forEach { item ->
+                MicroappListItem(
+                    item = item,
+                    onClick = { onItemClick(item.code) },
                 )
             }
         }
@@ -80,383 +371,255 @@ private fun MicroappListItem(
 }
 
 @Composable
-private fun BottomActionsBar(
-    state: OpenFileState,
-    onEvent: (OpenFileEvent) -> Unit,
+private fun MicroappListItem(
+    item: MicroappItem,
+    onClick: () -> Unit,
 ) {
-    val buttonsEnabled = !state.isUploadFile && !state.isSyncingCollection
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = item.title,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun JsonFilesCard(
+    availableCount: Int,
+    selectedCount: Int,
+    onSelectJson: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = "JSON файлы",
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Доступно: $availableCount файлов",
+                fontSize = 14.sp,
+            )
+            if (selectedCount > 0) {
+                Text(
+                    text = "Выбрано: $selectedCount файлов",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onSelectJson,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+                ) {
+                    Text("Изменить выбор JSON")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SelectedFileCard(fileName: String) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Выбранный файл:",
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = fileName,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorCard(message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "⚠",
+                fontSize = 24.sp,
+                modifier = Modifier.padding(end = 12.dp),
+            )
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BottomActionsBar(
+    uploadButtonText: String,
+    buttonsEnabled: Boolean,
+    onUpload: () -> Unit,
+    onAddCollection: () -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Button(
-            onClick = { onEvent(OpenFileEvent.OnUpload) },
+            onClick = onUpload,
             modifier = Modifier.fillMaxWidth(),
-            enabled = buttonsEnabled
+            enabled = buttonsEnabled,
         ) {
-            Text(
-                text = when (state.microappSource) {
-                    MicroappSource.ASSETS -> "Загрузить из assets"
-                    MicroappSource.FILE_SYSTEM,
-                    MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
-                }
-            )
+            Text(text = uploadButtonText)
         }
         Button(
-            onClick = { onEvent(OpenFileEvent.OnAddCollection) },
+            onClick = onAddCollection,
             modifier = Modifier.fillMaxWidth(),
-            enabled = buttonsEnabled
+            enabled = buttonsEnabled,
         ) {
             Text(text = "Добавить коллекцию прототипов")
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+// ---------------------------------------------------------------------------
+// Preview
+// ---------------------------------------------------------------------------
+
+@Preview(name = "Loading")
 @Composable
-internal fun OpenFileScreen(
-    state: OpenFileState,
-    onEvent: (OpenFileEvent) -> Unit
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "SDUI",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary
+private fun OpenFileScreenPreviewLoading() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(isParsing = true),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(name = "Syncing")
+@Composable
+private fun OpenFileScreenPreviewSyncing() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(isSyncingCollection = true, selectedJsonFiles = listOf("a.json", "b.json")),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(name = "Empty")
+@Composable
+private fun OpenFileScreenPreviewEmpty() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(microappSource = MicroappSource.FILE_SYSTEM_JSON),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(name = "Content — Collection + Single")
+@Composable
+private fun OpenFileScreenPreviewContent() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(
+                collectionMicroapps = listOf(
+                    MicroappItem("col1", "Коллекционный микроапп 1"),
+                    MicroappItem("col2", "Коллекционный микроапп 2"),
                 ),
-                actions = {
-                    if (state.hasJsonFiles) {
-                        IconButton(
-                            onClick = { onEvent(OpenFileEvent.OnLoadJsonFiles) },
-                            enabled = !state.isParsing
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Description,
-                                contentDescription = "Загрузить JSON файлы"
-                            )
-                        }
-                    }
-                    if (state.availableJsonFiles.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
-                            },
-                            enabled = !state.isParsing
-                        ) {
-                            BadgedBox(
-                                badge = {
-                                    if (state.selectedJsonFiles.isNotEmpty()) {
-                                        Badge {
-                                            Text(
-                                                text = state.selectedJsonFiles.size.toString(),
-                                                fontSize = 10.sp
-                                            )
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "Настройки JSON"
-                                )
-                            }
-                        }
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            if (state.isUploadFile || state.isParsing || state.isSyncingCollection) {
-                // Показываем индикатор загрузки
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = when {
-                            state.isSyncingCollection -> "Синхронизация коллекции..."
-                            state.isParsing -> "Парсинг файла..."
-                            else -> "Загрузка..."
-                        },
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    if (state.selectedJsonFiles.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Используются JSON файлы:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = state.selectedJsonFiles.joinToString(", "),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            } else if (state.collectionMicroapps.isEmpty() && state.singleMicroapps.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Text(
-                                text = "Список пуст",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "Сканируйте QR-коды на Портале для\u00a0добавления прототипов",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                singleMicroapps = listOf(
+                    MicroappItem("single1", "Одиночный микроапп 1"),
+                ),
+            ),
+            onEvent = {},
+        )
+    }
+}
 
-                    BottomActionsBar(state = state, onEvent = onEvent)
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Коллекция (показываем только если есть элементы)
-                        if (state.collectionMicroapps.isNotEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Коллекция",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    if (!state.isSyncingCollection) {
-                                        Button(
-                                            onClick = { onEvent(OpenFileEvent.OnClearCollection) },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                            )
-                                        ) {
-                                            Text("Очистить")
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    state.collectionMicroapps.forEach { item ->
-                                        MicroappListItem(
-                                            item = item,
-                                            onClick = { onEvent(OpenFileEvent.OnShowTestScreen(item.code)) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
+@Preview(name = "Content — Only Collection")
+@Composable
+private fun OpenFileScreenPreviewCollectionOnly() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(
+                collectionMicroapps = listOf(MicroappItem("test", "Тестовый микроапп")),
+            ),
+            onEvent = {},
+        )
+    }
+}
 
-                        // Список прототипов (показываем только если есть элементы)
-                        if (state.singleMicroapps.isNotEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Список прототипов",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    if (!state.isSyncingCollection) {
-                                        Button(
-                                            onClick = { onEvent(OpenFileEvent.OnClearSingleList) },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                            )
-                                        ) {
-                                            Text("Очистить")
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    state.singleMicroapps.forEach { item ->
-                                        MicroappListItem(
-                                            item = item,
-                                            onClick = { onEvent(OpenFileEvent.OnShowTestScreen(item.code)) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
+@Preview(name = "Error")
+@Composable
+private fun OpenFileScreenPreviewError() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(
+                collectionMicroapps = listOf(MicroappItem("x", "Микроапп")),
+                errorMessage = "Не удалось загрузить архив",
+            ),
+            onEvent = {},
+        )
+    }
+}
 
-                        // Информация о JSON файлах
-                        if (state.availableJsonFiles.isNotEmpty()) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Description,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Text(
-                                            text = "JSON файлы",
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Доступно: ${state.availableJsonFiles.size} файлов",
-                                        fontSize = 14.sp
-                                    )
-                                    if (state.selectedJsonFiles.isNotEmpty()) {
-                                        Text(
-                                            text = "Выбрано: ${state.selectedJsonFiles.size} файлов",
-                                            fontSize = 14.sp,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Button(
-                                            onClick = {
-                                                onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles))
-                                            },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                            )
-                                        ) {
-                                            Text("Изменить выбор JSON")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Информация о выбранном файле
-                        if (state.microappSource == MicroappSource.ASSETS) {
-                            state.selectedFileName?.let { fileName ->
-                                Card(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp)
-                                    ) {
-                                        Text(
-                                            text = "Выбранный файл:",
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = fileName,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Сообщение об ошибке
-                        state.errorMessage?.let { error ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "⚠",
-                                        fontSize = 24.sp,
-                                        modifier = Modifier.padding(end = 12.dp)
-                                    )
-                                    Text(
-                                        text = error,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    BottomActionsBar(state = state, onEvent = onEvent)
-                }
-            }
-        }
+@Preview(name = "With JSON files")
+@Composable
+private fun OpenFileScreenPreviewWithJson() {
+    DrivenUITheme {
+        OpenFileScreen(
+            state = OpenFileState(
+                collectionMicroapps = listOf(MicroappItem("a", "Микроапп")),
+                availableJsonFiles = listOf("data1.json", "data2.json"),
+                selectedJsonFiles = listOf("data1.json"),
+            ),
+            onEvent = {},
+        )
     }
 }

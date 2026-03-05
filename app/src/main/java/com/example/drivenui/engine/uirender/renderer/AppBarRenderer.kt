@@ -18,9 +18,10 @@ import com.example.drivenui.engine.uirender.models.AppBarModel
 fun AppBarRenderer(
     model: AppBarModel,
     onActions: (List<UiAction>) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     CenterAlignedTopAppBar(
-        modifier = model.modifierParams.applyParams(Modifier),
+        modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
         title = {
             if (model.title != null) {
                 Text(

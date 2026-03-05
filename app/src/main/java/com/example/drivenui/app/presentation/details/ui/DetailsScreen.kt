@@ -49,24 +49,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.drivenui.app.presentation.details.model.DetailsEvent
 import com.example.drivenui.app.presentation.details.model.DetailsState
+import com.example.drivenui.app.presentation.details.model.DetailsTabData
 import com.example.drivenui.app.presentation.details.model.EventItem
 import com.example.drivenui.app.presentation.details.model.LayoutItem
 import com.example.drivenui.app.presentation.details.model.QueryItem
 import com.example.drivenui.app.presentation.details.model.ScreenItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
-import com.example.drivenui.app.presentation.details.vm.DetailsViewModel
+import com.example.drivenui.app.theme.DrivenUITheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailsScreen(
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val renderModel = viewModel.getComponentModelForRender()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,7 +75,7 @@ internal fun DetailsScreen(
                     Text(
                         state.microappTitle,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
@@ -163,14 +164,14 @@ internal fun DetailsScreen(
 
                 // Контент в зависимости от выбранной вкладки
                 when (state.selectedTabIndex) {
-                    0 -> OverviewTab(state, viewModel, onEvent)
-                    1 -> ScreensTab(state, viewModel, onEvent)
-                    2 -> StylesTab(state, viewModel, onEvent)
-                    3 -> QueriesTab(state, viewModel, onEvent)
-                    4 -> EventsTab(state, viewModel, onEvent)
-                    5 -> WidgetsTab(state, viewModel, onEvent)
-                    6 -> LayoutsTab(state, viewModel, onEvent)
-                    7 -> DetailsTab(state, viewModel, onEvent) // Новая вкладка для деталей
+                    0 -> OverviewTab(state = state, onEvent = onEvent)
+                    1 -> ScreensTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    2 -> StylesTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    3 -> QueriesTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    4 -> EventsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    5 -> WidgetsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    6 -> LayoutsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    7 -> DetailsTab(state = state, onEvent = onEvent)
                 }
             }
         }
@@ -180,8 +181,7 @@ internal fun DetailsScreen(
 @Composable
 private fun OverviewTab(
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -292,11 +292,11 @@ private fun OverviewTab(
 
 @Composable
 private fun ScreensTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val screens = viewModel.getScreens()
+    val screens = tabData.screens
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -328,12 +328,12 @@ private fun ScreensTab(
 
 @Composable
 private fun StylesTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val textStyles = viewModel.getTextStyles()
-    val colorStyles = viewModel.getColorStyles()
+    val textStyles = tabData.textStyles
+    val colorStyles = tabData.colorStyles
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -434,11 +434,11 @@ private fun StylesTab(
 
 @Composable
 private fun QueriesTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val queries = viewModel.getQueries()
+    val queries = tabData.queries
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -467,11 +467,11 @@ private fun QueriesTab(
 
 @Composable
 private fun EventsTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val events = viewModel.getEvents()
+    val events = tabData.events
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -719,11 +719,11 @@ private fun createExportJson(parsedMicroapp: com.example.drivenui.engine.parser.
 
 @Composable
 private fun WidgetsTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val widgets = viewModel.getWidgets()
+    val widgets = tabData.widgets
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -752,11 +752,11 @@ private fun WidgetsTab(
 
 @Composable
 private fun LayoutsTab(
+    tabData: DetailsTabData,
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
-    val layouts = viewModel.getLayouts()
+    val layouts = tabData.layouts
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -786,8 +786,7 @@ private fun LayoutsTab(
 @Composable
 private fun DetailsTab(
     state: DetailsState,
-    viewModel: DetailsViewModel,
-    onEvent: (DetailsEvent) -> Unit
+    onEvent: (DetailsEvent) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -826,7 +825,7 @@ private fun DetailsTab(
         }
 
         // Screen Queries
-        val screenQueries = viewModel.getScreenQueries()
+        val screenQueries = state.tabData.screenQueries
         item {
             ExpandableSection(
                 title = "Экранные запросы (${screenQueries.size})",
@@ -855,7 +854,7 @@ private fun DetailsTab(
         }
 
         // Event Actions
-        val eventActions = viewModel.getEventActions()
+        val eventActions = state.tabData.eventActions
         item {
             ExpandableSection(
                 title = "Действия событий (${eventActions.size})",
@@ -1265,4 +1264,65 @@ private fun escapeJson(value: String): String {
         .replace("\t", "\\t")
         .replace("\b", "\\b")
         .replace("\u000C", "\\f")
+}
+
+// ---------------------------------------------------------------------------
+// Preview
+// ---------------------------------------------------------------------------
+
+@Preview(name = "Loading")
+@Composable
+private fun DetailsScreenPreviewLoading() {
+    DrivenUITheme {
+        DetailsScreen(
+            state = DetailsState(isLoading = true),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(name = "No Data")
+@Composable
+private fun DetailsScreenPreviewNoData() {
+    DrivenUITheme {
+        DetailsScreen(
+            state = DetailsState(errorMessage = "Нет данных"),
+            onEvent = {},
+        )
+    }
+}
+
+@Preview(name = "Content")
+@Composable
+private fun DetailsScreenPreviewContent() {
+    val parsedResult = com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult(
+        microapp = com.example.drivenui.engine.parser.models.Microapp(
+            title = "Тест",
+            code = "test",
+            shortCode = "t",
+            deeplink = "test://",
+            persistents = emptyList(),
+        ),
+        screens = listOf(
+            com.example.drivenui.engine.parser.models.ParsedScreen(
+                title = "Экран 1",
+                screenCode = "s1",
+                screenShortCode = "s1",
+                deeplink = "dl1",
+            ),
+        ),
+    )
+    DrivenUITheme {
+        DetailsScreen(
+            state = DetailsState(
+                parsedResult = parsedResult,
+                tabData = DetailsTabData(
+                    screens = listOf(
+                        ScreenItem("1", "Экран 1", "s1", "s1", "dl1", 0, 0, false, 0),
+                    ),
+                ),
+            ),
+            onEvent = {},
+        )
+    }
 }

@@ -28,22 +28,22 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun GenerativeScreen(
-    viewModel: GenerativeScreenViewModel,
-    onExit: () -> Unit = {}
+    state: GenerativeUiState,
+    bottomSheetState: StateFlow<ComponentModel?>,
+    onActions: (List<UiAction>) -> Unit,
+    onBack: () -> Unit,
+    onWidgetValueChange: WidgetValueSetter,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)?,
+    getSheetCornerRadiusDp: (ComponentModel) -> Int?,
 ) {
     GenerativeScreenUi(
-        state = viewModel.uiState.collectAsStateWithLifecycle().value,
-        bottomSheetState = viewModel.bottomSheetState,
-        onActions = viewModel::handleActions,
-        onBack = {
-            val handled = viewModel.navigateBack()
-            if (!handled) {
-                onExit()
-            }
-        },
-        onWidgetValueChange = viewModel::onWidgetValueChange,
-        applyBindingsForComponent = viewModel::applyBindingsToComponent,
-        getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp
+        state = state,
+        bottomSheetState = bottomSheetState,
+        onActions = onActions,
+        onBack = onBack,
+        onWidgetValueChange = onWidgetValueChange,
+        applyBindingsForComponent = applyBindingsForComponent,
+        getSheetCornerRadiusDp = getSheetCornerRadiusDp,
     )
 }
 

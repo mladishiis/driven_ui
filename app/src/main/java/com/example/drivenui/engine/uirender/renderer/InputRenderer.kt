@@ -18,11 +18,12 @@ import com.example.drivenui.engine.uirender.models.InputModel
 fun InputRenderer(
     model: InputModel,
     onActions: (List<UiAction>) -> Unit,
-    onWidgetValueChange: WidgetValueSetter
+    onWidgetValueChange: WidgetValueSetter,
+    modifier: Modifier = Modifier,
 ) {
-    var text by remember { mutableStateOf(model.text) }
+    var text by remember(model) { mutableStateOf(model.text) }
 
-    var isFirstValue by remember { mutableStateOf(true) }
+    var isFirstValue by remember(model) { mutableStateOf(true) }
 
     val finishTypingActions = remember(model) { model.finishTypingActions }
 
@@ -39,7 +40,7 @@ fun InputRenderer(
     }
 
     BasicTextField(
-        modifier = model.modifierParams.applyParams(Modifier),
+        modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
         value = text,
         onValueChange = { newText ->
             text = newText

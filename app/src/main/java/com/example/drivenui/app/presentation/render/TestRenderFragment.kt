@@ -3,12 +3,14 @@ package com.example.drivenui.app.presentation.render
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.engine.generative_screen.GenerativeScreen
 import com.example.drivenui.engine.generative_screen.GenerativeScreenViewModel
-import com.example.drivenui.app.navigation.NavigationManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,11 +30,20 @@ internal class TestRenderFragment : Fragment() {
 
         return ComposeView(requireContext()).apply {
             setContent {
+                val state by viewModel.uiState.collectAsStateWithLifecycle()
                 GenerativeScreen(
-                    viewModel = viewModel,
-                    onExit = {
-                        parentFragmentManager.popBackStack()
-                    }
+                    state = state,
+                    bottomSheetState = viewModel.bottomSheetState,
+                    onActions = viewModel::handleActions,
+                    onBack = {
+                        val handled = viewModel.navigateBack()
+                        if (!handled) {
+                            parentFragmentManager.popBackStack()
+                        }
+                    },
+                    onWidgetValueChange = viewModel::onWidgetValueChange,
+                    applyBindingsForComponent = viewModel::applyBindingsToComponent,
+                    getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
                 )
             }
         }

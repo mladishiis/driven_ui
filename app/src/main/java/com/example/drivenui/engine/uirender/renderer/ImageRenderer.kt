@@ -23,10 +23,11 @@ import java.io.File
 fun ImageRenderer(
     model: ImageModel,
     onActions: (List<UiAction>) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
 
-    val baseModifier = model.modifierParams.applyParams(Modifier)
+    val baseModifier = modifier.then(model.modifierParams.applyParams(Modifier))
     val imageModifier = if (model.tapActions.isNotEmpty()) {
         baseModifier.then(
             Modifier.clickable {

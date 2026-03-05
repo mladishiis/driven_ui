@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
@@ -15,27 +16,34 @@ import com.example.drivenui.engine.uirender.models.SwitcherModel
 @Composable
 fun ComponentRenderer(
     model: ComponentModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
+    modifier: Modifier = Modifier,
+    isRoot: Boolean = false,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     if (!model.visibility) return
     when (model) {
         is LayoutModel -> LayoutRenderer(
-            model,
-            onActions,
-            onWidgetValueChange,
-            isRoot,
-            applyBindingsForComponent,
+            model = model,
+            onActions = onActions,
+            modifier = modifier,
+            isRoot = isRoot,
+            onWidgetValueChange = onWidgetValueChange,
+            applyBindingsForComponent = applyBindingsForComponent,
         )
-        is InputModel -> InputRenderer(model, onActions, onWidgetValueChange ?: { _, _, _ -> })
-        is LabelModel -> LabelRenderer(model, onActions)
-        is ImageModel -> ImageRenderer(model, onActions)
-        is ButtonModel -> ButtonRenderer(model, onActions)
-        is CheckboxModel -> CheckboxRenderer(model, onActions)
-        is SwitcherModel -> SwitcherRenderer(model, onActions)
-        is AppBarModel -> AppBarRenderer(model, onActions)
+        is InputModel -> InputRenderer(
+            model = model,
+            onActions = onActions,
+            onWidgetValueChange = onWidgetValueChange ?: { _, _, _ -> },
+            modifier = modifier,
+        )
+        is LabelModel -> LabelRenderer(model = model, onActions = onActions, modifier = modifier)
+        is ImageModel -> ImageRenderer(model = model, onActions = onActions, modifier = modifier)
+        is ButtonModel -> ButtonRenderer(model = model, onActions = onActions, modifier = modifier)
+        is CheckboxModel -> CheckboxRenderer(model = model, onActions = onActions, modifier = modifier)
+        is SwitcherModel -> SwitcherRenderer(model = model, onActions = onActions, modifier = modifier)
+        is AppBarModel -> AppBarRenderer(model = model, onActions = onActions, modifier = modifier)
         else -> {}
     }
 }

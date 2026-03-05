@@ -48,7 +48,6 @@ internal class DetailsFragment : Fragment() {
 
                     DetailsScreen(
                         state = state,
-                        viewModel = viewModel,
                         onEvent = { event ->
                             viewModel.handleEvent(event)
                         }

@@ -5,17 +5,13 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.engine.parser.SDUIParser
-import com.example.drivenui.engine.parser.models.Component
-import com.example.drivenui.engine.parser.models.ComponentType
-import com.example.drivenui.engine.parser.models.Microapp
 import com.example.drivenui.app.presentation.details.model.AlignmentStyleItem
 import com.example.drivenui.app.presentation.details.model.ColorStyleItem
 import com.example.drivenui.app.presentation.details.model.ComponentTreeItem
 import com.example.drivenui.app.presentation.details.model.DetailsEffect
 import com.example.drivenui.app.presentation.details.model.DetailsEvent
 import com.example.drivenui.app.presentation.details.model.DetailsState
+import com.example.drivenui.app.presentation.details.model.DetailsTabData
 import com.example.drivenui.app.presentation.details.model.EventActionItem
 import com.example.drivenui.app.presentation.details.model.EventItem
 import com.example.drivenui.app.presentation.details.model.LayoutItem
@@ -26,6 +22,13 @@ import com.example.drivenui.app.presentation.details.model.ScreenItem
 import com.example.drivenui.app.presentation.details.model.ScreenQueryItem
 import com.example.drivenui.app.presentation.details.model.TextStyleItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
+import com.example.drivenui.engine.mappers.ComposeStyleRegistry
+import com.example.drivenui.engine.mappers.mapParsedScreenToUI
+import com.example.drivenui.engine.parser.SDUIParser
+import com.example.drivenui.engine.parser.models.Component
+import com.example.drivenui.engine.parser.models.ComponentType
+import com.example.drivenui.engine.parser.models.Microapp
+import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -42,12 +45,114 @@ internal class DetailsViewModel @Inject constructor(
      * Устанавливает результат парсинга с новой структурой
      */
     fun setParsedResult(parsedResult: SDUIParser.ParsedMicroappResult?) {
+        val tabData = parsedResult?.let { computeTabData(it) } ?: DetailsTabData()
         updateState {
             copy(
-                parsedResult = parsedResult
+                parsedResult = parsedResult,
+                tabData = tabData,
             )
         }
         logParsingData(parsedResult)
+    }
+
+    private fun computeTabData(result: SDUIParser.ParsedMicroappResult): DetailsTabData {
+        val screens = result.screens.map { screen ->
+            ScreenItem(
+                id = screen.screenCode,
+                title = screen.title,
+                code = screen.screenCode,
+                shortCode = screen.screenShortCode,
+                deeplink = screen.deeplink,
+                eventsCount = 0,
+                layoutsCount = 0,
+                hasComponents = screen.rootComponent != null,
+                componentCount = screen.rootComponent?.let { countComponents(it) } ?: 0
+            )
+        }
+        val textStyles = result.styles?.textStyles?.map { style ->
+            TextStyleItem(
+                code = style.code,
+                fontFamily = style.fontFamily,
+                fontSize = style.fontSize,
+                fontWeight = style.fontWeight
+            )
+        } ?: emptyList()
+        val colorStyles = result.styles?.colorStyles?.map { style ->
+            ColorStyleItem(
+                code = style.code,
+                lightColor = style.lightTheme.color,
+                darkColor = style.darkTheme.color,
+                lightOpacity = style.lightTheme.opacity,
+                darkOpacity = style.darkTheme.opacity
+            )
+        } ?: emptyList()
+        val queries = result.queries.map { query ->
+            QueryItem(
+                title = query.title,
+                code = query.code,
+                type = query.type,
+                endpoint = query.endpoint,
+                propertiesCount = query.properties.size
+            )
+        }
+        val events = result.events?.events?.map { event ->
+            EventItem(
+                title = event.title,
+                code = event.code,
+                actionsCount = event.eventActions.size
+            )
+        } ?: emptyList()
+        val widgets = result.widgets.map { widget ->
+            WidgetItem(
+                id = widget.code,
+                title = widget.title,
+                code = widget.code,
+                type = widget.type,
+                propertiesCount = widget.properties.size,
+                stylesCount = widget.styles.size,
+                eventsCount = widget.events.size
+            )
+        }
+        val layouts = result.layouts.map { layout ->
+            LayoutItem(
+                id = layout.code,
+                title = layout.title,
+                code = layout.code,
+                propertiesCount = layout.properties.size
+            )
+        }
+        val screenQueries = result.screenQueries.map { query ->
+            ScreenQueryItem(
+                id = query.code,
+                code = query.code,
+                screenCode = query.screenCode,
+                queryCode = query.queryCode,
+                order = query.order
+            )
+        }
+        val eventActions = result.eventActions?.eventActions?.map { action ->
+            EventActionItem(
+                id = action.code,
+                title = action.title,
+                code = action.code,
+                order = action.order,
+                propertiesCount = action.properties.size
+            )
+        } ?: emptyList()
+        val registry = ComposeStyleRegistry(result.styles)
+        val componentModelForRender = result.screens.firstOrNull()?.let { mapParsedScreenToUI(it, registry) }
+        return DetailsTabData(
+            screens = screens,
+            textStyles = textStyles,
+            colorStyles = colorStyles,
+            queries = queries,
+            events = events,
+            widgets = widgets,
+            layouts = layouts,
+            screenQueries = screenQueries,
+            eventActions = eventActions,
+            componentModelForRender = componentModelForRender,
+        )
     }
 
     override fun handleEvent(event: DetailsEvent) {
