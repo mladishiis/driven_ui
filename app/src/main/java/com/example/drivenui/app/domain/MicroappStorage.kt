@@ -3,12 +3,14 @@ package com.example.drivenui.app.domain
 import com.example.drivenui.engine.cache.CachedMicroappData
 
 /**
- * Хранилище замапленных микроаппов.
- * Сохраняет результат маппинга (CachedMicroappData) для быстрой загрузки без повторного парсинга и маппинга.
+ * Хранилище замапленных микроаппов и метаданных (коллекция, список прототипов).
+ * Всё хранится в parsed_microapps/: файлы микроаппов + meta/ с индексами.
  *
  * Используется для:
  * - Кэширования микроаппов после парсинга и маппинга
- * - Загрузки сохранённых микроаппов (в т.ч. для экрана со списком микроаппов)
+ * - Загрузки сохранённых микроаппов
+ * - ID и кодов коллекции (синхронизация с сервером)
+ * - Кодов списка прототипов (добавленных по одному)
  */
 interface MicroappStorage {
 
@@ -30,7 +32,6 @@ interface MicroappStorage {
 
     /**
      * Возвращает коды всех сохранённых микроаппов.
-     * Для экрана со списком микроаппов.
      */
     suspend fun getAllCodes(): List<String>
 
@@ -43,4 +44,19 @@ interface MicroappStorage {
      * Проверяет наличие сохранённого микроаппа.
      */
     suspend fun contains(microappCode: String): Boolean
+
+    // --- Коллекция (синхронизация с сервером) ---
+
+    suspend fun saveCollectionId(id: String)
+    suspend fun getCollectionId(): String?
+    suspend fun saveCollectionCodes(codes: List<String>)
+    suspend fun getCollectionCodes(): List<String>
+    suspend fun clearCollectionId()
+
+    // --- Список прототипов (добавленных по одному) ---
+
+    suspend fun addSingleListCode(code: String)
+    suspend fun getSingleListCodes(): List<String>
+    suspend fun clearSingleListCodes()
+    suspend fun removeCodesFromSingleList(codes: List<String>)
 }

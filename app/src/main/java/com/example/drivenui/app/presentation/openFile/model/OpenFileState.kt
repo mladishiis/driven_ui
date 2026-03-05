@@ -15,8 +15,11 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** Загрузка конфигурации (микроапп или шаблон) */
     data object OnUpload : OpenFileEvent
 
-    /** Очистить список сохранённых микроаппов */
-    data object OnClearSavedMicroapps : OpenFileEvent
+    /** Очистить коллекцию (микроаппы из коллекции + ID коллекции) */
+    data object OnClearCollection : OpenFileEvent
+
+    /** Очистить список прототипов (микроаппы, добавленные по одному) */
+    data object OnClearSingleList : OpenFileEvent
 
     /** Показать файл */
     data object OnShowFile : OpenFileEvent
@@ -127,7 +130,8 @@ internal data class MicroappItem(
 
 internal data class OpenFileState(
     val microappSource: MicroappSource = MicroappSource.ASSETS,
-    val savedMicroapps: List<MicroappItem> = emptyList(),
+    val collectionMicroapps: List<MicroappItem> = emptyList(),
+    val singleMicroapps: List<MicroappItem> = emptyList(),
     val isUploadFile: Boolean = false,
     val isParsing: Boolean = false,
     val isSyncingCollection: Boolean = false,

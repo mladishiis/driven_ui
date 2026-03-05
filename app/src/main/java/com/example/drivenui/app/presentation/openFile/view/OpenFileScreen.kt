@@ -109,14 +109,6 @@ private fun BottomActionsBar(
         ) {
             Text(text = "Добавить коллекцию прототипов")
         }
-        if (state.savedMicroapps.isNotEmpty() && !state.isSyncingCollection) {
-            Button(
-                onClick = { onEvent(OpenFileEvent.OnClearSavedMicroapps) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "Очистить список")
-            }
-        }
     }
 }
 
@@ -217,7 +209,7 @@ internal fun OpenFileScreen(
                         )
                     }
                 }
-            } else if (state.savedMicroapps.isEmpty()) {
+            } else if (state.collectionMicroapps.isEmpty() && state.singleMicroapps.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -273,26 +265,88 @@ internal fun OpenFileScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Список прототипов
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Список прототипов",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
+                        // Коллекция (показываем только если есть элементы)
+                        if (state.collectionMicroapps.isNotEmpty()) {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                state.savedMicroapps.forEach { item ->
-                                    MicroappListItem(
-                                        item = item,
-                                        onClick = { onEvent(OpenFileEvent.OnShowTestScreen(item.code)) }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Коллекция",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
+                                    if (!state.isSyncingCollection) {
+                                        Button(
+                                            onClick = { onEvent(OpenFileEvent.OnClearCollection) },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                            )
+                                        ) {
+                                            Text("Очистить")
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    state.collectionMicroapps.forEach { item ->
+                                        MicroappListItem(
+                                            item = item,
+                                            onClick = { onEvent(OpenFileEvent.OnShowTestScreen(item.code)) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Список прототипов (показываем только если есть элементы)
+                        if (state.singleMicroapps.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Список прототипов",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    if (!state.isSyncingCollection) {
+                                        Button(
+                                            onClick = { onEvent(OpenFileEvent.OnClearSingleList) },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                            )
+                                        ) {
+                                            Text("Очистить")
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    state.singleMicroapps.forEach { item ->
+                                        MicroappListItem(
+                                            item = item,
+                                            onClick = { onEvent(OpenFileEvent.OnShowTestScreen(item.code)) }
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.data.MicroappCollectionApi
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
-import com.example.drivenui.app.domain.CollectionIdStorage
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
 import com.example.drivenui.app.domain.MicroappSource
@@ -27,7 +26,6 @@ internal class OpenFileViewModel @Inject constructor(
     private val fileInteractor: FileInteractor,
     private val fileDownloadInteractor: FileDownloadInteractor,
     private val microappStorage: MicroappStorage,
-    private val collectionIdStorage: CollectionIdStorage,
     private val collectionApi: MicroappCollectionApi,
     private val microappSource: MicroappSource,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
@@ -48,9 +46,8 @@ internal class OpenFileViewModel @Inject constructor(
             OpenFileEvent.OnUpload -> {
                 handleUpload()
             }
-            OpenFileEvent.OnClearSavedMicroapps -> {
-                handleClearSavedMicroapps()
-            }
+            OpenFileEvent.OnClearCollection -> handleClearCollection()
+            OpenFileEvent.OnClearSingleList -> handleClearSingleList()
             OpenFileEvent.OnShowFile -> handleShowFile()
             OpenFileEvent.OnShowParsingDetails -> handleShowParsingDetails()
             is OpenFileEvent.OnShowTestScreen -> handleShowTestScreen(event.microappCode)
@@ -97,6 +94,10 @@ internal class OpenFileViewModel @Inject constructor(
                 // Единый путь парсинга: full microapp ИЛИ шаблон (экраны + стили)
                 val parsedResult = fileInteractor.parseTemplate()
 
+                val microappCode = parsedResult.microapp?.code?.takeIf { it.isNotBlank() } ?: "template"
+                if (microappSource == MicroappSource.FILE_SYSTEM || microappSource == MicroappSource.FILE_SYSTEM_JSON) {
+                    microappStorage.addSingleListCode(microappCode)
+                }
                 withContext(Dispatchers.Main) {
                     val state = uiState.value
                     updateState {
@@ -255,34 +256,71 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleShowParsingDetails() = handleShowFile()
     private fun loadSavedMicroapps() {
         viewModelScope.launch(Dispatchers.IO) {
-            val codes = microappStorage.getAllCodes()
-            val items = codes.mapNotNull { code ->
+            val collectionCodes = microappStorage.getCollectionCodes().toSet()
+            val singleListCodes = microappStorage.getSingleListCodes().toSet()
+            val collectionItems = mutableListOf<MicroappItem>()
+            val singleItems = mutableListOf<MicroappItem>()
+            collectionCodes.forEach { code ->
                 microappStorage.loadMapped(code)?.let { data ->
-                    MicroappItem(
-                        code = data.microappCode,
-                        title = data.microappTitle.takeIf { it.isNotBlank() } ?: data.microappCode,
+                    collectionItems.add(
+                        MicroappItem(
+                            code = data.microappCode,
+                            title = data.microappTitle.takeIf { it.isNotBlank() } ?: data.microappCode,
+                        )
+                    )
+                }
+            }
+            singleListCodes.forEach { code ->
+                microappStorage.loadMapped(code)?.let { data ->
+                    singleItems.add(
+                        MicroappItem(
+                            code = data.microappCode,
+                            title = data.microappTitle.takeIf { it.isNotBlank() } ?: data.microappCode,
+                        )
                     )
                 }
             }
             withContext(Dispatchers.Main) {
-                updateState { copy(savedMicroapps = items) }
+                updateState {
+                    copy(
+                        collectionMicroapps = collectionItems,
+                        singleMicroapps = singleItems,
+                    )
+                }
             }
         }
     }
 
-    private fun handleClearSavedMicroapps() {
+    private fun handleClearCollection() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val codes = microappStorage.getAllCodes()
-                codes.forEach { code ->
+                val collectionCodes = microappStorage.getCollectionCodes().toSet()
+                val singleListCodes = microappStorage.getSingleListCodes().toSet()
+                // Удаляем только микроаппы, которые есть ТОЛЬКО в коллекции.
+                // Пересекающиеся (в коллекции и в списке прототипов) оставляем — файл и запись в singleListCodes сохраняются.
+                collectionCodes.filter { it !in singleListCodes }.forEach { code ->
                     microappStorage.delete(code)
                 }
-                collectionIdStorage.clearCollectionId()
-                withContext(Dispatchers.Main) {
-                    updateState { copy(savedMicroapps = emptyList()) }
-                }
+                microappStorage.clearCollectionId()
+                loadSavedMicroapps()
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка при очистке списка микроаппов", e)
+                Log.e("OpenFileViewModel", "Ошибка при очистке коллекции", e)
+            }
+        }
+    }
+
+    private fun handleClearSingleList() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val collectionCodes = microappStorage.getCollectionCodes().toSet()
+                val singleListCodes = microappStorage.getSingleListCodes()
+                singleListCodes.filter { it !in collectionCodes }.forEach { code ->
+                    microappStorage.delete(code)
+                }
+                microappStorage.clearSingleListCodes()
+                loadSavedMicroapps()
+            } catch (e: Exception) {
+                Log.e("OpenFileViewModel", "Ошибка при очистке списка прототипов", e)
             }
         }
     }
@@ -294,22 +332,22 @@ internal class OpenFileViewModel @Inject constructor(
                 return
             }
         viewModelScope.launch {
-            syncCollection(id, downloadOnlyMissing = false)
+            syncCollection(id)
         }
     }
 
     private fun syncCollectionOnStart() {
         viewModelScope.launch {
-            val savedId = collectionIdStorage.getCollectionId() ?: return@launch
-            syncCollection(savedId, downloadOnlyMissing = true)
+            val savedId = microappStorage.getCollectionId() ?: return@launch
+            syncCollection(savedId)
         }
     }
 
     /**
-     * Синхронизирует коллекцию: запрашивает список микроаппов, скачивает и парсит.
-     * @param downloadOnlyMissing если true — скачивает только отсутствующие на устройстве
+     * Синхронизирует коллекцию: запрашивает список микроаппов, удаляет лишние, скачивает и заменяет все.
+     * Версионирования нет, поэтому уже существующие микроаппы тоже перезагружаются.
      */
-    private suspend fun syncCollection(collectionId: String, downloadOnlyMissing: Boolean) {
+    private suspend fun syncCollection(collectionId: String) {
         withContext(Dispatchers.Main) {
             updateState {
                 copy(
@@ -319,7 +357,7 @@ internal class OpenFileViewModel @Inject constructor(
             }
         }
         try {
-            collectionIdStorage.saveCollectionId(collectionId)
+            microappStorage.saveCollectionId(collectionId)
             val codesResult = collectionApi.fetchMicroappCodes(collectionId)
             val allCodes = codesResult.getOrElse {
                 withContext(Dispatchers.Main) {
@@ -328,17 +366,17 @@ internal class OpenFileViewModel @Inject constructor(
                 }
                 return
             }
-            val existingCodes = if (downloadOnlyMissing) {
-                microappStorage.getAllCodes().toSet()
-            } else {
-                emptySet()
+            val serverCodesSet = allCodes.toSet()
+            val oldCollectionCodes = microappStorage.getCollectionCodes().toSet()
+            // Удаляем только микроаппы коллекции, которых больше нет на сервере.
+            // Микроаппы из списка прототипов (не в коллекции) не трогаем.
+            val singleListCodes = microappStorage.getSingleListCodes().toSet()
+            oldCollectionCodes.filter { it !in serverCodesSet && it !in singleListCodes }.forEach { code ->
+                microappStorage.delete(code)
+                Log.d("OpenFileViewModel", "Удалён микроапп, отсутствующий в коллекции: $code")
             }
-            val toDownload = if (downloadOnlyMissing) {
-                allCodes.filter { it !in existingCodes }
-            } else {
-                allCodes
-            }
-            for (microappCode in toDownload) {
+            // Скачиваем и заменяем все — микроапп мог измениться, версионирования нет
+            for (microappCode in allCodes) {
                 val url = collectionApi.getMicroappZipUrl(microappCode)
                 val success = fileDownloadInteractor.downloadAndExtractZip(url, ArchiveDownloadFormat.OCTET_STREAM)
                 if (!success) {
@@ -351,11 +389,12 @@ internal class OpenFileViewModel @Inject constructor(
                     Log.e("OpenFileViewModel", "Ошибка парсинга $microappCode", e)
                 }
             }
+            microappStorage.saveCollectionCodes(allCodes)
             withContext(Dispatchers.Main) {
                 loadSavedMicroapps()
                 updateState { copy(isSyncingCollection = false) }
-                if (toDownload.isNotEmpty()) {
-                    setEffect { OpenFileEffect.ShowSuccess("Добавлено ${toDownload.size} прототипов") }
+                if (allCodes.isNotEmpty()) {
+                    setEffect { OpenFileEffect.ShowSuccess("Синхронизировано ${allCodes.size} прототипов") }
                 }
             }
         } catch (e: Exception) {

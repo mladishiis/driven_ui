@@ -2,13 +2,11 @@ package com.example.drivenui.app.di
 
 import android.content.Context
 import com.example.drivenui.app.data.AssetsMicroappFileProvider
-import com.example.drivenui.app.data.CollectionIdStorageImpl
 import com.example.drivenui.app.data.DirMicroappFileProvider
 import com.example.drivenui.app.data.FileRepository
 import com.example.drivenui.app.data.FileRepositoryImpl
 import com.example.drivenui.app.data.MicroappCollectionApi
 import com.example.drivenui.app.data.MicroappStorageImpl
-import com.example.drivenui.app.domain.CollectionIdStorage
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileDownloadInteractorImpl
 import com.example.drivenui.app.domain.FileInteractor
@@ -80,12 +78,6 @@ object AppModule {
     @Singleton
     fun provideMicroappStorage(@ApplicationContext context: Context): MicroappStorage {
         return MicroappStorageImpl(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideCollectionIdStorage(@ApplicationContext context: Context): CollectionIdStorage {
-        return CollectionIdStorageImpl(context)
     }
 
     @Provides
