@@ -51,7 +51,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.drivenui.R
 import com.example.drivenui.app.presentation.details.model.DetailsEvent
 import com.example.drivenui.app.presentation.details.model.DetailsState
 import com.example.drivenui.app.presentation.details.model.DetailsTabData
@@ -73,14 +75,14 @@ internal fun DetailsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        state.microappTitle,
+                        state.microappTitle.ifEmpty { stringResource(R.string.parsing_details) },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { onEvent(DetailsEvent.OnBackClick) }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -88,13 +90,13 @@ internal fun DetailsScreen(
                         onClick = { onEvent(DetailsEvent.OnExportData) },
                         enabled = state.hasData && !state.isLoading
                     ) {
-                        Icon(Icons.Filled.Download, contentDescription = "Экспорт")
+                        Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.export))
                     }
                     IconButton(
                         onClick = { onEvent(DetailsEvent.OnRefreshClick) },
                         enabled = !state.isLoading
                     ) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Обновить")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.refresh))
                     }
                 }
             )
@@ -122,12 +124,12 @@ internal fun DetailsScreen(
                 ) {
                     Icon(
                         Icons.Filled.Warning,
-                        contentDescription = "Ошибка",
+                        contentDescription = stringResource(R.string.error),
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.error
                     )
                     Text(
-                        "Нет данных для отображения",
+                        stringResource(R.string.no_data_to_display),
                         style = MaterialTheme.typography.titleMedium
                     )
                     state.errorMessage?.let { message ->
@@ -151,11 +153,11 @@ internal fun DetailsScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     edgePadding = 0.dp
                 ) {
-                    state.tabs.forEachIndexed { index, title ->
+                    state.tabResourceIds.forEachIndexed { index, resId ->
                         Tab(
                             selected = state.selectedTabIndex == index,
                             onClick = { onEvent(DetailsEvent.OnTabSelected(index)) },
-                            text = { Text(title) },
+                            text = { Text(stringResource(resId)) },
                             selectedContentColor = MaterialTheme.colorScheme.primary,
                             unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -200,7 +202,7 @@ private fun OverviewTab(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        "Статистика",
+                        stringResource(R.string.statistics),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -210,9 +212,9 @@ private fun OverviewTab(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        StatCard("Экраны", state.screensCount.toString())
-                        StatCard("Стили текста", state.textStylesCount.toString())
-                        StatCard("Стили цвета", state.colorStylesCount.toString())
+                        StatCard(stringResource(R.string.screens), state.screensCount.toString())
+                        StatCard(stringResource(R.string.text_styles), state.textStylesCount.toString())
+                        StatCard(stringResource(R.string.color_styles), state.colorStylesCount.toString())
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -221,8 +223,8 @@ private fun OverviewTab(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        StatCard("Запросы", state.queriesCount.toString())
-                        StatCard("События", state.eventsCount.toString())
+                        StatCard(stringResource(R.string.queries), state.queriesCount.toString())
+                        StatCard(stringResource(R.string.events), state.eventsCount.toString())
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
@@ -233,7 +235,7 @@ private fun OverviewTab(
         state.parsedResult?.microapp?.let { microapp ->
             item {
                 ExpandableSection(
-                    title = "Информация о микроаппе",
+                    title = stringResource(R.string.microapp_info),
                     initiallyExpanded = state.expandedSections.contains("microapp"),
                     onExpandedChange = { expanded ->
                         onEvent(DetailsEvent.OnSectionExpanded("microapp", expanded))
@@ -242,11 +244,11 @@ private fun OverviewTab(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        InfoRow("Название", microapp.title)
-                        InfoRow("Код", microapp.code)
-                        InfoRow("ShortCode", microapp.shortCode)
-                        InfoRow("Deeplink", microapp.deeplink)
-                        InfoRow("Persistents", microapp.persistents.size.toString())
+                        InfoRow(stringResource(R.string.name), microapp.title)
+                        InfoRow(stringResource(R.string.code), microapp.code)
+                        InfoRow(stringResource(R.string.short_code), microapp.shortCode)
+                        InfoRow(stringResource(R.string.deeplink), microapp.deeplink)
+                        InfoRow(stringResource(R.string.persistents), microapp.persistents.size.toString())
                     }
                 }
             }
@@ -261,7 +263,7 @@ private fun OverviewTab(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        "Быстрые действия",
+                        stringResource(R.string.quick_actions),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -270,7 +272,7 @@ private fun OverviewTab(
                     ) {
                         ActionButton(
                             icon = Icons.Filled.ContentCopy,
-                            text = "Копировать JSON",
+                            text = stringResource(R.string.copy_json),
                             onClick = {
                                 val json = createExportJson(state.parsedResult!!)
                                 onEvent(DetailsEvent.OnCopyToClipboard(json))
@@ -278,7 +280,7 @@ private fun OverviewTab(
                         )
                         ActionButton(
                             icon = Icons.Filled.Share,
-                            text = "Поделиться",
+                            text = stringResource(R.string.share),
                             onClick = {
                                 // TODO: Реализация шеринга
                             }
@@ -305,7 +307,7 @@ private fun ScreensTab(
     ) {
         item {
             Text(
-                "Экраны (${screens.size})",
+                stringResource(R.string.screens_count, screens.size),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -314,7 +316,7 @@ private fun ScreensTab(
         if (screens.isEmpty()) {
             item {
                 Text(
-                    "Экраны не найдены",
+                    stringResource(R.string.screens_not_found),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -358,7 +360,7 @@ private fun StylesTab(
                 }
             ) {
                 if (textStyles.isEmpty()) {
-                    Text("Стили текста не найдены")
+                    Text(stringResource(R.string.text_styles_not_found))
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         textStyles.forEach { style ->
@@ -372,9 +374,9 @@ private fun StylesTab(
                                         style.code,
                                         fontWeight = FontWeight.Medium
                                     )
-                                    Text("Шрифт: ${style.fontFamily}")
-                                    Text("Размер: ${style.fontSize}sp")
-                                    Text("Толщина: ${style.fontWeight}")
+                                    Text(stringResource(R.string.font, style.fontFamily))
+                                    Text(stringResource(R.string.size, style.fontSize))
+                                    Text(stringResource(R.string.weight, style.fontWeight))
                                 }
                             }
                         }
@@ -386,14 +388,14 @@ private fun StylesTab(
         // Стили цвета
         item {
             ExpandableSection(
-                title = "Стили цвета (${colorStyles.size})",
+                title = stringResource(R.string.color_styles_count, colorStyles.size),
                 initiallyExpanded = state.expandedSections.contains("colorStyles"),
                 onExpandedChange = { expanded ->
                     onEvent(DetailsEvent.OnSectionExpanded("colorStyles", expanded))
                 }
             ) {
                 if (colorStyles.isEmpty()) {
-                    Text("Стили цвета не найдены")
+                    Text(stringResource(R.string.color_styles_not_found))
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         colorStyles.take(10).forEach { style ->
@@ -419,8 +421,8 @@ private fun StylesTab(
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column {
                                         Text(style.code)
-                                        Text("Светлая: ${style.lightColor}")
-                                        Text("Темная: ${style.darkColor}")
+                                        Text(stringResource(R.string.light, style.lightColor))
+                                        Text(stringResource(R.string.dark, style.darkColor))
                                     }
                                 }
                             }
@@ -447,7 +449,7 @@ private fun QueriesTab(
     ) {
         item {
             Text(
-                "Запросы API (${queries.size})",
+                stringResource(R.string.queries_api_count, queries.size),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -455,7 +457,7 @@ private fun QueriesTab(
 
         if (queries.isEmpty()) {
             item {
-                Text("Запросы не найдены")
+                Text(stringResource(R.string.queries_not_found))
             }
         } else {
             items(queries) { query ->
@@ -480,7 +482,7 @@ private fun EventsTab(
     ) {
         item {
             Text(
-                "События (${events.size})",
+                stringResource(R.string.events_count, events.size),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -488,7 +490,7 @@ private fun EventsTab(
 
         if (events.isEmpty()) {
             item {
-                Text("События не найдены")
+                Text(stringResource(R.string.events_not_found))
             }
         } else {
             items(events) { event ->
@@ -600,15 +602,15 @@ private fun ScreenCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Код: ${screen.code}")
-            Text("ShortCode: ${screen.shortCode}")
-            Text("Deeplink: ${screen.deeplink}")
+            Text(stringResource(R.string.code_label, screen.code))
+            Text(stringResource(R.string.short_code_label, screen.shortCode))
+            Text(stringResource(R.string.deeplink_label, screen.deeplink))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Событий: ${screen.eventsCount}")
-                Text("Лэйаутов: ${screen.layoutsCount}")
+                Text(stringResource(R.string.events_count_label, screen.eventsCount))
+                Text(stringResource(R.string.layouts_count_label, screen.layoutsCount))
             }
         }
     }
@@ -635,10 +637,10 @@ private fun QueryCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Код: ${query.code}")
-            Text("Метод: ${query.type}")
-            Text("Endpoint: ${query.endpoint}")
-            Text("Параметров: ${query.propertiesCount}")
+            Text(stringResource(R.string.code_label, query.code))
+            Text(stringResource(R.string.method, query.type))
+            Text(stringResource(R.string.endpoint, query.endpoint))
+            Text(stringResource(R.string.params_count, query.propertiesCount))
         }
     }
 }
@@ -664,8 +666,8 @@ private fun EventCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Код: ${event.code}")
-            Text("Действий: ${event.actionsCount}")
+            Text(stringResource(R.string.code_label, event.code))
+            Text(stringResource(R.string.actions_count, event.actionsCount))
         }
     }
 }
@@ -740,7 +742,7 @@ private fun WidgetsTab(
 
         if (widgets.isEmpty()) {
             item {
-                Text("Виджеты не найдены")
+                Text(stringResource(R.string.widgets_not_found))
             }
         } else {
             items(widgets) { widget ->
@@ -773,7 +775,7 @@ private fun LayoutsTab(
 
         if (layouts.isEmpty()) {
             item {
-                Text("Лэйауты не найдены")
+                Text(stringResource(R.string.layouts_not_found))
             }
         } else {
             items(layouts) { layout ->
@@ -835,16 +837,16 @@ private fun DetailsTab(
                 }
             ) {
                 if (screenQueries.isEmpty()) {
-                    Text("Экранные запросы не найдены")
+                    Text(stringResource(R.string.screen_queries_not_found))
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         screenQueries.forEach { query ->
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(query.code, fontWeight = FontWeight.Medium)
-                                    Text("Экран: ${query.screenCode}")
-                                    Text("Запрос: ${query.queryCode}")
-                                    Text("Порядок: ${query.order}")
+                                    Text(stringResource(R.string.screen_label, query.screenCode))
+                                    Text(stringResource(R.string.query_label, query.queryCode))
+                                    Text(stringResource(R.string.order_label, query.order))
                                 }
                             }
                         }
@@ -864,15 +866,15 @@ private fun DetailsTab(
                 }
             ) {
                 if (eventActions.isEmpty()) {
-                    Text("Действия событий не найдены")
+                    Text(stringResource(R.string.event_actions_not_found))
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         eventActions.forEach { action ->
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(action.title, fontWeight = FontWeight.Medium)
-                                    Text("Код: ${action.code}")
-                                    Text("Порядок: ${action.order}")
+                                    Text(stringResource(R.string.code_label, action.code))
+                                    Text(stringResource(R.string.order_label, action.order))
                                     //Text("Свойств: ${action.properties.size}")
                                 }
                             }
@@ -900,7 +902,7 @@ private fun DetailsTab(
                         ) {
                             Icon(Icons.Filled.ContentCopy, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Копировать все данные как JSON")
+                            Text(stringResource(R.string.copy_all_as_json))
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -935,15 +937,15 @@ private fun WidgetCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Код: ${widget.code}")
-            Text("Тип: ${widget.type}")
+            Text(stringResource(R.string.code_label, widget.code))
+            Text(stringResource(R.string.type, widget.type))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Свойств: ${widget.propertiesCount}")
-                Text("Стилей: ${widget.stylesCount}")
-                Text("Событий: ${widget.eventsCount}")
+                Text(stringResource(R.string.props_count, widget.propertiesCount))
+                Text(stringResource(R.string.styles_count, widget.stylesCount))
+                Text(stringResource(R.string.widget_events_count, widget.eventsCount))
             }
         }
     }
@@ -970,8 +972,8 @@ private fun LayoutCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Код: ${layout.code}")
-            Text("Свойств: ${layout.propertiesCount}")
+            Text(stringResource(R.string.code_label, layout.code))
+            Text(stringResource(R.string.props_count, layout.propertiesCount))
         }
     }
 }

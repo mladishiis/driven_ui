@@ -5,6 +5,7 @@ import com.example.drivenui.engine.parser.models.ScreenQuery
 
 data class ScreenModel(
     val id: String,
+    val deeplink: String = "",
     val requests: List<ScreenQuery>,
     val rootComponent: ComponentModel?,
 )

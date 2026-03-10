@@ -91,6 +91,7 @@ internal class FileInteractorImpl @Inject constructor(
         val cachedData = CachedMicroappData(
             microappCode = result.microapp?.code?.takeIf { it.isNotBlank() } ?: "template",
             microappTitle = result.microapp?.title ?: "",
+            microappDeeplink = result.microapp?.deeplink ?: "",
             allStyles = result.styles,
             screens = cachedScreens,
         )

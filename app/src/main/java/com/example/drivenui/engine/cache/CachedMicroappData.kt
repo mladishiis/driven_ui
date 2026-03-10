@@ -10,6 +10,7 @@ import com.example.drivenui.engine.parser.models.ScreenQuery
 data class CachedMicroappData(
     val microappCode: String,
     val microappTitle: String,
+    val microappDeeplink: String = "",
     val allStyles: AllStyles?,
     val screens: List<CachedScreenModel>,
 ) {
@@ -22,6 +23,7 @@ data class CachedMicroappData(
  */
 data class CachedScreenModel(
     val id: String,
+    val deeplink: String = "",
     val requests: List<ScreenQuery>,
     val rootComponent: CachedComponentModel?,
 )

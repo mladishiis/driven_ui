@@ -36,11 +36,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.drivenui.R
 import com.example.drivenui.app.domain.MicroappSource
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
@@ -109,7 +111,7 @@ private fun OpenFileTopBar(
     TopAppBar(
         title = {
             Text(
-                text = "SDUI",
+                text = stringResource(R.string.sdui),
                 fontWeight = FontWeight.Bold,
             )
         },
@@ -125,7 +127,7 @@ private fun OpenFileTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Description,
-                        contentDescription = "Загрузить JSON файлы",
+                        contentDescription = stringResource(R.string.load_json_files),
                     )
                 }
             }
@@ -148,7 +150,7 @@ private fun OpenFileTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Настройки JSON",
+                            contentDescription = stringResource(R.string.json_settings),
                         )
                     }
                 }
@@ -164,9 +166,9 @@ private fun LoadingContent(
     selectedJsonFiles: List<String>,
 ) {
     val statusText = when {
-        isSyncing -> "Синхронизация коллекции..."
-        isLoading -> "Парсинг файла..."
-        else -> "Загрузка..."
+        isSyncing -> stringResource(R.string.syncing_collection)
+        isLoading -> stringResource(R.string.parsing_file)
+        else -> stringResource(R.string.loading)
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,7 +183,7 @@ private fun LoadingContent(
         if (selectedJsonFiles.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Используются JSON файлы:",
+                text = stringResource(R.string.using_json_files),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -216,9 +218,9 @@ private fun EmptyStateContent(
         }
         BottomActionsBar(
             uploadButtonText = when (state.microappSource) {
-                MicroappSource.ASSETS -> "Загрузить из assets"
+                MicroappSource.ASSETS -> stringResource(R.string.load_from_assets)
                 MicroappSource.FILE_SYSTEM,
-                MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
+                MicroappSource.FILE_SYSTEM_JSON -> stringResource(R.string.add_prototype)
             },
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
@@ -240,13 +242,13 @@ private fun EmptyStateMessage() {
             modifier = Modifier.size(64.dp),
         )
         Text(
-            text = "Список пуст",
+            text = stringResource(R.string.list_empty),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
-            text = "Сканируйте QR-коды на Портале для\u00a0добавления прототипов",
+            text = stringResource(R.string.scan_qr_for_prototypes),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
@@ -277,7 +279,7 @@ private fun ContentWithMicroapps(
         ) {
             if (state.collectionMicroapps.isNotEmpty()) {
                 MicroappSection(
-                    title = "Коллекция",
+                    title = stringResource(R.string.collection),
                     items = state.collectionMicroapps,
                     showClearButton = !state.isSyncingCollection,
                     onClear = { onEvent(OpenFileEvent.OnClearCollection) },
@@ -286,7 +288,7 @@ private fun ContentWithMicroapps(
             }
             if (state.singleMicroapps.isNotEmpty()) {
                 MicroappSection(
-                    title = "Список прототипов",
+                    title = stringResource(R.string.prototypes_list),
                     items = state.singleMicroapps,
                     showClearButton = !state.isSyncingCollection,
                     onClear = { onEvent(OpenFileEvent.OnClearSingleList) },
@@ -312,9 +314,9 @@ private fun ContentWithMicroapps(
         Spacer(modifier = Modifier.height(16.dp))
         BottomActionsBar(
             uploadButtonText = when (state.microappSource) {
-                MicroappSource.ASSETS -> "Загрузить из assets"
+                MicroappSource.ASSETS -> stringResource(R.string.load_from_assets)
                 MicroappSource.FILE_SYSTEM,
-                MicroappSource.FILE_SYSTEM_JSON -> "Добавить прототип"
+                MicroappSource.FILE_SYSTEM_JSON -> stringResource(R.string.add_prototype)
             },
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
@@ -351,7 +353,7 @@ private fun MicroappSection(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                     ),
                 ) {
-                    Text("Очистить")
+                    Text(stringResource(R.string.clear))
                 }
             }
         }
@@ -426,18 +428,18 @@ private fun JsonFilesCard(
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
-                    text = "JSON файлы",
+                    text = stringResource(R.string.json_files),
                     fontWeight = FontWeight.Bold,
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Доступно: $availableCount файлов",
+                text = stringResource(R.string.available_files, availableCount),
                 fontSize = 14.sp,
             )
             if (selectedCount > 0) {
                 Text(
-                    text = "Выбрано: $selectedCount файлов",
+                    text = stringResource(R.string.selected_files, selectedCount),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -450,7 +452,7 @@ private fun JsonFilesCard(
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     ),
                 ) {
-                    Text("Изменить выбор JSON")
+                    Text(stringResource(R.string.change_json_selection))
                 }
             }
         }
@@ -462,7 +464,7 @@ private fun SelectedFileCard(fileName: String) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Выбранный файл:",
+                text = stringResource(R.string.selected_file),
                 fontWeight = FontWeight.Bold,
             )
             Text(
@@ -521,7 +523,7 @@ private fun BottomActionsBar(
             modifier = Modifier.fillMaxWidth(),
             enabled = buttonsEnabled,
         ) {
-            Text(text = "Добавить коллекцию прототипов")
+            Text(text = stringResource(R.string.add_collection_prototypes))
         }
     }
 }

@@ -44,6 +44,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private var mappedScreens: List<ScreenModel>? = null
     private var allStyles: AllStyles? = null
     private var microappCode: String? = null
+    private var microappDeeplink: String = ""
 
     private val navigationManager = ScreenNavigationManager()
     private var screenMapper: ScreenMapper? = null
@@ -65,11 +66,13 @@ class GenerativeScreenViewModel @Inject constructor(
         parsedScreens: List<ParsedScreen>,
         allStyles: AllStyles?,
         microappCode: String? = null,
+        microappDeeplink: String = "",
     ) {
         this.parsedScreens = parsedScreens
         this.mappedScreens = null
         this.allStyles = allStyles
         this.microappCode = microappCode
+        this.microappDeeplink = microappDeeplink
 
         val localStyleRegistry = ComposeStyleRegistry(allStyles)
         styleRegistry = localStyleRegistry
@@ -101,6 +104,7 @@ class GenerativeScreenViewModel @Inject constructor(
         this.parsedScreens = null
         this.allStyles = mappedData.allStyles
         this.microappCode = mappedData.microappCode.takeIf { it.isNotBlank() }
+        this.microappDeeplink = mappedData.microappDeeplink
 
         val localStyleRegistry = ComposeStyleRegistry(mappedData.allStyles)
         styleRegistry = localStyleRegistry
@@ -128,11 +132,14 @@ class GenerativeScreenViewModel @Inject constructor(
             loadInitialScreenFromMapped(screens)
             return
         }
-        val firstScreen = parsedScreens?.get(0)
+        val parsed = parsedScreens ?: return
         val mapper = screenMapper ?: return
 
-        if (firstScreen != null) {
-            val screenModel = mapper.mapToScreenModel(firstScreen)
+        val targetScreen = findScreenByMicroappDeeplink(parsed) { it.deeplink }
+            ?: parsed.firstOrNull()
+
+        if (targetScreen != null) {
+            val screenModel = mapper.mapToScreenModel(targetScreen)
             navigateToScreen(screenModel)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
@@ -140,12 +147,26 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun loadInitialScreenFromMapped(screens: List<ScreenModel>) {
-        val firstScreen = screens.firstOrNull()
-        if (firstScreen != null) {
-            navigateToScreen(firstScreen)
+        val targetScreen = findScreenByMicroappDeeplink(screens) { it.deeplink }
+            ?: screens.firstOrNull()
+
+        if (targetScreen != null) {
+            navigateToScreen(targetScreen)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
+    }
+
+    /**
+     * Ищет экран, у которого deeplink совпадает с deeplink микроаппа.
+     * Возвращает null, если deeplink микроаппа пустой или совпадений нет.
+     */
+    private fun <T> findScreenByMicroappDeeplink(
+        screens: List<T>,
+        deeplinkSelector: (T) -> String,
+    ): T? {
+        if (microappDeeplink.isBlank()) return null
+        return screens.find { deeplinkSelector(it) == microappDeeplink }
     }
 
     fun handleActions(actions: List<UiAction>) {
@@ -376,7 +397,7 @@ class GenerativeScreenViewModel @Inject constructor(
         }
 
         override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {
-            return null
+            return screens.find { it.deeplink == deeplink }
         }
     }
 }

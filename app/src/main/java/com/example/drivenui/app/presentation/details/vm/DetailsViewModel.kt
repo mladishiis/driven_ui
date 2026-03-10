@@ -29,6 +29,8 @@ import com.example.drivenui.engine.parser.models.Component
 import com.example.drivenui.engine.parser.models.ComponentType
 import com.example.drivenui.engine.parser.models.Microapp
 import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.R
+import com.example.drivenui.R
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -201,12 +203,12 @@ internal class DetailsViewModel @Inject constructor(
                 // Здесь можно добавить логику обновления данных
                 Thread.sleep(500) // Имитация загрузки
                 updateState { copy(isLoading = false) }
-                setEffect { DetailsEffect.ShowMessage("Данные обновлены") }
+                setEffect { DetailsEffect.ShowMessage(context.getString(R.string.data_updated)) }
             } catch (e: Exception) {
                 updateState {
                     copy(
                         isLoading = false,
-                        errorMessage = "Ошибка обновления: ${e.message}"
+                        errorMessage = context.getString(R.string.update_error, e.message ?: "")
                     )
                 }
             }
@@ -233,10 +235,10 @@ internal class DetailsViewModel @Inject constructor(
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("SDUI Data", text)
             clipboard.setPrimaryClip(clip)
-            setEffect { DetailsEffect.ShowCopiedMessage("Скопировано: ${text.take(30)}...") }
+            setEffect { DetailsEffect.ShowCopiedMessage(context.getString(R.string.copied_preview, text.take(30))) }
         } catch (e: Exception) {
             Log.e("DetailsViewModel", "Ошибка копирования в буфер", e)
-            setEffect { DetailsEffect.ShowMessage("Ошибка копирования: ${e.message}") }
+            setEffect { DetailsEffect.ShowMessage(context.getString(R.string.copy_error, e.message ?: "")) }
         }
     }
 
@@ -250,7 +252,7 @@ internal class DetailsViewModel @Inject constructor(
 
                 val result = uiState.value.parsedResult
                 if (result == null) {
-                    setEffect { DetailsEffect.ShowMessage("Нет данных для экспорта") }
+                    setEffect { DetailsEffect.ShowMessage(context.getString(R.string.no_data_for_export)) }
                     return@launch
                 }
 
@@ -264,12 +266,12 @@ internal class DetailsViewModel @Inject constructor(
 
                 updateState { copy(isLoading = false) }
                 setEffect {
-                    DetailsEffect.ShowExportSuccess("Файл сохранен: ${file.absolutePath}")
+                    DetailsEffect.ShowExportSuccess(context.getString(R.string.file_saved, file.absolutePath))
                 }
 
             } catch (e: Exception) {
                 updateState { copy(isLoading = false) }
-                setEffect { DetailsEffect.ShowMessage("Ошибка экспорта: ${e.message}") }
+                setEffect { DetailsEffect.ShowMessage(context.getString(R.string.export_error, e.message ?: "")) }
             }
         }
     }
@@ -306,7 +308,7 @@ internal class DetailsViewModel @Inject constructor(
 
             setEffect {
                 DetailsEffect.ShowComponentStructure(
-                    title = "Структура компонентов",
+                    title = context.getString(R.string.component_structure),
                     structureInfo = structureInfo
                 )
             }
@@ -773,7 +775,7 @@ internal class DetailsViewModel @Inject constructor(
             }
         } else {
             setEffect {
-                DetailsEffect.ShowMessage("У экрана нет компонентов")
+                DetailsEffect.ShowMessage(context.getString(R.string.screen_no_components))
             }
         }
     }

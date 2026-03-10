@@ -90,6 +90,7 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
 fun CachedScreenModel.toScreenModel(): ScreenModel =
     ScreenModel(
         id = id,
+        deeplink = deeplink,
         requests = requests,
         rootComponent = rootComponent?.toComponentModel()
     )
@@ -98,6 +99,7 @@ fun CachedScreenModel.toScreenModel(): ScreenModel =
 fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
     CachedScreenModel(
         id = id,
+        deeplink = deeplink,
         requests = requests,
         rootComponent = rootComponent?.toCached()
     )

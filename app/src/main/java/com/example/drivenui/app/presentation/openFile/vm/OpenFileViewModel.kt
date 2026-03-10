@@ -1,7 +1,10 @@
 package com.example.drivenui.app.presentation.openFile.vm
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.drivenui.app.data.MicroappCollectionApi
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
 import com.example.drivenui.app.domain.FileDownloadInteractor
@@ -23,6 +26,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val fileInteractor: FileInteractor,
     private val fileDownloadInteractor: FileDownloadInteractor,
     private val microappStorage: MicroappStorage,
@@ -110,7 +114,7 @@ internal class OpenFileViewModel @Inject constructor(
                     }
                     setEffect {
                         OpenFileEffect.ShowParsingSuccessDialog(
-                            microappTitle = parsedResult.microapp?.title ?: "Неизвестный микроапп",
+                            microappTitle = parsedResult.microapp?.title ?: context.getString(R.string.unknown_microapp),
                             screensCount = parsedResult.screens.size,
                             textStylesCount = parsedResult.styles?.textStyles?.size ?: 0,
                             colorStylesCount = parsedResult.styles?.colorStyles?.size ?: 0,
@@ -135,7 +139,7 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = e.localizedMessage,
                         )
                     }
-                    setEffect { OpenFileEffect.ShowParsingErrorDialog(e.localizedMessage ?: "Неизвестная ошибка") }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog(e.localizedMessage ?: context.getString(R.string.unknown_error)) }
                 }
             }
         }
@@ -143,13 +147,13 @@ internal class OpenFileViewModel @Inject constructor(
 
     private fun handleQrScanned(url: String) {
         if (!url.startsWith("http")) {
-            setEffect { OpenFileEffect.ShowError("QR не содержит корректную ссылку") }
+            setEffect { OpenFileEffect.ShowError(context.getString(R.string.qr_invalid_link)) }
             return
         }
 
         val format = microappSource.toArchiveDownloadFormat()
         if (format == null) {
-            setEffect { OpenFileEffect.ShowError("Режим загрузки по QR недоступен для текущего источника") }
+            setEffect { OpenFileEffect.ShowError(context.getString(R.string.qr_mode_unavailable)) }
             return
         }
 
@@ -162,7 +166,7 @@ internal class OpenFileViewModel @Inject constructor(
                 }
 
                 if (!success) {
-                    setEffect { OpenFileEffect.ShowParsingErrorDialog("Не удалось загрузить архив") }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog(context.getString(R.string.archive_load_failed)) }
                     updateState { copy(isUploadFile = false, isParsing = false) }
                     return@launch
                 }
@@ -171,11 +175,11 @@ internal class OpenFileViewModel @Inject constructor(
                 Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
                 updateState { copy(isUploadFile = false, isParsing = false) }
                 val message = when (e) {
-                    is java.net.UnknownHostException -> "Нет подключения к сети"
-                    is java.net.SocketTimeoutException -> "Превышено время ожидания ответа сервера"
-                    is java.io.IOException -> "Ошибка сети: ${e.message ?: e.localizedMessage}"
-                    is IllegalArgumentException -> "Некорректные данные: ${e.message ?: e.localizedMessage}"
-                    else -> "Ошибка загрузки: ${e.message ?: e.localizedMessage}"
+                    is java.net.UnknownHostException -> context.getString(R.string.no_network)
+                    is java.net.SocketTimeoutException -> context.getString(R.string.timeout)
+                    is java.io.IOException -> context.getString(R.string.network_error, e.message ?: e.localizedMessage ?: "")
+                    is IllegalArgumentException -> context.getString(R.string.invalid_data, e.message ?: e.localizedMessage ?: "")
+                    else -> context.getString(R.string.load_error, e.message ?: e.localizedMessage ?: "")
                 }
                 setEffect { OpenFileEffect.ShowParsingErrorDialog(message) }
             }
@@ -206,12 +210,12 @@ internal class OpenFileViewModel @Inject constructor(
                 val jsonFiles = fileInteractor.getAvailableJsonFiles()
                 updateState { copy(availableJsonFiles = jsonFiles) }
 
-                if (jsonFiles.isEmpty()) setEffect { OpenFileEffect.ShowError("JSON файлы не найдены") }
-                else setEffect { OpenFileEffect.ShowSuccess("Найдено ${jsonFiles.size} JSON файлов") }
+                if (jsonFiles.isEmpty()) setEffect { OpenFileEffect.ShowError(context.getString(R.string.json_not_found)) }
+                else setEffect { OpenFileEffect.ShowSuccess(context.getString(R.string.json_files_found, jsonFiles.size)) }
 
             } catch (e: Exception) {
                 Log.e("OpenFileViewModel", "Ошибка при загрузке JSON", e)
-                setEffect { OpenFileEffect.ShowError("Ошибка при загрузке JSON файлов") }
+                setEffect { OpenFileEffect.ShowError(context.getString(R.string.json_load_error)) }
             }
         }
     }
@@ -235,7 +239,7 @@ internal class OpenFileViewModel @Inject constructor(
         val bindingStats = fileInteractor.getBindingStats().orEmpty()
 
         if (resolvedValues.isEmpty() && bindingStats.isEmpty()) {
-            setEffect { OpenFileEffect.ShowError("Сначала загрузите файл с биндингами") }
+            setEffect { OpenFileEffect.ShowError(context.getString(R.string.load_bindings_first)) }
             return
         }
 
@@ -250,7 +254,7 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleShowFile() {
         uiState.value.parsingResult?.let {
             setEffect { OpenFileEffect.NavigateToParsingDetails(it) }
-        } ?: setEffect { OpenFileEffect.ShowError("Сначала загрузите файл") }
+        } ?: setEffect { OpenFileEffect.ShowError(context.getString(R.string.load_file_first)) }
     }
 
     private fun handleShowParsingDetails() = handleShowFile()
@@ -328,7 +332,7 @@ internal class OpenFileViewModel @Inject constructor(
     private fun handleQrScannedCollectionId(collectionId: String) {
         val id = collectionId.trim().takeIf { it.isNotBlank() }
             ?: run {
-                setEffect { OpenFileEffect.ShowError("QR не содержит ID коллекции") }
+                setEffect { OpenFileEffect.ShowError(context.getString(R.string.qr_no_collection_id)) }
                 return
             }
         viewModelScope.launch {
@@ -362,7 +366,7 @@ internal class OpenFileViewModel @Inject constructor(
             val allCodes = codesResult.getOrElse {
                 withContext(Dispatchers.Main) {
                     updateState { copy(isSyncingCollection = false) }
-                    setEffect { OpenFileEffect.ShowParsingErrorDialog(it.message ?: "Не удалось загрузить список") }
+                    setEffect { OpenFileEffect.ShowParsingErrorDialog(it.message ?: context.getString(R.string.load_list_failed)) }
                 }
                 return
             }
@@ -394,7 +398,7 @@ internal class OpenFileViewModel @Inject constructor(
                 loadSavedMicroapps()
                 updateState { copy(isSyncingCollection = false) }
                 if (allCodes.isNotEmpty()) {
-                    setEffect { OpenFileEffect.ShowSuccess("Синхронизировано ${allCodes.size} прототипов") }
+                    setEffect { OpenFileEffect.ShowSuccess(context.getString(R.string.synced_prototypes, allCodes.size)) }
                 }
             }
         } catch (e: Exception) {
@@ -403,7 +407,7 @@ internal class OpenFileViewModel @Inject constructor(
                 updateState { copy(isSyncingCollection = false) }
                 setEffect {
                     OpenFileEffect.ShowParsingErrorDialog(
-                        e.message ?: e.localizedMessage ?: "Ошибка синхронизации",
+                        e.message ?: e.localizedMessage ?: context.getString(R.string.sync_error),
                     )
                 }
             }
@@ -418,7 +422,7 @@ internal class OpenFileViewModel @Inject constructor(
                 if (mappedData != null) {
                     setEffect { OpenFileEffect.NavigateToTestScreen(mappedData) }
                 } else {
-                    setEffect { OpenFileEffect.ShowError("Микроапп не найден") }
+                    setEffect { OpenFileEffect.ShowError(context.getString(R.string.microapp_not_found)) }
                 }
             }
         }

@@ -1,3 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Driven UI</string>
+
+    <!-- OpenFileScreen -->
+    <string name="sdui">SDUI</string>
+    <string name="load_json_files">Загрузить JSON файлы</string>
+    <string name="json_settings">Настройки JSON</string>
+    <string name="syncing_collection">Синхронизация коллекции...</string>
+    <string name="parsing_file">Парсинг файла...</string>
+    <string name="loading">Загрузка...</string>
+    <string name="using_json_files">Используются JSON файлы:</string>
+    <string name="load_from_assets">Загрузить из assets</string>
+    <string name="add_prototype">Добавить прототип</string>
+    <string name="list_empty">Список пуст</string>
+    <string name="scan_qr_for_prototypes">Сканируйте QR-коды на Портале для добавления прототипов</string>
+    <string name="collection">Коллекция</string>
+    <string name="prototypes_list">Список прототипов</string>
+    <string name="clear">Очистить</string>
+    <string name="json_files">JSON файлы</string>
+    <string name="available_files">Доступно: %d файлов</string>
+    <string name="selected_files">Выбрано: %d файлов</string>
+    <string name="change_json_selection">Изменить выбор JSON</string>
+    <string name="selected_file">Выбранный файл:</string>
+    <string name="add_collection_prototypes">Добавить коллекцию прототипов</string>
+
+    <!-- DetailsScreen -->
+    <string name="back">Назад</string>
+    <string name="export">Экспорт</string>
+    <string name="refresh">Обновить</string>
+    <string name="error">Ошибка</string>
+    <string name="no_data_to_display">Нет данных для отображения</string>
+    <string name="statistics">Статистика</string>
+    <string name="screens">Экраны</string>
+    <string name="text_styles">Стили текста</string>
+    <string name="color_styles">Стили цвета</string>
+    <string name="queries">Запросы</string>
+    <string name="events">События</string>
+    <string name="microapp_info">Информация о микроаппе</string>
+    <string name="name">Название</string>
+    <string name="code">Код</string>
+    <string name="short_code">ShortCode</string>
+    <string name="deeplink">Deeplink</string>
+    <string name="persistents">Persistents</string>
+    <string name="quick_actions">Быстрые действия</string>
+    <string name="copy_json">Копировать JSON</string>
+    <string name="share">Поделиться</string>
+    <string name="screens_count">Экраны (%d)</string>
+    <string name="screens_not_found">Экраны не найдены</string>
+    <string name="styles">Стили</string>
+    <string name="text_styles_count">Стили текста (%d)</string>
+    <string name="text_styles_not_found">Стили текста не найдены</string>
+    <string name="font">Шрифт: %s</string>
+    <string name="size">Размер: %dsp</string>
+    <string name="weight">Толщина: %d</string>
+    <string name="color_styles_count">Стили цвета (%d)</string>
+    <string name="color_styles_not_found">Стили цвета не найдены</string>
+    <string name="light">Светлая: %s</string>
+    <string name="dark">Темная: %s</string>
+    <string name="queries_api_count">Запросы API (%d)</string>
+    <string name="queries_not_found">Запросы не найдены</string>
+    <string name="method">Метод: %s</string>
+    <string name="endpoint">Endpoint: %s</string>
+    <string name="params_count">Параметров: %d</string>
+    <string name="events_count">События (%d)</string>
+    <string name="events_not_found">События не найдены</string>
+    <string name="actions_count">Действий: %d</string>
+    <string name="collapse">Свернуть</string>
+    <string name="expand">Развернуть</string>
+    <string name="code_label">Код: %s</string>
+    <string name="short_code_label">ShortCode: %s</string>
+    <string name="deeplink_label">Deeplink: %s</string>
+    <string name="events_count_label">Событий: %d</string>
+    <string name="layouts_count_label">Лэйаутов: %d</string>
+    <string name="widgets_count">Виджеты (%d)</string>
+    <string name="widgets_not_found">Виджеты не найдены</string>
+    <string name="layouts_count">Лэйауты (%d)</string>
+    <string name="layouts_not_found">Лэйауты не найдены</string>
+    <string name="type">Тип: %s</string>
+    <string name="props_count">Свойств: %d</string>
+    <string name="styles_count">Стилей: %d</string>
+    <string name="widget_events_count">Событий: %d</string>
+    <string name="microapp_detail">Микроапп (детально)</string>
+    <string name="persistents_count">Persistents (%d):</string>
+    <string name="screen_queries_count">Экранные запросы (%d)</string>
+    <string name="screen_queries_not_found">Экранные запросы не найдены</string>
+    <string name="screen_label">Экран: %s</string>
+    <string name="query_label">Запрос: %s</string>
+    <string name="order_label">Порядок: %d</string>
+    <string name="short_code_short">Short Code</string>
+    <string name="event_actions_count">Действия событий (%d)</string>
+    <string name="event_actions_not_found">Действия событий не найдены</string>
+    <string name="raw_data">Сырые данные</string>
+    <string name="copy_all_as_json">Копировать все данные как JSON</string>
+
+    <!-- Details tabs -->
+    <string name="tab_overview">Обзор</string>
+    <string name="tab_screens">Экраны</string>
+    <string name="tab_styles">Стили</string>
+    <string name="tab_queries">Запросы</string>
+    <string name="tab_events">События</string>
+    <string name="tab_widgets">Виджеты</string>
+    <string name="tab_layouts">Лэйауты</string>
+    <string name="tab_details">Детали</string>
+    <string name="tab_test">TEST</string>
+
+    <!-- DetailsViewModel messages -->
+    <string name="parsing_details">Детали парсинга</string>
+    <string name="data_updated">Данные обновлены</string>
+    <string name="update_error">Ошибка обновления: %s</string>
+    <string name="copied_preview">Скопировано: %s…</string>
+    <string name="copy_error">Ошибка копирования: %s</string>
+    <string name="no_data_for_export">Нет данных для экспорта</string>
+    <string name="file_saved">Файл сохранен: %s</string>
+    <string name="export_error">Ошибка экспорта: %s</string>
+    <string name="component_structure">Структура компонентов</string>
+    <string name="screen_no_components">У экрана нет компонентов</string>
+
+    <!-- OpenFileViewModel -->
+    <string name="unknown_microapp">Неизвестный микроапп</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="qr_invalid_link">QR не содержит корректную ссылку</string>
+    <string name="qr_mode_unavailable">Режим загрузки по QR недоступен для текущего источника</string>
+    <string name="archive_load_failed">Не удалось загрузить архив</string>
+    <string name="no_network">Нет подключения к сети</string>
+    <string name="timeout">Превышено время ожидания ответа сервера</string>
+    <string name="network_error">Ошибка сети: %s</string>
+    <string name="invalid_data">Некорректные данные: %s</string>
+    <string name="load_error">Ошибка загрузки: %s</string>
+    <string name="json_not_found">JSON файлы не найдены</string>
+    <string name="json_files_found">Найдено %d JSON файлов</string>
+    <string name="json_load_error">Ошибка при загрузке JSON файлов</string>
+    <string name="load_bindings_first">Сначала загрузите файл с биндингами</string>
+    <string name="load_file_first">Сначала загрузите файл</string>
+    <string name="qr_no_collection_id">QR не содержит ID коллекции</string>
+    <string name="load_list_failed">Не удалось загрузить список</string>
+    <string name="synced_prototypes">Синхронизировано %d прототипов</string>
+    <string name="sync_error">Ошибка синхронизации</string>
+    <string name="microapp_not_found">Микроапп не найден</string>
+
+    <!-- OpenFileFragment -->
+    <string name="scan_qr_microapp">Отсканируйте QR-код с ссылкой на microapp</string>
+    <string name="scan_qr_collection">Отсканируйте QR-код с ID коллекции</string>
+    <string name="scan_cancelled">Сканирование отменено</string>
+    <string name="error_title">Ошибка</string>
+    <string name="export_complete">Экспорт завершен: %s</string>
 </resources>

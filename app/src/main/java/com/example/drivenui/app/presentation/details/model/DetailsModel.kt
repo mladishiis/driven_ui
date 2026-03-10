@@ -1,5 +1,6 @@
 package com.example.drivenui.app.presentation.details.model
 
+import com.example.drivenui.R
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
 import com.example.drivenui.engine.parser.SDUIParser
@@ -103,7 +104,7 @@ internal data class DetailsState(
     /**
      * Название микроаппа
      */
-    val microappTitle: String get() = parsedResult?.microapp?.title ?: "Детали парсинга"
+    val microappTitle: String get() = parsedResult?.microapp?.title ?: ""
 
     /**
      * Количество экранов
@@ -183,18 +184,18 @@ internal data class DetailsState(
         parsedResult?.screens?.count { it.rootComponent != null } ?: 0
 
     /**
-     * Вкладки экрана
+     * Вкладки экрана (resource IDs для stringResource)
      */
-    val tabs: List<String> = listOf(
-        "Обзор",
-        "Экраны",
-        "Стили",
-        "Запросы",
-        "События",
-        "Виджеты",
-        "Лэйауты",
-        "Детали",
-        "TEST"
+    val tabResourceIds: List<Int> = listOf(
+        R.string.tab_overview,
+        R.string.tab_screens,
+        R.string.tab_styles,
+        R.string.tab_queries,
+        R.string.tab_events,
+        R.string.tab_widgets,
+        R.string.tab_layouts,
+        R.string.tab_details,
+        R.string.tab_test,
     )
 
     /**

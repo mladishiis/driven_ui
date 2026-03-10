@@ -16,6 +16,7 @@ class ScreenMapper(
     ): ScreenModel {
         return ScreenModel(
             id = parsedScreen.screenCode,
+            deeplink = parsedScreen.deeplink,
             requests = parsedScreen.requests,
             rootComponent = mapParsedScreenToUI(parsedScreen, styleRegistry)
         )
