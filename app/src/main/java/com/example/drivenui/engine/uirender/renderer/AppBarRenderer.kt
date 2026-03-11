@@ -13,6 +13,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
 
+/**
+ * Рендерит UI-компонент верхней панели приложения (AppBar).
+ *
+ * @param model Модель AppBar
+ * @param onActions Callback при выполнении экшенов
+ * @param modifier Дополнительный modifier
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBarRenderer(
@@ -39,7 +46,6 @@ fun AppBarRenderer(
                         onActions(model.tapActions)
                     }
                 }) {
-                    // TODO загружать из hcms
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,

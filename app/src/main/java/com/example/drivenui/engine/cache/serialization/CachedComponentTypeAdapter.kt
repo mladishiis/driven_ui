@@ -15,7 +15,7 @@ import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
 
 /**
- * Gson TypeAdapter для sealed interface CachedComponentModel (полиморфная сериализация).
+ * Gson TypeAdapter для [CachedComponentModel] — полиморфная сериализация/десериализация.
  */
 class CachedComponentTypeAdapter : JsonSerializer<CachedComponentModel>, JsonDeserializer<CachedComponentModel> {
 
@@ -45,6 +45,14 @@ class CachedComponentTypeAdapter : JsonSerializer<CachedComponentModel>, JsonDes
         return json
     }
 
+    /**
+     * Десериализует JsonElement в CachedComponentModel по полю типа.
+     *
+     * @param json Исходный JSON
+     * @param typeOfT Тип
+     * @param context Контекст десериализации
+     * @return CachedComponentModel
+     */
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type,

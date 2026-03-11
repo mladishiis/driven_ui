@@ -12,6 +12,11 @@ interface ExternalDeeplinkHandler {
     suspend fun handleExternalDeeplink(deeplink: String): Boolean
 }
 
+/**
+ * Реализация [ExternalDeeplinkHandler] через Intent.ACTION_VIEW.
+ *
+ * @property appContext контекст приложения для запуска активности
+ */
 class DefaultExternalDeeplinkHandler @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ExternalDeeplinkHandler {

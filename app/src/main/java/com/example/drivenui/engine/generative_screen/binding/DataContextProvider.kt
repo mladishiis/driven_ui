@@ -8,12 +8,21 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import java.io.File
 
+/**
+ * Провайдер контекста данных для биндингов.
+ * Загружает JSON из assets или папки микроаппа, хранит результаты screen query.
+ *
+ * @property appContext контекст приложения для доступа к assets и файловой системе
+ */
 class DataContextProvider(private val appContext: Context) {
 
     private var dataContext = DataContext()
 
     /**
-     * Загружает JSON файл из assets или из папки микроаппа.
+     * Загружает JSON-файл из папки микроаппа или assets.
+     *
+     * @param fileName Имя файла (например, "carriers.json")
+     * @return JsonElement или null, если файл не найден
      */
     fun loadJsonSmart(fileName: String): JsonElement? {
         val microappRoot = MicroappRootFinder.findMicroappRoot(appContext)
@@ -35,7 +44,10 @@ class DataContextProvider(private val appContext: Context) {
     }
 
     /**
-     * Добавляет JSON источник данных
+     * Добавляет JSON-источник данных в контекст.
+     *
+     * @param name Имя источника
+     * @param jsonData JSON-данные
      */
     fun addJsonSource(name: String, jsonData: JsonElement) {
         val currentSources = dataContext.jsonSources.toMutableMap()
@@ -45,7 +57,10 @@ class DataContextProvider(private val appContext: Context) {
     }
 
     /**
-     * Добавляет результат screen query
+     * Добавляет результат screen query в контекст.
+     *
+     * @param name Имя результата
+     * @param jsonData JSON-данные результата
      */
     fun addScreenQueryResult(name: String, jsonData: JsonElement) {
         val currentResults = dataContext.screenQueryResults.toMutableMap()
@@ -56,7 +71,10 @@ class DataContextProvider(private val appContext: Context) {
 
 
     /**
-     * Добавляет результат screen query как строку
+     * Добавляет результат screen query как JSON-строку.
+     *
+     * @param name Имя результата
+     * @param jsonString JSON-строка
      */
     fun addScreenQueryResult(name: String, jsonString: String) {
         try {
@@ -67,22 +85,20 @@ class DataContextProvider(private val appContext: Context) {
         }
     }
 
-    /**
-     * Очищает контекст
-     */
+    /** Очищает контекст данных. */
     fun clear() {
         dataContext = DataContext()
         Log.d(TAG, "Data context cleared")
     }
 
     /**
-     * Получает текущий контекст данных
+     * Возвращает текущий контекст данных.
+     *
+     * @return Текущий [DataContext]
      */
     fun getDataContext(): DataContext = dataContext
 
-    /**
-     * Печатает отладочную информацию о контексте
-     */
+    /** Выводит отладочную информацию о контексте в Log. */
     fun debugInfo() {
         Log.d(TAG, "=== Data Context Debug ===")
         Log.d(TAG, "JSON Sources (${dataContext.jsonSources.size}): ${dataContext.jsonSources.keys}")

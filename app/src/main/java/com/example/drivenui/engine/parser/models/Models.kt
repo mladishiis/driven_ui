@@ -5,68 +5,96 @@ import com.google.gson.JsonElement
 import kotlinx.parcelize.Parcelize
 
 /**
- * Тип компонента
+ * Тип компонента в дереве UI.
+ *
+ * @property SCREEN_LAYOUT Контейнерный лэйаут на экране
+ * @property LAYOUT Базовый лэйаут (vertical, horizontal, layers)
+ * @property WIDGET Виджет (button, label, image и т.д.)
+ * @property SCREEN Экран
  */
 enum class ComponentType {
-    SCREEN_LAYOUT,  // Контейнерный лэйаут на экране
-    LAYOUT,         // Базовый лэйаут (vertical, horizontal, layers)
-    WIDGET,         // Виджет (button, label, image и т.д.)
-    SCREEN,         // Экран
+    SCREEN_LAYOUT,
+    LAYOUT,
+    WIDGET,
+    SCREEN,
 }
 
 /**
- * Свойство компонента с поддержкой биндингов
+ * Свойство компонента с поддержкой биндингов.
+ *
+ * @property code Код свойства
+ * @property rawValue Исходное значение (может содержать макросы)
+ * @property resolvedValue Значение после подстановки
  */
 @Parcelize
 data class ComponentProperty(
     val code: String,
-    val rawValue: String,           // Исходное значение (может содержать макросы)
-    val resolvedValue: String = rawValue,            // Значение после подстановки
+    val rawValue: String,
+    val resolvedValue: String = rawValue,
 ): Parcelable
 
 /**
- * Описание биндинга данных
+ * Описание биндинга данных.
+ *
+ * @property sourceType Тип источника
+ * @property sourceName Имя источника (например, "carriers_allCarriers")
+ * @property path Путь к данным (например, "[0].carrierName")
+ * @property expression Полное выражение (например, "${carriers_allCarriers.[0].carrierName}")
+ * @property defaultValue Значение по умолчанию
  */
 @Parcelize
 data class DataBinding(
     val sourceType: BindingSourceType,
-    val sourceName: String,          // Имя источника (например, "carriers_allCarriers")
-    val path: String,                // Путь к данным (например, "[0].carrierName")
-    val expression: String,          // Полное выражение (например, "${carriers_allCarriers.[0].carrierName}")
+    val sourceName: String,
+    val path: String,
+    val expression: String,
     val defaultValue: String = "",
 ): Parcelable
 
 /**
- * Тип источника данных
+ * Тип источника данных для биндинга.
+ *
+ * @property JSON_FILE JSON-файл из assets
+ * @property QUERY_RESULT Результат запроса
+ * @property SCREEN_QUERY_RESULT Результат screen query
+ * @property APP_STATE Состояние приложения
+ * @property LOCAL_VAR Локальная переменная
+ * @property SCREEN_CONTEXT Контекст экрана
  */
 enum class BindingSourceType {
-    JSON_FILE,      // JSON файл из assets
-    QUERY_RESULT,   // Результат запроса
-    SCREEN_QUERY_RESULT, // Результат screen query (новый тип)
-    APP_STATE,      // Состояние приложения
-    LOCAL_VAR,      // Локальная переменная
-    SCREEN_CONTEXT,  // Контекст экрана
+    JSON_FILE,
+    QUERY_RESULT,
+    SCREEN_QUERY_RESULT,
+    APP_STATE,
+    LOCAL_VAR,
+    SCREEN_CONTEXT,
 }
 
 /**
- * Контекст данных для биндинга
+ * Контекст данных для биндинга.
+ *
+ * @property jsonSources JSON-источники
+ * @property queryResults Результаты запросов
+ * @property screenQueryResults Результаты screen query
+ * @property appState Состояние приложения
+ * @property localVariables Локальные переменные
  */
 data class DataContext(
     val jsonSources: Map<String, JsonElement> = emptyMap(),
     val queryResults: Map<String, Any> = emptyMap(),
-    val screenQueryResults: Map<String, Any> = emptyMap(), // Добавляем отдельный тип для screenQuery
+    val screenQueryResults: Map<String, Any> = emptyMap(),
     val appState: Map<String, Any> = emptyMap(),
     val localVariables: Map<String, Any> = emptyMap(),
 )
 
 /**
- * Базовый компонент UI
+ * Базовый компонент UI в дереве парсинга.
  */
 @Parcelize
 sealed class Component: Parcelable {
     abstract val title: String
     abstract val code: String
-    abstract val properties: List<ComponentProperty>  // Теперь ComponentProperty
+    abstract val properties: List<ComponentProperty>
     abstract val styles: List<WidgetStyle>
     abstract val events: List<WidgetEvent>
     abstract val children: List<Component>
@@ -84,7 +112,7 @@ data class LayoutComponent(
     override val code: String,
     val layoutCode: String,
     val maxForIndex: String? = null,
-    override val properties: List<ComponentProperty> = emptyList(),  // ComponentProperty
+    override val properties: List<ComponentProperty> = emptyList(),
     override val styles: List<WidgetStyle> = emptyList(),
     override val events: List<WidgetEvent> = emptyList(),
     override val children: List<Component> = emptyList(),
@@ -102,7 +130,7 @@ data class WidgetComponent(
     override val code: String,
     val widgetCode: String,
     val widgetType: String,
-    override val properties: List<ComponentProperty> = emptyList(),  // ComponentProperty
+    override val properties: List<ComponentProperty> = emptyList(),
     override val styles: List<WidgetStyle> = emptyList(),
     override val events: List<WidgetEvent> = emptyList(),
     override val children: List<Component> = emptyList(),
@@ -111,8 +139,6 @@ data class WidgetComponent(
     override val index: Int = 0,
     override val forIndexName: String? = null,
 ) : Component()
-
-//event
 
 /**
  * Действие, выполняемое при возникновении события
@@ -193,8 +219,6 @@ data class ParsedScreen(
     val requests: List<ScreenQuery> = emptyList(),
 ): Parcelable
 
-//queries
-
 /**
  * Свойство запроса к API
  *
@@ -255,8 +279,6 @@ data class ScreenQuery(
     val mockFile: String? = null,
     val properties: Map<String, String>,
 ): Parcelable
-
-//screen
 
 /**
  * Виджет, размещенный в лэйауте экрана
@@ -324,8 +346,6 @@ data class Screen(
     val events: List<WidgetEvent> = emptyList(),
     val screenLayouts: List<ScreenLayout> = emptyList(),
 )
-
-//styles
 
 /**
  * Стиль текста
@@ -427,7 +447,6 @@ data class AllStyles(
     val roundStyles: List<RoundStyle>,
 ): Parcelable
 
-//widgets
 /**
  * Стиль виджета или лэйаута
  *

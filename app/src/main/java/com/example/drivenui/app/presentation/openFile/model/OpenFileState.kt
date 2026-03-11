@@ -109,25 +109,35 @@ internal sealed interface OpenFileEffect : VtbEffect {
 }
 
 /**
- * Состояние экрана с поддержкой новой структуры компонентов и биндингов
+ * Элемент списка сохранённых микроаппов.
  *
- * @property microappSource откуда будем грузить
- * @property isUploadFile состояние загрузки файла
- * @property isParsing состояние парсинга файла
- * @property parsingResult результат парсинга с новой структурой
- * @property availableFiles список доступных файлов
- * @property availableJsonFiles список доступных JSON файлов
- * @property selectedFileName выбранный файл
- * @property selectedJsonFiles выбранные JSON файлы для биндингов
- * @property errorMessage сообщение об ошибке
- * @property showJsonSelectionDialog показать диалог выбора JSON файлов
+ * @property code код микроаппа
+ * @property title название микроаппа
  */
-/** Элемент списка сохранённых микроаппов */
 internal data class MicroappItem(
     val code: String,
     val title: String,
 )
 
+/**
+ * Состояние экрана выбора и загрузки микроаппа.
+ *
+ * @property microappSource источник микроаппа (assets, file system)
+ * @property collectionMicroapps микроаппы из коллекции
+ * @property singleMicroapps микроаппы, добавленные по одному
+ * @property isUploadFile идёт загрузка файла
+ * @property isParsing идёт парсинг
+ * @property isSyncingCollection идёт синхронизация коллекции
+ * @property parsingResult результат парсинга
+ * @property availableFiles доступные файлы
+ * @property availableJsonFiles доступные JSON файлы для биндингов
+ * @property selectedFileName выбранный файл
+ * @property selectedJsonFiles выбранные JSON файлы
+ * @property errorMessage сообщение об ошибке
+ * @property showJsonSelectionDialog показать диалог выбора JSON
+ * @property bindingStats статистика биндингов
+ * @property resolvedValues разрешённые значения биндингов
+ */
 internal data class OpenFileState(
     val microappSource: MicroappSource = MicroappSource.ASSETS,
     val collectionMicroapps: List<MicroappItem> = emptyList(),
@@ -203,7 +213,7 @@ internal data class OpenFileState(
      * Считает количество компонентов рекурсивно
      */
     private fun countComponents(component: com.example.drivenui.engine.parser.models.Component): Int {
-        var count = 1 // текущий компонент
+        var count = 1
         component.children.forEach { child ->
             count += countComponents(child)
         }

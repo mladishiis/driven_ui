@@ -24,6 +24,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel экрана выбора и загрузки микроаппа.
+ *
+ * @property context контекст приложения
+ * @property fileInteractor парсинг и загрузка микроаппов
+ * @property fileDownloadInteractor загрузка архивов по URL
+ * @property microappStorage хранилище закэшированных микроаппов
+ * @property collectionApi API для синхронизации коллекций
+ * @property microappSource источник микроаппа (assets или file system)
+ */
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -95,7 +105,6 @@ internal class OpenFileViewModel @Inject constructor(
                     }
                 }
 
-                // Единый путь парсинга: full microapp ИЛИ шаблон (экраны + стили)
                 val parsedResult = fileInteractor.parseTemplate()
 
                 val microappCode = parsedResult.microapp?.code?.takeIf { it.isNotBlank() } ?: "template"
@@ -230,9 +239,6 @@ internal class OpenFileViewModel @Inject constructor(
         }
     }
 
-    // =====================================================
-    // Статистика и биндинги
-    // =====================================================
 
     private fun handleShowBindingStats() {
         val resolvedValues = fileInteractor.getResolvedValues()
@@ -300,8 +306,6 @@ internal class OpenFileViewModel @Inject constructor(
             try {
                 val collectionCodes = microappStorage.getCollectionCodes().toSet()
                 val singleListCodes = microappStorage.getSingleListCodes().toSet()
-                // Удаляем только микроаппы, которые есть ТОЛЬКО в коллекции.
-                // Пересекающиеся (в коллекции и в списке прототипов) оставляем — файл и запись в singleListCodes сохраняются.
                 collectionCodes.filter { it !in singleListCodes }.forEach { code ->
                     microappStorage.delete(code)
                 }
@@ -372,14 +376,11 @@ internal class OpenFileViewModel @Inject constructor(
             }
             val serverCodesSet = allCodes.toSet()
             val oldCollectionCodes = microappStorage.getCollectionCodes().toSet()
-            // Удаляем только микроаппы коллекции, которых больше нет на сервере.
-            // Микроаппы из списка прототипов (не в коллекции) не трогаем.
             val singleListCodes = microappStorage.getSingleListCodes().toSet()
             oldCollectionCodes.filter { it !in serverCodesSet && it !in singleListCodes }.forEach { code ->
                 microappStorage.delete(code)
                 Log.d("OpenFileViewModel", "Удалён микроапп, отсутствующий в коллекции: $code")
             }
-            // Скачиваем и заменяем все — микроапп мог измениться, версионирования нет
             for (microappCode in allCodes) {
                 val url = collectionApi.getMicroappZipUrl(microappCode)
                 val success = fileDownloadInteractor.downloadAndExtractZip(url, ArchiveDownloadFormat.OCTET_STREAM)

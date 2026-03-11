@@ -14,7 +14,10 @@ object DataBindingParser {
     private const val TAG = "DataBindingParser"
 
     /**
-     * Парсит строку с макросами на список биндингов
+     * Парсит строку с макросами ${...} на список биндингов.
+     *
+     * @param text строка, содержащая выражения вида ${source.path}
+     * @return список распарсенных [DataBinding]
      */
     fun parseBindings(text: String): List<DataBinding> {
         val pattern = "\\\$\\{([^}]+)\\}".toRegex()
@@ -41,23 +44,19 @@ object DataBindingParser {
     }
 
     /**
-     * Парсит одиночное выражение биндинга
+     * Парсит одиночное выражение биндинга. Поддерживаемые форматы:
+     * - source.[index].property (например carriers_allCarriers.[0].carrierName)
+     * - source[index].property (например carriers_allCarriers[0].carrierName)
+     * - source.property (точечная нотация)
+     * - source (только имя источника)
      */
     private fun parseBinding(content: String): DataBinding? {
         Log.d(TAG, "Parsing binding content: '$content'")
 
-        // Поддерживаем два формата:
-        // 1. carriers_allCarriers.[0].carrierName (с точкой перед скобками)
-        // 2. carriers_allCarriers[0].carrierName (без точки)
-
-        // Если есть точка перед скобкой
         if (content.contains(".[")) {
-            // Формат: source.[index].property
             val dotBracketIndex = content.indexOf(".[")
             val sourceName = content.substring(0, dotBracketIndex)
-            val rest = content.substring(dotBracketIndex + 1) // +1 чтобы пропустить точку
-
-            // rest теперь: [0].carrierName
+            val rest = content.substring(dotBracketIndex + 1)
 
             return DataBinding(
                 sourceType = detectSourceType(sourceName),
@@ -67,9 +66,7 @@ object DataBindingParser {
                 defaultValue = ""
             )
         }
-        // Если есть просто скобка
         else if (content.contains("[")) {
-            // Формат: source[index].property
             val bracketIndex = content.indexOf("[")
             val sourceName = content.substring(0, bracketIndex)
             val rest = content.substring(bracketIndex)
@@ -82,7 +79,6 @@ object DataBindingParser {
                 defaultValue = ""
             )
         }
-        // Простая точечная нотация
         else if (content.contains(".")) {
             val dotIndex = content.indexOf(".")
             val sourceName = content.substring(0, dotIndex)
@@ -96,7 +92,6 @@ object DataBindingParser {
                 defaultValue = ""
             )
         }
-        // Просто имя источника без пути
         else {
             return DataBinding(
                 sourceType = detectSourceType(content),
@@ -113,19 +108,19 @@ object DataBindingParser {
      */
     private fun detectSourceType(sourceName: String): BindingSourceType {
         return when {
-            // ScreenQuery коды (из XML файла)
             sourceName.matches(Regex("^[a-z]+_[a-zA-Z]+$")) -> BindingSourceType.SCREEN_QUERY_RESULT
             sourceName.endsWith("_json") -> BindingSourceType.JSON_FILE
             sourceName.endsWith(".json") -> BindingSourceType.JSON_FILE
-            else -> BindingSourceType.SCREEN_QUERY_RESULT // По умолчанию
+            else -> BindingSourceType.SCREEN_QUERY_RESULT
         }
     }
 
     /**
-     * Извлекает значение из JsonElement по пути
-     */
-    /**
-     * Извлекает значение из JsonElement по пути
+     * Извлекает значение из JsonElement по пути (поддерживает [index] и .property).
+     *
+     * @param data JSON-элемент для обхода
+     * @param path путь в формате [0].property или .property
+     * @return извлечённое значение или null
      */
     fun extractValue(data: JsonElement?, path: String): Any? {
         if (data == null || path.isEmpty()) return data?.toString()
@@ -138,7 +133,6 @@ object DataBindingParser {
         while (remainingPath.isNotEmpty() && current != null) {
             Log.d(TAG, "Current: $current, remaining: '$remainingPath'")
 
-            // Пробуем извлечь индекс массива
             if (remainingPath.startsWith('[') && remainingPath.contains(']')) {
                 val endIndex = remainingPath.indexOf(']')
                 val indexStr = remainingPath.substring(1, endIndex)
@@ -148,10 +142,7 @@ object DataBindingParser {
                     current = if (index < current.size()) current[index] else null
                     Log.d(TAG, "Accessed array at index $index: $current")
                 } else if (current is JsonObject) {
-                    // Если текущий объект, ищем в нем свойство с именем как источник
                     Log.d(TAG, "Trying to find array in JsonObject")
-
-                    // Проверяем, есть ли у объекта свойство с массивом
                     val entrySet = current.entrySet()
                     var found = false
 
@@ -173,20 +164,16 @@ object DataBindingParser {
                     return null
                 }
 
-                // Удаляем обработанную часть
                 remainingPath = if (endIndex + 1 < remainingPath.length) {
                     remainingPath.substring(endIndex + 1)
                 } else {
                     ""
                 }
 
-                // Если следующий символ - точка, пропускаем её
                 if (remainingPath.startsWith('.')) {
                     remainingPath = remainingPath.substring(1)
                 }
             }
-
-            // Обработка свойства объекта
             else if (remainingPath.contains('.')) {
                 val dotIndex = remainingPath.indexOf('.')
                 val property = remainingPath.substring(0, dotIndex)
@@ -201,8 +188,6 @@ object DataBindingParser {
 
                 remainingPath = remainingPath.substring(dotIndex + 1)
             }
-
-            // Последняя часть пути
             else {
                 val property = remainingPath
                 if (current is JsonObject) {
@@ -293,7 +278,6 @@ object DataBindingParser {
         }
 
         val result = if (binding.path.isNotEmpty()) {
-            // Специальная обработка для .count на массивах
             if (binding.path == "count" && sourceData is JsonArray) {
                 sourceData.size()
             } else {

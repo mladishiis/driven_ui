@@ -33,6 +33,8 @@ private const val LEGACY_KEY_SINGLE_LIST_CODES = "single_list_codes"
 /**
  * Реализация хранения замапленных микроаппов в JSON-файлах.
  * Файлы хранятся в context.filesDir/parsed_microapps/{microappCode}.json
+ *
+ * @property context контекст приложения для доступа к filesDir и SharedPreferences
  */
 internal class MicroappStorageImpl @Inject constructor(
     private val context: Context
@@ -114,8 +116,6 @@ internal class MicroappStorageImpl @Inject constructor(
             File(storageDir, safeFileName).exists()
         }
 
-    // --- Коллекция ---
-
     override suspend fun saveCollectionId(id: String) = withContext(Dispatchers.IO) {
         ensureMetaDir()
         File(metaDir, FILE_COLLECTION_ID).writeText(id)
@@ -144,8 +144,6 @@ internal class MicroappStorageImpl @Inject constructor(
             File(metaDir, FILE_COLLECTION_CODES).delete()
         }
     }
-
-    // --- Список прототипов ---
 
     override suspend fun addSingleListCode(code: String) = withContext(Dispatchers.IO) {
         ensureMetaDir()

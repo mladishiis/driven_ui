@@ -20,10 +20,7 @@ object ConditionEvaluator {
      */
     fun evaluateCondition(condition: String, context: Map<String, Any>): Boolean {
         return try {
-            // Удаляем пробелы для упрощения парсинга
             val trimmedCondition = condition.replace("\\s+".toRegex(), "")
-
-            // Парсим и оцениваем выражение
             evaluateExpression(trimmedCondition, context) as? Boolean ?: false
         } catch (e: Exception) {
             false
@@ -39,26 +36,21 @@ object ConditionEvaluator {
      */
     private fun evaluateExpression(expression: String, context: Map<String, Any>): Any? {
         return when {
-            // Булево значение
             expression == "true" -> true
             expression == "false" -> false
 
-            // Числовое значение
             expression.matches(Regex("-?\\d+(\\.\\d+)?")) -> {
                 if (expression.contains(".")) expression.toDouble() else expression.toInt()
             }
 
-            // Строковое значение в кавычках
             expression.startsWith("\"") && expression.endsWith("\"") -> {
                 expression.removeSurrounding("\"")
             }
 
-            // Оператор in
             "in" in expression -> {
                 evaluateInOperator(expression, context)
             }
 
-            // Логические операторы (сначала &&, потом ||)
             "&&" in expression -> {
                 evaluateLogicalOperator(expression, "&&", context)
             }
@@ -66,7 +58,6 @@ object ConditionEvaluator {
                 evaluateLogicalOperator(expression, "||", context)
             }
 
-            // Операторы сравнения
             "==" in expression -> {
                 evaluateComparison(expression, "==", context)
             }
@@ -86,7 +77,6 @@ object ConditionEvaluator {
                 evaluateComparison(expression, "<", context)
             }
 
-            // Арифметические операторы
             "+" in expression -> {
                 evaluateArithmetic(expression, "+", context)
             }
@@ -109,12 +99,10 @@ object ConditionEvaluator {
                 evaluateArithmetic(expression, "^", context)
             }
 
-            // Скобки
             expression.startsWith("(") && expression.endsWith(")") -> {
                 evaluateExpression(expression.removeSurrounding("(", ")"), context)
             }
 
-            // Переменная
             else -> VariableParser.evaluateExpression(expression, context)
         }
     }
@@ -293,12 +281,9 @@ object ConditionEvaluator {
                 '(' -> bracketDepth++
                 ')' -> bracketDepth--
                 else -> {
-                    if (bracketDepth == 0) {
-                        // Проверяем, является ли текущая позиция началом оператора
-                        if (expression.startsWith(operator, i)) {
-                            operatorIndex = i
-                            break
-                        }
+                    if (bracketDepth == 0 && expression.startsWith(operator, i)) {
+                        operatorIndex = i
+                        break
                     }
                 }
             }

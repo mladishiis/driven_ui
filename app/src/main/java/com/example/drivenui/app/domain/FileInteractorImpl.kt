@@ -14,11 +14,15 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Оркестратор:
- * - выбирает источник
- * - читает файлы
- * - вызывает SDUIParser
- * - маппит в ScreenModel и сохраняет CachedMicroappData
+ * Оркестратор парсинга микроаппов:
+ * выбирает источник, читает файлы, вызывает SDUIParser,
+ * маппит в ScreenModel и сохраняет CachedMicroappData.
+ *
+ * @property fileRepository репозиторий для чтения/записи файлов
+ * @property context контекст приложения
+ * @property source источник микроаппа (ASSETS или FILE_SYSTEM_JSON)
+ * @property fileProvider провайдер XML-файлов микроаппа
+ * @property microappStorage хранилище закэшированных данных
  */
 internal class FileInteractorImpl @Inject constructor(
     private val fileRepository: FileRepository,

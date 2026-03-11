@@ -7,8 +7,18 @@ import com.example.drivenui.engine.parser.models.ScreenQuery
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
+/**
+ * Парсер запросов Driven UI из XML.
+ * Парсит query и screenQuery элементы.
+ */
 class QueryParser {
 
+    /**
+     * Парсит все запросы из XML-строки.
+     *
+     * @param xmlContent XML-строка с элементами query
+     * @return Список Query
+     */
     fun parseAllQueries(xmlContent: String): List<Query> {
         Log.d("QueryParser", "Начинаем парсинг allQueries")
         val factory = XmlPullParserFactory.newInstance()
@@ -125,6 +135,12 @@ class QueryParser {
         return QueryProperty(paramType, variableName, variableValue)
     }
 
+    /**
+     * Парсит screen query из XML-строки.
+     *
+     * @param xmlContent XML-строка с элементами screenQuery
+     * @return Список ScreenQuery
+     */
     fun parseScreenQueries(xmlContent: String): List<ScreenQuery> {
         Log.d("QueryParser", "Начинаем парсинг screenQueries")
         val factory = XmlPullParserFactory.newInstance()
@@ -174,10 +190,10 @@ class QueryParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     when (parser.name) {
-                        "screenQueryCode" -> code = parser.nextText().trim()  // ← .trim()
-                        "screenCode" -> screenCode = parser.nextText().trim()  // ← .trim()
-                        "queryCode" -> queryCode = parser.nextText().trim()  // ← .trim()
-                        "mockFile" -> mockFile = parser.nextText().trim()  //
+                        "screenQueryCode" -> code = parser.nextText().trim()
+                        "screenCode" -> screenCode = parser.nextText().trim()
+                        "queryCode" -> queryCode = parser.nextText().trim()
+                        "mockFile" -> mockFile = parser.nextText().trim()
                         "order" -> {
                             val orderText = parser.nextText().trim()
                             order = orderText.toIntOrNull() ?: 0

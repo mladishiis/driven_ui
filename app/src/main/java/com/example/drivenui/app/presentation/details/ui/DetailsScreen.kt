@@ -64,6 +64,15 @@ import com.example.drivenui.app.presentation.details.model.ScreenItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
 import com.example.drivenui.app.theme.DrivenUITheme
 
+/**
+ * Экран деталей парсинга микроаппа.
+ *
+ * Отображает вкладки с обзором, экранами, стилями, запросами, событиями, виджетами и лейаутами.
+ * Поддерживает экспорт данных в JSON.
+ *
+ * @param state состояние экрана (результат парсинга, вкладки, загрузка)
+ * @param onEvent колбэк для отправки событий (назад, обновить, экспорт и т.д.)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DetailsScreen(
@@ -146,7 +155,6 @@ internal fun DetailsScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Табы
                 ScrollableTabRow(
                     selectedTabIndex = state.selectedTabIndex,
                     modifier = Modifier.fillMaxWidth(),
@@ -164,7 +172,6 @@ internal fun DetailsScreen(
                     }
                 }
 
-                // Контент в зависимости от выбранной вкладки
                 when (state.selectedTabIndex) {
                     0 -> OverviewTab(state = state, onEvent = onEvent)
                     1 -> ScreensTab(tabData = state.tabData, state = state, onEvent = onEvent)
@@ -190,7 +197,6 @@ private fun OverviewTab(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Статистика
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -231,7 +237,6 @@ private fun OverviewTab(
             }
         }
 
-        // Информация о микроаппе
         state.parsedResult?.microapp?.let { microapp ->
             item {
                 ExpandableSection(
@@ -254,7 +259,6 @@ private fun OverviewTab(
             }
         }
 
-        // Быстрые действия
         item {
             Card(
                 modifier = Modifier.fillMaxWidth()
@@ -282,7 +286,6 @@ private fun OverviewTab(
                             icon = Icons.Filled.Share,
                             text = stringResource(R.string.share),
                             onClick = {
-                                // TODO: Реализация шеринга
                             }
                         )
                     }
@@ -350,7 +353,6 @@ private fun StylesTab(
             )
         }
 
-        // Стили текста
         item {
             ExpandableSection(
                 title = "Стили текста (${textStyles.size})",
@@ -385,7 +387,6 @@ private fun StylesTab(
             }
         }
 
-        // Стили цвета
         item {
             ExpandableSection(
                 title = stringResource(R.string.color_styles_count, colorStyles.size),
@@ -500,7 +501,6 @@ private fun EventsTab(
     }
 }
 
-// Вспомогательные компоненты
 
 @Composable
 private fun StatCard(title: String, value: String) {
@@ -693,7 +693,10 @@ private fun ActionButton(
 }
 
 /**
- * Создает JSON для экспорта
+ * Создаёт JSON для экспорта.
+ *
+ * @param parsedMicroapp Результат парсинга микроаппа
+ * @return JSON-строка
  */
 private fun createExportJson(parsedMicroapp: com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult): String {
     return buildString {
@@ -717,7 +720,6 @@ private fun createExportJson(parsedMicroapp: com.example.drivenui.engine.parser.
     }
 }
 
-// DetailsScreen.kt - добавляем новые функции
 
 @Composable
 private fun WidgetsTab(
@@ -795,7 +797,6 @@ private fun DetailsTab(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Микроапп
         state.parsedResult?.microapp?.let { microapp ->
             item {
                 ExpandableSection(
@@ -826,7 +827,6 @@ private fun DetailsTab(
             }
         }
 
-        // Screen Queries
         val screenQueries = state.tabData.screenQueries
         item {
             ExpandableSection(
@@ -855,7 +855,6 @@ private fun DetailsTab(
             }
         }
 
-        // Event Actions
         val eventActions = state.tabData.eventActions
         item {
             ExpandableSection(
@@ -875,7 +874,6 @@ private fun DetailsTab(
                                     Text(action.title, fontWeight = FontWeight.Medium)
                                     Text(stringResource(R.string.code_label, action.code))
                                     Text(stringResource(R.string.order_label, action.order))
-                                    //Text("Свойств: ${action.properties.size}")
                                 }
                             }
                         }
@@ -884,7 +882,6 @@ private fun DetailsTab(
             }
         }
 
-        // Raw Data
         item {
             ExpandableSection(
                 title = "Сырые данные",
@@ -979,13 +976,15 @@ private fun LayoutCard(
 }
 
 /**
- * Создает детализированный JSON с полными данными о микроаппе
+ * Создаёт детализированный JSON с полными данными о микроаппе.
+ *
+ * @param parsedMicroapp Результат парсинга микроаппа
+ * @return JSON-строка
  */
 private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
 
-        // Microapp
         parsedMicroapp.microapp?.let { microapp ->
             appendLine("  \"microapp\": {")
             appendLine("    \"title\": \"${escapeJson(microapp.title)}\",")
@@ -1002,7 +1001,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             appendLine("  },")
         } ?: appendLine("  \"microapp\": null,")
 
-        // Screens
         appendLine("  \"screens\": [")
         parsedMicroapp.screens.forEachIndexed { screenIndex, screen ->
             appendLine("    {")
@@ -1016,7 +1014,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        // Text Styles
         appendLine("  \"textStyles\": [")
         parsedMicroapp.styles?.textStyles?.forEachIndexed { styleIndex, style ->
             appendLine("    {")
@@ -1030,7 +1027,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        // Color Styles
         appendLine("  \"colorStyles\": [")
         parsedMicroapp.styles?.colorStyles?.forEachIndexed { colorIndex, colorStyle ->
             appendLine("    {")
@@ -1043,7 +1039,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        // Queries
         appendLine("  \"queries\": [")
         parsedMicroapp.queries.forEachIndexed { queryIndex, query ->
             appendLine("    {")
@@ -1058,7 +1053,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        // Events (с деталями действий и свойств)
         appendLine("  \"events\": [")
         parsedMicroapp.events?.events?.forEachIndexed { eventIndex, event ->
             appendLine("    {")
@@ -1071,7 +1065,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                 appendLine("          \"title\": \"${escapeJson(action.title)}\",")
                 appendLine("          \"code\": \"${escapeJson(action.code)}\",")
                 appendLine("          \"order\": ${action.order},")
-                // Для EventAction.properties используется Map<String, String>
                 appendLine("          \"properties\": {")
                 val actionProps = action.properties.entries.toList()
                 actionProps.forEachIndexed { propIndex, entry ->
@@ -1091,7 +1084,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        // Widgets
         try {
             val widgetsField = parsedMicroapp::class.java.getDeclaredField("widgets")
             widgetsField.isAccessible = true
@@ -1104,7 +1096,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                     appendLine("      \"title\": \"${escapeJson(widget.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(widget.code)}\",")
                     appendLine("      \"type\": \"${escapeJson(widget.type)}\",")
-                    // Для Widget.properties используется Map<String, String>
                     appendLine("      \"properties\": {")
                     val widgetProps = widget.properties.entries.toList()
                     widgetProps.forEachIndexed { propIndex, entry ->
@@ -1125,7 +1116,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             appendLine("  \"widgets\": [],")
         }
 
-        // Layouts
         try {
             val layoutsField = parsedMicroapp::class.java.getDeclaredField("layouts")
             layoutsField.isAccessible = true
@@ -1137,7 +1127,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(layout.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(layout.code)}\",")
-                    // Для Layout.properties используется Map<String, String>
                     appendLine("      \"properties\": {")
                     val layoutProps = layout.properties.entries.toList()
                     layoutProps.forEachIndexed { propIndex, entry ->
@@ -1156,7 +1145,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             appendLine("  \"layouts\": [],")
         }
 
-        // Screen Queries
         try {
             val screenQueriesField = parsedMicroapp::class.java.getDeclaredField("screenQueries")
             screenQueriesField.isAccessible = true
@@ -1171,7 +1159,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                     appendLine("      \"screenCode\": \"${escapeJson(sq.screenCode)}\",")
                     appendLine("      \"queryCode\": \"${escapeJson(sq.queryCode)}\",")
                     appendLine("      \"order\": ${sq.order},")
-                    // Для ScreenQuery.properties используется Map<String, String>
                     appendLine("      \"properties\": {")
                     val screenQueryProps = sq.properties.entries.toList()
                     screenQueryProps.forEachIndexed { propIndex, entry ->
@@ -1190,7 +1177,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             appendLine("  \"screenQueries\": [],")
         }
 
-        // Event Actions (все действия событий микроаппа)
         try {
             val allEventActionsField =
                 parsedMicroapp::class.java.getDeclaredField("allEventActions")
@@ -1204,7 +1190,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                 appendLine("      \"title\": \"${escapeJson(action.title)}\",")
                 appendLine("      \"code\": \"${escapeJson(action.code)}\",")
                 appendLine("      \"order\": ${action.order},")
-                // Для EventAction.properties используется Map<String, String>
                 appendLine("      \"properties\": {")
                 val actionProps = action.properties.entries.toList()
                 actionProps.forEachIndexed { propIndex, entry ->
@@ -1219,7 +1204,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             }
             appendLine("  ]")
         } catch (e: Exception) {
-            // Если нет поля allEventActions, попробуем получить eventActions
             try {
                 val eventActionsField = parsedMicroapp::class.java.getDeclaredField("eventActions")
                 eventActionsField.isAccessible = true
@@ -1232,7 +1216,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                     appendLine("      \"title\": \"${escapeJson(action.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(action.code)}\",")
                     appendLine("      \"order\": ${action.order},")
-                    // Для EventAction.properties используется Map<String, String>
                     appendLine("      \"properties\": {")
                     val actionProps = action.properties.entries.toList()
                     actionProps.forEachIndexed { propIndex, entry ->
@@ -1256,7 +1239,10 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
 }
 
 /**
- * Экранирует специальные символы для JSON
+ * Экранирует специальные символы для JSON.
+ *
+ * @param value Исходная строка
+ * @return Экранированная строка
  */
 private fun escapeJson(value: String): String {
     return value.replace("\\", "\\\\")
@@ -1268,9 +1254,6 @@ private fun escapeJson(value: String): String {
         .replace("\u000C", "\\f")
 }
 
-// ---------------------------------------------------------------------------
-// Preview
-// ---------------------------------------------------------------------------
 
 @Preview(name = "Loading")
 @Composable

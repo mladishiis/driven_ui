@@ -30,12 +30,16 @@ import com.example.drivenui.engine.parser.models.ComponentType
 import com.example.drivenui.engine.parser.models.Microapp
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.R
-import com.example.drivenui.R
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel экрана деталей парсинга микроаппа.
+ *
+ * @property context контекст для Toast, Clipboard и доступа к ресурсам
+ */
 @HiltViewModel
 internal class DetailsViewModel @Inject constructor(
     private val context: Context
@@ -44,7 +48,9 @@ internal class DetailsViewModel @Inject constructor(
     override fun createInitialState() = DetailsState()
 
     /**
-     * Устанавливает результат парсинга с новой структурой
+     * Устанавливает результат парсинга с новой структурой.
+     *
+     * @param parsedResult результат парсинга микроаппа или null для сброса данных
      */
     fun setParsedResult(parsedResult: SDUIParser.ParsedMicroappResult?) {
         val tabData = parsedResult?.let { computeTabData(it) } ?: DetailsTabData()
@@ -200,8 +206,7 @@ internal class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 updateState { copy(isLoading = true) }
-                // Здесь можно добавить логику обновления данных
-                Thread.sleep(500) // Имитация загрузки
+                Thread.sleep(500)
                 updateState { copy(isLoading = false) }
                 setEffect { DetailsEffect.ShowMessage(context.getString(R.string.data_updated)) }
             } catch (e: Exception) {
@@ -256,10 +261,7 @@ internal class DetailsViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Создаем JSON для экспорта
                 val jsonData = createDetailedJson(result)
-
-                // Сохраняем в файл
                 val fileName = "sdui_export_${System.currentTimeMillis()}.json"
                 val file = context.filesDir.resolve(fileName)
                 file.writeText(jsonData)
@@ -298,7 +300,6 @@ internal class DetailsViewModel @Inject constructor(
                             appendLine("    - $type: $count")
                         }
 
-                        // Логируем первые 3 уровня дерева
                         appendLine("  Дерево компонентов:")
                         logComponentTree(root, 0, 3, this)
                     } ?: appendLine("  Корневой компонент: отсутствует")
@@ -322,7 +323,6 @@ internal class DetailsViewModel @Inject constructor(
         return buildString {
             appendLine("{")
 
-            // Микроапп
             result.microapp?.let {
                 appendLine("  \"microapp\": {")
                 appendLine("    \"title\": \"${escapeJson(it.title)}\",")
@@ -339,7 +339,6 @@ internal class DetailsViewModel @Inject constructor(
                 appendLine("  },")
             }
 
-            // Статистика
             appendLine("  \"statistics\": {")
             appendLine("    \"screens\": ${result.screens.size},")
             appendLine("    \"textStyles\": ${result.styles?.textStyles?.size ?: 0},")
@@ -356,7 +355,6 @@ internal class DetailsViewModel @Inject constructor(
             appendLine("    \"componentsCount\": ${result.countAllComponents()}")
             appendLine("  },")
 
-            // Список экранов
             if (result.screens.isNotEmpty()) {
                 appendLine("  \"screens\": [")
                 result.screens.forEachIndexed { index, screen ->
@@ -376,7 +374,6 @@ internal class DetailsViewModel @Inject constructor(
                 appendLine("  ],")
             }
 
-            // Список запросов (первые 5 для примера)
             if (result.queries.isNotEmpty()) {
                 appendLine("  \"sampleQueries\": [")
                 result.queries.take(5).forEachIndexed { index, query ->
@@ -393,7 +390,6 @@ internal class DetailsViewModel @Inject constructor(
                 appendLine("  ],")
             }
 
-            // Компонентная структура
             if (result.screens.any { it.rootComponent != null }) {
                 appendLine("  \"componentStructure\": {")
                 appendLine("    \"totalComponents\": ${result.countAllComponents()},")
@@ -402,7 +398,6 @@ internal class DetailsViewModel @Inject constructor(
                 appendLine("  },")
             }
 
-            // Общая информация о парсинге
             appendLine("  \"parsingInfo\": {")
             appendLine("    \"timestamp\": \"${System.currentTimeMillis()}\",")
             appendLine("    \"parserVersion\": \"new\",")
@@ -464,7 +459,6 @@ internal class DetailsViewModel @Inject constructor(
         Log.d("DetailsViewModel", "Лэйаутов: ${result.layouts.size}")
         Log.d("DetailsViewModel", "Компонентов всего: ${result.countAllComponents()}")
 
-        // Логируем первые 3 экрана
         result.screens.take(3).forEachIndexed { index, screen ->
             Log.d("DetailsViewModel", "Экран ${index + 1}: ${screen.title}")
             screen.rootComponent?.let { root ->
@@ -472,7 +466,6 @@ internal class DetailsViewModel @Inject constructor(
             }
         }
 
-        // Логируем структуру компонентов первого экрана
         result.screens.firstOrNull()?.rootComponent?.let { root ->
             Log.d("DetailsViewModel", "Структура компонентов первого экрана:")
             logComponentTree(root, 0, 2)
@@ -566,10 +559,11 @@ internal class DetailsViewModel @Inject constructor(
         return stats
     }
 
-    // ===== Методы для получения данных для UI =====
 
     /**
-     * Получает статистику для отображения
+     * Получает статистику для отображения.
+     *
+     * @return карта со статистикой парсинга или пустая карта при отсутствии данных
      */
     fun getStats(): Map<String, Any> {
         val result = uiState.value.parsedResult
@@ -577,19 +571,25 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает микроапп
+     * Получает микроапп.
+     *
+     * @return микроапп из результата парсинга или null
      */
     fun getMicroapp(): Microapp? = uiState.value.parsedResult?.microapp
 
     /**
-     * Получает список экранов для отображения
+     * Получает список экранов для отображения.
+     *
+     * @return список экранов с информацией о компонентах
      */
     fun getScreens(): List<ScreenItem> {
         return uiState.value.getScreensWithComponents()
     }
 
     /**
-     * Получает список стилей текста
+     * Получает список стилей текста.
+     *
+     * @return список стилей текста
      */
     fun getTextStyles(): List<TextStyleItem> {
         return uiState.value.parsedResult?.styles?.textStyles?.map { style ->
@@ -603,7 +603,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список стилей цвета
+     * Получает список стилей цвета.
+     *
+     * @return список стилей цвета
      */
     fun getColorStyles(): List<ColorStyleItem> {
         return uiState.value.parsedResult?.styles?.colorStyles?.map { style ->
@@ -618,7 +620,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список стилей скругления
+     * Получает список стилей скругления.
+     *
+     * @return список стилей скругления
      */
     fun getRoundStyles(): List<RoundStyleItem> {
         return uiState.value.parsedResult?.styles?.roundStyles?.map { style ->
@@ -630,7 +634,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список стилей отступов
+     * Получает список стилей отступов.
+     *
+     * @return список стилей отступов
      */
     fun getPaddingStyles(): List<PaddingStyleItem> {
         return uiState.value.parsedResult?.styles?.paddingStyles?.map { style ->
@@ -645,7 +651,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список стилей выравнивания
+     * Получает список стилей выравнивания.
+     *
+     * @return список стилей выравнивания
      */
     fun getAlignmentStyles(): List<AlignmentStyleItem> {
         return uiState.value.parsedResult?.styles?.alignmentStyles?.map { style ->
@@ -656,7 +664,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список запросов
+     * Получает список запросов.
+     *
+     * @return список запросов
      */
     fun getQueries(): List<QueryItem> {
         return uiState.value.parsedResult?.queries?.map { query ->
@@ -671,7 +681,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список событий
+     * Получает список событий.
+     *
+     * @return список событий
      */
     fun getEvents(): List<EventItem> {
         return uiState.value.parsedResult?.events?.events?.map { event ->
@@ -684,7 +696,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список виджетов
+     * Получает список виджетов.
+     *
+     * @return список виджетов
      */
     fun getWidgets(): List<WidgetItem> {
         return uiState.value.parsedResult?.widgets?.map { widget ->
@@ -701,7 +715,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список лэйаутов
+     * Получает список лэйаутов.
+     *
+     * @return список лэйаутов
      */
     fun getLayouts(): List<LayoutItem> {
         return uiState.value.parsedResult?.layouts?.map { layout ->
@@ -715,7 +731,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список экранных запросов
+     * Получает список экранных запросов.
+     *
+     * @return список экранных запросов
      */
     fun getScreenQueries(): List<ScreenQueryItem> {
         return uiState.value.parsedResult?.screenQueries?.map { query ->
@@ -730,7 +748,9 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список действий событий
+     * Получает список действий событий.
+     *
+     * @return список действий событий
      */
     fun getEventActions(): List<EventActionItem> {
         return uiState.value.parsedResult?.eventActions?.eventActions?.map { action ->
@@ -745,14 +765,19 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает структуру компонентов для экрана
+     * Получает структуру компонентов для экрана.
+     *
+     * @param screenCode код экрана
+     * @return список компонентов дерева для указанного экрана
      */
     fun getComponentStructure(screenCode: String): List<ComponentTreeItem> {
         return uiState.value.getScreenComponents(screenCode)
     }
 
     /**
-     * Получает структуру компонентов для экрана TEST
+     * Получает структуру компонентов для экрана TEST.
+     *
+     * @return модель компонентов первого экрана для рендеринга или null
      */
     fun getComponentModelForRender(): ComponentModel? {
         return uiState.value.getUIModelsForRender()

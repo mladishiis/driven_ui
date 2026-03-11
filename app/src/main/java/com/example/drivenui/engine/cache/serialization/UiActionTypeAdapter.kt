@@ -9,7 +9,7 @@ import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
 
 /**
- * Gson TypeAdapter для sealed interface UiAction (полиморфная сериализация).
+ * Gson TypeAdapter для [UiAction] — полиморфная сериализация/десериализация.
  */
 class UiActionTypeAdapter : JsonSerializer<UiAction>, JsonDeserializer<UiAction> {
 

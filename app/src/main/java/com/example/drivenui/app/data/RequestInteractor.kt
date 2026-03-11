@@ -17,6 +17,14 @@ import com.example.drivenui.engine.parser.models.BindingSourceType
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Интерактор для выполнения запросов и применения биндингов к экранам.
+ *
+ * Загружает mock-данные из ScreenQuery, обеспечивает DataContext и DataBinder
+ * для рендереров.
+ *
+ * @property appContext контекст приложения для доступа к assets и файловой системе
+ */
 @Singleton
 class RequestInteractor @Inject constructor(
     private val appContext: Context
@@ -24,6 +32,14 @@ class RequestInteractor @Inject constructor(
 
     private val dataContextProvider = DataContextProvider(appContext)
 
+    /**
+     * Выполняет запрос по коду и применяет биндинги к экрану.
+     *
+     * @param screenModel экран для обновления
+     * @param queryCode код запроса из ScreenQuery
+     * 
+     * @return экран с применёнными биндингами
+     */
     fun executeQueryAndUpdateScreen(
         screenModel: ScreenModel,
         queryCode: String
@@ -40,7 +56,6 @@ class RequestInteractor @Inject constructor(
             Log.d(TAG, "Loading mock file from ScreenQuery: $fileName for query: ${screenQuery.code}")
 
             try {
-                // Попробуем загрузить файл через "умный" метод, который ищет и в папке mocks
                 val jsonData = dataContextProvider.loadJsonSmart(fileName)
 
                 if (jsonData != null) {
@@ -54,13 +69,8 @@ class RequestInteractor @Inject constructor(
             }
         }
 
-        // 2. Убеждаемся, что JSON из биндингов компонентов загружены
         loadComponentBindingsJsonFiles(screenModel)
-
-        // 3. Отладочная информация
         dataContextProvider.debugInfo()
-
-        // 4. Применяем биндинги (как в processScreen)
         return DataBinder.applyBindings(
             screenModel,
             dataContextProvider.getDataContext()
@@ -68,9 +78,11 @@ class RequestInteractor @Inject constructor(
     }
 
     /**
-     * Временный метод для того, чтобы имитировать применение ответов из запроса отдельно от запроса,
-     * с помощью экшена рефреш
-     * В будующем будет переписано как-то по-другому, когда появятся реальные запросы
+     * Применяет биндинги к экрану без выполнения запросов.
+     *
+     * @param screenModel экран для применения биндингов
+     * 
+     * @return экран с применёнными биндингами
      */
     fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
         Log.d(TAG, "Applying bindings to screen: ${screenModel.id} (without executing queries)")
@@ -78,12 +90,16 @@ class RequestInteractor @Inject constructor(
     }
 
     /**
-     * Получить DataBinder для применения биндингов в рендерерах
+     * Возвращает DataBinder для применения биндингов в рендерерах.
+     *
+     * @return синглтон DataBinder
      */
     fun getDataBinder(): DataBinder = DataBinder
 
     /**
-     * Получить DataContext для применения биндингов в рендерерах
+     * Возвращает DataContext для применения биндингов в рендерерах.
+     *
+     * @return текущий контекст данных (JSON-источники, результаты запросов)
      */
     fun getDataContext(): com.example.drivenui.engine.parser.models.DataContext = dataContextProvider.getDataContext()
 
@@ -92,18 +108,13 @@ class RequestInteractor @Inject constructor(
      */
     private fun loadScreenQueryJsonFiles(screenModel: ScreenModel) {
         screenModel.requests.forEach { screenQuery ->
-            // Используем mockFile из ScreenQuery для загрузки данных
             screenQuery.mockFile?.let { fileName ->
                 Log.d(TAG, "Loading mock file from ScreenQuery: $fileName for query: ${screenQuery.code}")
 
                 try {
                     val jsonString = appContext.assets.open(fileName).bufferedReader().use { it.readText() }
                     Log.d(TAG, "Loaded JSON string (${jsonString.length} chars) for: ${screenQuery.code}")
-
-                    // Парсим JSON
                     val jsonData = com.google.gson.JsonParser.parseString(jsonString)
-
-                    // Добавляем как SCREEN_QUERY_RESULT
                     dataContextProvider.addScreenQueryResult(screenQuery.code, jsonData)
 
                     Log.d(TAG, "Successfully loaded mock data for: ${screenQuery.code}")
@@ -124,13 +135,11 @@ class RequestInteractor @Inject constructor(
         Log.d(TAG, "Found JSON sources from bindings: $jsonSources")
 
         jsonSources.forEach { sourceName ->
-            // Проверяем, не загрузили ли мы уже этот источник
             val dataContext = dataContextProvider.getDataContext()
             val alreadyLoaded = dataContext.jsonSources.containsKey(sourceName) ||
                     dataContext.screenQueryResults.containsKey(sourceName)
 
             if (!alreadyLoaded) {
-                // Пробуем загрузить как JSON файл
                 val fileName = "$sourceName.json"
                 Log.d(TAG, "Looking for binding JSON file: $fileName")
 
@@ -163,7 +172,6 @@ class RequestInteractor @Inject constructor(
                     }
                     BindingSourceType.SCREEN_QUERY_RESULT -> {
                         Log.d(TAG, "Found SCREEN_QUERY_RESULT binding: ${binding.sourceName}")
-                        // Эти источники уже должны быть загружены из ScreenQuery
                     }
                     else -> {
                         Log.d(TAG, "Found binding type: ${binding.sourceType} for source: ${binding.sourceName}")

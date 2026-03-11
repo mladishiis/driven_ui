@@ -4,6 +4,9 @@ import android.util.Log
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Реализация [IContextManager] для хранения переменных микроаппов и движка в памяти.
+ */
 @Singleton
 class ContextManager @Inject constructor() : IContextManager {
 

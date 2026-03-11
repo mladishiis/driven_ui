@@ -7,7 +7,11 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.uirender.models.*
 
 /**
- * Конвертирует ComponentModel в CachedComponentModel (для сохранения).
+ * Конвертирует [ComponentModel] в [CachedComponentModel] для сохранения в кэш.
+ *
+ * @receiver компонент для сериализации
+ * 
+ * @return сериализуемое представление компонента
  */
 fun ComponentModel.toCached(): CachedComponentModel = when (this) {
     is LayoutModel -> CachedLayoutModel(
@@ -86,7 +90,13 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
     else -> throw IllegalArgumentException("Unsupported ComponentModel: $this")
 }
 
-/** Конвертирует CachedScreenModel в ScreenModel (generative_screen.models.ScreenModel). */
+/**
+ * Конвертирует [CachedScreenModel] в [ScreenModel].
+ *
+ * @receiver закэшированная модель экрана
+ * 
+ * @return модель экрана для рендеринга
+ */
 fun CachedScreenModel.toScreenModel(): ScreenModel =
     ScreenModel(
         id = id,
@@ -95,7 +105,13 @@ fun CachedScreenModel.toScreenModel(): ScreenModel =
         rootComponent = rootComponent?.toComponentModel()
     )
 
-/** Конвертирует ScreenModel в CachedScreenModel. */
+/**
+ * Конвертирует [ScreenModel] в [CachedScreenModel] для сохранения.
+ *
+ * @receiver модель экрана для сериализации
+ * 
+ * @return сериализуемое представление экрана
+ */
 fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
     CachedScreenModel(
         id = id,
@@ -105,8 +121,12 @@ fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
     )
 
 /**
- * Конвертирует CachedComponentModel в ComponentModel (для загрузки).
+ * Конвертирует [CachedComponentModel] в [ComponentModel] при загрузке из кэша.
  * TextStyle и Color восстанавливаются из кодов через defaults; resolveComponent применит стили при отображении.
+ *
+ * @receiver закэшированная модель компонента
+ *
+ * @return Модель компонента для рендеринга
  */
 fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
     is CachedLayoutModel -> LayoutModel(

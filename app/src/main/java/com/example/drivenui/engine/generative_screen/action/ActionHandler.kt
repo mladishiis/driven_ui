@@ -19,6 +19,18 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 
+/**
+ * Обработчик UI-действий: навигация, deeplink, запросы, шторки, контекст.
+ *
+ * @property navigationManager менеджер стека навигации
+ * @property screenProvider поиск экранов по коду и deeplink
+ * @property externalDeeplinkHandler обработка внешних deeplink
+ * @property contextManager хранилище переменных
+ * @property widgetValueProvider значения виджетов
+ * @property requestInteractor выполнение запросов
+ * @property microappCode код микроаппа для контекста
+ * @property styleRegistry реестр стилей
+ */
 class ActionHandler(
     private val navigationManager: ScreenNavigationManager,
     private val screenProvider: ScreenProvider,
@@ -30,6 +42,12 @@ class ActionHandler(
     private val styleRegistry: ComposeStyleRegistry,
 ) {
 
+    /**
+     * Обрабатывает UI-действие.
+     *
+     * @param action Действие для обработки
+     * @return Результат выполнения действия
+     */
     suspend fun handleAction(action: UiAction): ActionResult {
         return try {
             when (action) {
@@ -143,7 +161,10 @@ class ActionHandler(
         return ActionResult.Success
     }
 
-    //TODO: рефакторинг или вынести куда-то вообще
+    /**
+     * Обновляет данные виджета в дереве компонентов по widgetCode.
+     * @todo Рефакторинг или вынести куда-то вообще
+     */
     private fun refreshWidgetInComponent(
         component: ComponentModel?,
         widgetCode: String,
@@ -316,22 +337,56 @@ class ActionHandler(
     }
 }
 
+/**
+ * Результат обработки действия.
+ */
 sealed class ActionResult {
     data object Success : ActionResult()
 
-    // TODO: подумать над рефакторингом
+    /**
+     * Результат навигации.
+     *
+     * @property isBack true, если произошёл переход назад по стеку навигации
+     * @todo Рефакторинг структуры результата навигации
+     */
     data class NavigationChanged(val isBack: Boolean) : ActionResult()
 
     /**
      * Изменение состояния нижней шторки (bottom sheet).
      * model == null означает закрытие шторки.
+     *
+     * @property model Модель экрана для шторки или null для закрытия
      */
     data class BottomSheetChanged(val model: ScreenModel?) : ActionResult()
 
+    /**
+     * Ошибка при обработке действия.
+     *
+     * @property message Сообщение об ошибке
+     * @property exception Исключение (если есть)
+     */
     data class Error(val message: String, val exception: Exception? = null,) : ActionResult()
 }
 
+/**
+ * Провайдер экранов для навигации.
+ */
 interface ScreenProvider {
+    /**
+     * Находит экран по коду.
+     *
+     * @param screenCode Код экрана
+     * 
+     * @return ScreenModel или null
+     */
     suspend fun findScreen(screenCode: String): ScreenModel?
+
+    /**
+     * Находит экран по deeplink.
+     *
+     * @param deeplink Deeplink экрана
+     * 
+     * @return ScreenModel или null
+     */
     suspend fun findScreenByDeeplink(deeplink: String): ScreenModel?
 }

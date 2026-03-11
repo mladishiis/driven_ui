@@ -16,11 +16,23 @@ data class MicroappCodeItem(val microappCode: String)
 
 private data class MicroappsResponse(val microapps: List<MicroappCodeItem> = emptyList())
 
+/**
+ * API для получения списка кодов микроаппов по ID коллекции.
+ *
+ * @property client HTTP-клиент для запросов
+ * @property gson парсер JSON-ответа
+ */
 class MicroappCollectionApi @Inject constructor(
     private val client: OkHttpClient,
     private val gson: Gson,
 ) {
 
+    /**
+     * Загружает список кодов микроаппов по ID коллекции с сервера.
+     *
+     * @param collectionId идентификатор коллекции (передаётся в заголовке X-MDM-ID)
+     * @return [Result] со списком кодов микроаппов или с исключением при ошибке
+     */
     suspend fun fetchMicroappCodes(collectionId: String): Result<List<String>> =
         withContext(Dispatchers.IO) {
             try {
@@ -52,6 +64,12 @@ class MicroappCollectionApi @Inject constructor(
             }
         }
 
+    /**
+     * Формирует URL для скачивания ZIP-архива микроаппа.
+     *
+     * @param microappCode код микроаппа
+     * @return URL архива
+     */
     fun getMicroappZipUrl(microappCode: String): String =
         "$BASE_URL/microapp/zip/$microappCode"
 }

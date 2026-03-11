@@ -26,6 +26,17 @@ import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
 import kotlinx.coroutines.flow.StateFlow
 
 
+/**
+ * Главный экран генеративного UI с поддержкой нижней шторки.
+ *
+ * @param state Состояние UI
+ * @param bottomSheetState Состояние нижней шторки
+ * @param onActions Callback для экшенов
+ * @param onBack Callback при нажатии Back
+ * @param onWidgetValueChange Callback при изменении значения виджета
+ * @param applyBindingsForComponent Функция применения биндингов
+ * @param getSheetCornerRadiusDp Функция получения радиуса скругления шторки
+ */
 @Composable
 fun GenerativeScreen(
     state: GenerativeUiState,
@@ -66,7 +77,6 @@ fun GenerativeScreenUi(
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { innerPadding ->
-            // Основной экран
             ScreenContent(
                 state = state,
                 onActions = onActions,
@@ -74,7 +84,6 @@ fun GenerativeScreenUi(
                 applyBindingsForComponent = applyBindingsForComponent,
             )
 
-            // Нижняя шторка поверх экрана
             BottomSheetHost(
                 bottomSheetState = bottomSheetState,
                 onActions = onActions,
@@ -115,7 +124,7 @@ private fun ScreenContent(
             }
         }
         is GenerativeUiState.Error -> {
-            // TODO: Добавить отображение ошибки
+            TODO("Добавить отображение ошибки")
         }
     }
 }
@@ -148,9 +157,7 @@ private fun BottomSheetHost(
             skipPartiallyExpanded = true
         )
         ModalBottomSheet(
-            onDismissRequest = {
-                // свайп вниз/клик вне шторки считаем действием Back
-                onBack()
+            onDismissRequest = { onBack() },
             },
             sheetState = sheetState,
             shape = sheetShape,

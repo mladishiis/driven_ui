@@ -2,26 +2,49 @@ package com.example.drivenui.app.domain
 
 /**
  * Источник файлов микроаппа.
- * Domain знает ЧТО нужно, но не знает КАК читается.
+ * Domain слой знает ЧТО нужно читать, но не КАК (реализация в data).
  */
 interface MicroappFileProvider {
 
+    /**
+     * Читает microapp.xml.
+     *
+     * @return содержимое microapp.xml
+     */
     fun readMicroapp(): String
+
+    /**
+     * Читает allStyles.xml.
+     *
+     * @return содержимое allStyles.xml
+     */
     fun readStyles(): String
+
+    /**
+     * Читает allQueries.xml.
+     *
+     * @return содержимое allQueries.xml
+     */
     fun readQueries(): String
 
     /**
-     * @return список экранов: fileName → xml
+     * Читает XML экранов.
+     *
+     * @return список пар (имя файла, xml-содержимое)
      */
     fun readScreens(): List<Pair<String, String>>
 
     /**
      * Читает microapp.xml. При отсутствии файла возвращает пустую строку (для шаблона).
+     *
+     * @return содержимое microapp.xml или пустая строка
      */
     fun readMicroappOrEmpty(): String
 
     /**
      * Читает allQueries.xml. При отсутствии файла возвращает пустую строку (для шаблона).
+     *
+     * @return содержимое allQueries.xml или пустая строка
      */
     fun readQueriesOrEmpty(): String
 }

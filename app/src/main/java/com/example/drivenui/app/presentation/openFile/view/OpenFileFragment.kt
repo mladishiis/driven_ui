@@ -25,6 +25,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+/**
+ * Фрагмент экрана выбора и загрузки микроаппа.
+ *
+ * Поддерживает загрузку из assets, QR-код, коллекции; парсинг с биндингами.
+ */
 @AndroidEntryPoint
 internal class OpenFileFragment : Fragment() {
 
@@ -35,7 +40,6 @@ internal class OpenFileFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Наблюдаем за эффектами
         observeEffects()
 
         return ComposeView(requireContext()).apply {
@@ -61,10 +65,8 @@ internal class OpenFileFragment : Fragment() {
                 }
 
                 is OpenFileEffect.NavigateToParsingDetails -> {
-                    // Сохраняем данные в NavigationManager
                     NavigationManager.setDataForNextScreen(effect.result)
 
-                    // Переходим к DetailsFragment
                     navigateToDetails()
                 }
 
@@ -107,7 +109,7 @@ internal class OpenFileFragment : Fragment() {
                         setBeepEnabled(false)
                         setOrientationLocked(true)
                         setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                        setCameraId(0) // задняя камера
+                        setCameraId(0)
                     }
                     qrScannerLauncher.launch(options)
                 }
@@ -321,6 +323,11 @@ internal class OpenFileFragment : Fragment() {
     }
 
     companion object {
+        /**
+         * Создаёт новый экземпляр фрагмента.
+         *
+         * @return экземпляр [OpenFileFragment]
+         */
         fun newInstance() = OpenFileFragment()
     }
 }

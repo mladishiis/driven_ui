@@ -36,7 +36,10 @@ import javax.inject.Singleton
 object AppModule {
 
     /**
-     * Предоставляет Context приложения
+     * Предоставляет Context приложения.
+     *
+     * @param context ApplicationContext от Hilt
+     * @return Context приложения
      */
     @Provides
     @Singleton
@@ -68,18 +71,31 @@ object AppModule {
         return widgetValueProvider
     }
 
+    /**
+     * @param context ApplicationContext
+     * @return FileRepository
+     */
     @Provides
     @Singleton
     fun provideFileRepository(@ApplicationContext context: Context): FileRepository {
         return FileRepositoryImpl(context)
     }
 
+    /**
+     * @param context ApplicationContext
+     * @return MicroappStorage
+     */
     @Provides
     @Singleton
     fun provideMicroappStorage(@ApplicationContext context: Context): MicroappStorage {
         return MicroappStorageImpl(context)
     }
 
+    /**
+     * @param client OkHttpClient
+     * @param gson Gson
+     * @return MicroappCollectionApi
+     */
     @Provides
     @Singleton
     fun provideMicroappCollectionApi(
@@ -87,6 +103,11 @@ object AppModule {
         gson: Gson,
     ): MicroappCollectionApi = MicroappCollectionApi(client, gson)
 
+    /**
+     * @param context ApplicationContext
+     * @param source Источник микроаппа (ASSETS или FILE_SYSTEM_JSON)
+     * @return MicroappFileProvider
+     */
     @Provides
     @Singleton
     fun provideMicroappFileProvider(
@@ -100,6 +121,14 @@ object AppModule {
         }
     }
 
+    /**
+     * @param fileRepository Репозиторий файлов
+     * @param context Контекст приложения
+     * @param microappSource Источник микроаппа
+     * @param fileProvider Провайдер файлов микроаппа
+     * @param microappStorage Хранилище микроаппов
+     * @return FileInteractor
+     */
     @Provides
     @Singleton
     fun provideFileInteractor(
@@ -121,6 +150,12 @@ object AppModule {
     @Singleton
     fun provideGson(): Gson = Gson()
 
+    /**
+     * @param context Контекст приложения
+     * @param client OkHttpClient
+     * @param gson Gson
+     * @return FileDownloadInteractor
+     */
     @Provides
     @Singleton
     fun provideFileDownloadInteractor(
@@ -133,12 +168,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMicroappSource(): MicroappSource {
-        // ASSETS | FILE_SYSTEM (архив напрямую) | FILE_SYSTEM_JSON (архив в JSON base64)
         return MicroappSource.FILE_SYSTEM_JSON
     }
 
     /**
-     * Предоставляет OkHttpClient для загрузки файлов
+     * Предоставляет OkHttpClient для загрузки файлов.
+     *
+     * @return OkHttpClient с настроенными таймаутами
      */
     @Provides
     @Singleton

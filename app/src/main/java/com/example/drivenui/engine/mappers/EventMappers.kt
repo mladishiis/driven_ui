@@ -4,25 +4,55 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.parser.models.EventAction
 import com.example.drivenui.engine.parser.models.WidgetEvent
 
+/**
+ * Извлекает экшены события onTap из списка событий виджета.
+ *
+ * @param events Список событий виджета
+ * @return Список UiAction для onTap или пустой список
+ */
 fun getOnTapEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onTap" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
+/**
+ * Извлекает экшены события onFinishTyping из списка событий виджета.
+ *
+ * @param events Список событий виджета
+ * @return Список UiAction для onFinishTyping или пустой список
+ */
 fun getOnFinishTypingEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onFinishTyping" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
+/**
+ * Извлекает экшены события onCreate из списка событий виджета.
+ *
+ * @param events Список событий виджета
+ * @return Список UiAction для onCreate или пустой список
+ */
 fun getOnCreateEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onCreate" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
+/**
+ * Преобразует список EventAction в список UiAction.
+ *
+ * @receiver Список EventAction
+ * @return Список UiAction
+ */
 fun List<EventAction>.mapToUiActionsList(): List<UiAction> =
     map { it.mapToUiAction() }
 
+/**
+ * Преобразует EventAction в UiAction.
+ *
+ * @receiver EventAction
+ * @return Соответствующий UiAction
+ */
 fun EventAction.mapToUiAction(): UiAction {
     return when (code.lowercase()) {
         "openscreen" -> {
-            val screenCode = properties["screenCode"] // Используем Map
+            val screenCode = properties["screenCode"]
             if (!screenCode.isNullOrEmpty()) {
                 UiAction.OpenScreen(screenCode)
             } else {

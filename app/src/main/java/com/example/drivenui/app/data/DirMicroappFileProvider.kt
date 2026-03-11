@@ -6,7 +6,9 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * Чтение microapp из файловой системы
+ * Чтение microapp из файловой системы.
+ *
+ * @property context Контекст приложения
  */
 class DirMicroappFileProvider @Inject constructor(
     private val context: Context

@@ -15,6 +15,13 @@ import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
 
+/**
+ * Преобразует ParsedScreen в ComponentModel для рендеринга.
+ *
+ * @param screen Распарсенный экран
+ * @param styleRegistry Реестр стилей
+ * @return Корневой ComponentModel или null
+ */
 fun mapParsedScreenToUI(
     screen: ParsedScreen,
     styleRegistry: ComposeStyleRegistry
@@ -22,11 +29,25 @@ fun mapParsedScreenToUI(
     return screen.rootComponent?.mapComponentToUIModel(styleRegistry)
 }
 
+/**
+ * Преобразует список компонентов в список ComponentModel.
+ *
+ * @receiver Список компонентов
+ * @param styleRegistry Реестр стилей
+ * @return Список ComponentModel
+ */
 fun List<Component>.mapToUiModelList(styleRegistry: ComposeStyleRegistry): List<ComponentModel> =
     mapNotNull {
         it.mapComponentToUIModel(styleRegistry)
     }
 
+/**
+ * Преобразует компонент в ComponentModel для рендеринга.
+ *
+ * @receiver Исходный компонент
+ * @param styleRegistry Реестр стилей
+ * @return ComponentModel или null
+ */
 fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): ComponentModel? {
     val modifierParams = getModifierParamsFromComponent(this)
     return when (this) {
@@ -36,6 +57,15 @@ fun Component.mapComponentToUIModel(styleRegistry: ComposeStyleRegistry): Compon
 }
 
 
+/**
+ * Преобразует LayoutComponent в LayoutModel.
+ *
+ * @receiver LayoutComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @param styleRegistry Реестр стилей
+ * @return LayoutModel
+ */
 fun LayoutComponent.mapLayoutToUIModel(
     modifier: Modifier,
     modifierParams: ModifierParams,
@@ -60,6 +90,14 @@ fun LayoutComponent.mapLayoutToUIModel(
     )
 }
 
+/**
+ * Преобразует WidgetComponent в ComponentModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return ComponentModel или null
+ */
 fun WidgetComponent.mapWidgetToUiModel(
     modifier: Modifier,
     modifierParams: ModifierParams
@@ -84,18 +122,8 @@ fun WidgetComponent.mapWidgetToUiModel(
         "input" -> {
             mapWidgetToInputModel(modifier, modifierParams)
         }
-// TODO: остальные виджеты
-
-//        "checkbox" -> {
-//            CheckboxModel()
-//        }
-//
-//        "switcher" -> {
-//            SwitcherModel()
-//        }
 
         else -> {
-            //TODO тут какой-то кастомный виджет
             LabelModel(
                 modifier = Modifier,
                 modifierParams = modifierParams,
@@ -108,6 +136,14 @@ fun WidgetComponent.mapWidgetToUiModel(
     }
 }
 
+/**
+ * Преобразует WidgetComponent в LabelModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return LabelModel или null
+ */
 fun WidgetComponent.mapWidgetToLabelModel(
     modifier: Modifier,
     modifierParams: ModifierParams
@@ -121,7 +157,7 @@ fun WidgetComponent.mapWidgetToLabelModel(
         LabelModel(
             modifier = modifier,
             modifierParams = modifierParams,
-            text = textProperty.resolvedValue, // Используем resolvedValue
+            text = textProperty.resolvedValue,
             widgetCode = code,
             textStyleCode = textStyleCode,
             colorStyleCode = colorStyleCode,
@@ -134,6 +170,14 @@ fun WidgetComponent.mapWidgetToLabelModel(
 }
 
 
+/**
+ * Преобразует WidgetComponent в ImageModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return ImageModel
+ */
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: ModifierParams): ImageModel {
     val urlProperty = properties.find { it.code == "url" }?.resolvedValue
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
@@ -152,6 +196,14 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: Mo
     )
 }
 
+/**
+ * Преобразует WidgetComponent в ButtonModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return ButtonModel
+ */
 fun WidgetComponent.mapWidgetToButtonModel(
     modifier: Modifier,
     modifierParams: ModifierParams
@@ -182,6 +234,14 @@ fun WidgetComponent.mapWidgetToButtonModel(
     )
 }
 
+/**
+ * Преобразует WidgetComponent в AppBarModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return AppBarModel
+ */
 fun WidgetComponent.mapWidgetToAppbarModel(
     modifier: Modifier,
     modifierParams: ModifierParams
@@ -207,6 +267,14 @@ fun WidgetComponent.mapWidgetToAppbarModel(
     )
 }
 
+/**
+ * Преобразует WidgetComponent в InputModel.
+ *
+ * @receiver WidgetComponent
+ * @param modifier Базовый Modifier
+ * @param modifierParams Параметры модификатора
+ * @return InputModel или null
+ */
 fun WidgetComponent.mapWidgetToInputModel(
     modifier: Modifier,
     modifierParams: ModifierParams

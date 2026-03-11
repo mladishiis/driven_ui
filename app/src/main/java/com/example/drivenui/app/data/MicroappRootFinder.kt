@@ -22,6 +22,9 @@ object MicroappRootFinder {
 
     /**
      * Сохраняет имя корневой папки микроаппа после загрузки/распаковки архива.
+     *
+     * @param context контекст приложения для доступа к SharedPreferences
+     * @param dirName имя папки микроаппа
      */
     fun saveMicroappRootName(context: Context, dirName: String) {
         Log.d(TAG, "Saving microapp root name: $dirName")
@@ -29,7 +32,9 @@ object MicroappRootFinder {
     }
 
     /**
-     * Очищает сохранённое имя корневой папки
+     * Очищает сохранённое имя корневой папки микроаппа.
+     *
+     * @param context контекст приложения для доступа к SharedPreferences
      */
     fun clearSavedMicroappRoot(context: Context) {
         Log.d(TAG, "Clearing saved microapp root name")
@@ -44,7 +49,9 @@ object MicroappRootFinder {
      * 2. Если не найдено или папка отсутствует — берём первую подпапку в `microapps`,
      *    считаем её корнем микроаппа и сохраняем её имя.
      *
-     * @return корневая папка микроаппа или null, если не найдена.
+     * @param context контекст приложения для доступа к файловой системе и SharedPreferences
+     * 
+     * @return корневая папка микроаппа или null, если не найдена
      */
     fun findMicroappRoot(context: Context): File? {
         val microappsDir = File(context.filesDir, MICROAPPS_DIR)
@@ -53,7 +60,6 @@ object MicroappRootFinder {
             return null
         }
 
-        // 1. Пробуем использовать сохранённое имя
         val savedName = prefs(context).getString(KEY_CURRENT_ROOT, null)
         if (!savedName.isNullOrBlank()) {
             val savedDir = File(microappsDir, savedName)
@@ -65,7 +71,6 @@ object MicroappRootFinder {
             }
         }
 
-        // 2. Иначе берём первую подпапку как корень микроаппа
         val firstDir = microappsDir.listFiles()?.firstOrNull { it.isDirectory }
         if (firstDir != null) {
             Log.d(TAG, "Using first directory as microapp root: ${firstDir.name}")
@@ -79,7 +84,10 @@ object MicroappRootFinder {
 
     /**
      * Получает путь (имя папки) корня микроаппа.
-     * Если микроапп не найден, возвращает null.
+     *
+     * @param context контекст приложения для доступа к файловой системе
+     * 
+     * @return имя папки микроаппа или null, если микроапп не найден
      */
     fun getMicroappRootPath(context: Context): String? {
         return findMicroappRoot(context)?.name

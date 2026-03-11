@@ -6,6 +6,13 @@ import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.SwitcherModel
 
+/**
+ * Рендерит UI-компонент переключателя (Switch).
+ *
+ * @param model Модель переключателя
+ * @param onActions Callback при выполнении экшенов
+ * @param modifier Дополнительный modifier
+ */
 @Composable
 fun SwitcherRenderer(
     model: SwitcherModel,

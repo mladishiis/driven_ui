@@ -4,6 +4,11 @@ import com.example.drivenui.engine.context.IContextManager
 
 /**
  * Резолвит строковое значение с учётом условных выражений *if(...)*then(...)*else(...)
+ * и подстановки переменных контекста @{microapp.var} и @@{var}.
+ *
+ * @param raw Исходная строка с выражениями
+ * @param contextManager Менеджер контекста для доступа к переменным
+ * @return Резолвленное значение
  */
 fun resolveValueExpression(
     raw: String,
@@ -23,6 +28,12 @@ private data class ConditionalExpression(
     val elseBranch: String
 )
 
+/**
+ * Парсит условное выражение *if(...)*then(...)*else(...).
+ *
+ * @param value Исходная строка
+ * @return ConditionalExpression или null, если формат не совпадает
+ */
 private fun parseConditionalExpression(value: String): ConditionalExpression? {
     if (!value.startsWith("*if(")) return null
     val thenIndex = value.indexOf(")*then(")
@@ -47,6 +58,13 @@ private fun parseConditionalExpression(value: String): ConditionalExpression? {
     )
 }
 
+/**
+ * Вычисляет булево условие из строкового выражения.
+ *
+ * @param rawExpression Строковое выражение с операторами ==, !=, >, <, >=, <=
+ * @param contextManager Менеджер контекста для переменных
+ * @return true или false
+ */
 private fun evalCondition(
     rawExpression: String,
     contextManager: IContextManager
@@ -61,8 +79,6 @@ private fun evalCondition(
     val leftRaw = parts[0].trim()
     val rightRaw = parts[1].trim()
 
-    // Удаляем обрамляющие кавычки, если они есть, чтобы
-    // выражения вида value == "value" работали ожидаемо.
     val left = stripQuotes(leftRaw)
     val right = stripQuotes(rightRaw)
 
@@ -94,7 +110,10 @@ private fun evalCondition(
 }
 
 /**
- * Пока только остаток от деления
+ * Вычисляет арифметическое выражение (пока только остаток от деления).
+ *
+ * @param expr Строковое выражение
+ * @return Результат: Long, Double или исходная строка
  */
 private fun evalArithmetic(expr: String): Any {
     val trimmed = expr.trim()
@@ -116,8 +135,10 @@ private fun evalArithmetic(expr: String): Any {
 }
 
 /**
- * Обрезаем одинарные или двойные кавычки по краям строки,
- * если они присутствуют.
+ * Обрезает одинарные или двойные кавычки по краям строки, если они присутствуют.
+ *
+ * @param value Исходная строка
+ * @return Строка без кавычек по краям
  */
 private fun stripQuotes(value: String): String {
     if (value.length >= 2) {
@@ -131,7 +152,11 @@ private fun stripQuotes(value: String): String {
 }
 
 /**
- * Подставляет переменные контекста @{microapp.var} и @@{var},.
+ * Подставляет переменные контекста @{microapp.var} и @@{var}.
+ *
+ * @param raw Исходная строка
+ * @param contextManager Менеджер контекста
+ * @return Строка с подставленными переменными
  */
 private fun resolveContextVariables(
     raw: String,

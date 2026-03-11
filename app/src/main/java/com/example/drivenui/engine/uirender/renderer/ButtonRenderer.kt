@@ -13,7 +13,13 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 
-// Пока кнопки только с текстом внутри
+/**
+ * Рендерит UI-компонент кнопки.
+ *
+ * @param model Модель кнопки
+ * @param onActions Callback при выполнении экшенов
+ * @param modifier Дополнительный modifier
+ */
 @Composable
 fun ButtonRenderer(
     model: ButtonModel,

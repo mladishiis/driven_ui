@@ -6,10 +6,10 @@ import com.example.drivenui.engine.generative_screen.action.NativeActionExecutor
 import com.example.drivenui.engine.generative_screen.action.NativeActionResult
 
 /**
- * Завела этот класс для тестирования
- * Пока пусть будет, позже уберу
+ * Заглушка [NativeActionExecutor] для тестирования.
  *
- * TODO: Убрать
+ * @property context контекст приложения
+ * @todo Убрать после реализации реального исполнителя
  */
 class ExampleNativeActionExecutor(
     private val context: Context

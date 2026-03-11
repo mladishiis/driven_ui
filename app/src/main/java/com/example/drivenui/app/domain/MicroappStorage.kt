@@ -32,31 +32,79 @@ interface MicroappStorage {
 
     /**
      * Возвращает коды всех сохранённых микроаппов.
+     *
+     * @return список кодов микроаппов
      */
     suspend fun getAllCodes(): List<String>
 
     /**
      * Удаляет сохранённый микроапп.
+     *
+     * @param microappCode код микроаппа для удаления
      */
     suspend fun delete(microappCode: String)
 
     /**
      * Проверяет наличие сохранённого микроаппа.
+     *
+     * @param microappCode код микроаппа для проверки
+     * 
+     * @return true, если микроапп найден в хранилище
      */
     suspend fun contains(microappCode: String): Boolean
 
-    // --- Коллекция (синхронизация с сервером) ---
-
+    /**
+     * Сохраняет ID коллекции микроаппов.
+     *
+     * @param id идентификатор коллекции
+     */
     suspend fun saveCollectionId(id: String)
+
+    /**
+     * Возвращает сохранённый ID коллекции.
+     *
+     * @return ID коллекции или null
+     */
     suspend fun getCollectionId(): String?
+
+    /**
+     * Сохраняет список кодов микроаппов в коллекции.
+     *
+     * @param codes список кодов микроаппов
+     */
     suspend fun saveCollectionCodes(codes: List<String>)
+
+    /**
+     * Возвращает коды микроаппов из коллекции.
+     *
+     * @return список кодов
+     */
     suspend fun getCollectionCodes(): List<String>
+
+    /** Очищает сохранённые ID и коды коллекции. */
     suspend fun clearCollectionId()
 
-    // --- Список прототипов (добавленных по одному) ---
-
+    /**
+     * Добавляет код микроаппа в список прототипов.
+     *
+     * @param code код микроаппа
+     */
     suspend fun addSingleListCode(code: String)
+
+    /**
+     * Возвращает коды микроаппов из списка прототипов.
+     *
+     * @return список кодов
+     */
     suspend fun getSingleListCodes(): List<String>
+
+    /** Очищает список прототипов. */
     suspend fun clearSingleListCodes()
+
+    /**
+     * Удаляет указанные коды из списка прототипов.
+     *
+     * @param codes коды микроаппов для удаления
+     */
     suspend fun removeCodesFromSingleList(codes: List<String>)
 }

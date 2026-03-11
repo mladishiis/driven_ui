@@ -32,6 +32,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel для отображения экранов микроаппа на базе SDUI.
+ *
+ * Управляет навигацией, состоянием экрана, нижней шторкой и обработкой действий.
+ * Поддерживает загрузку как из распарсенных данных ([setParsedResult]),
+ * так и из закэшированных ([setMappedResult]).
+ *
+ * @property externalDeeplinkHandler обработка внешних deeplink
+ * @property requestInteractor выполнение запросов и биндинги
+ * @property contextManager хранилище переменных микроаппа
+ * @property widgetValueProvider значения виджетов
+ */
 @HiltViewModel
 class GenerativeScreenViewModel @Inject constructor(
     private val externalDeeplinkHandler: ExternalDeeplinkHandler,
@@ -56,12 +68,20 @@ class GenerativeScreenViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     /**
-     * Состояние нижней шторки. Отдельный стейт, чтобы изменение шторки
-     * не трогало состояние основного экрана и не вызывало его лишние перерисовки.
+     * Состояние нижней шторки (root component или null, если закрыта).
+     * Отдельный стейт, чтобы изменение шторки не вызывало перерисовку основного экрана.
      */
     private val _bottomSheetState = MutableStateFlow<ComponentModel?>(null)
     val bottomSheetState = _bottomSheetState.asStateFlow()
 
+    /**
+     * Устанавливает результат парсинга и загружает начальный экран.
+     *
+     * @param parsedScreens список распарсенных экранов
+     * @param allStyles стили (текст, цвета и т.д.)
+     * @param microappCode код микроаппа для контекста и действий
+     * @param microappDeeplink deeplink микроаппа для выбора стартового экрана
+     */
     fun setParsedResult(
         parsedScreens: List<ParsedScreen>,
         allStyles: AllStyles?,
@@ -96,7 +116,9 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     /**
-     * Устанавливает замапленный результат (быстрая загрузка без парсинга и маппинга).
+     * Устанавливает закэшированный результат для быстрой загрузки без парсинга.
+     *
+     * @param mappedData заранее замапленные экраны и стили
      */
     fun setMappedResult(mappedData: CachedMicroappData) {
         val screens = mappedData.screens.map { it.toScreenModel() }
@@ -169,6 +191,11 @@ class GenerativeScreenViewModel @Inject constructor(
         return screens.find { deeplinkSelector(it) == microappDeeplink }
     }
 
+    /**
+     * Обрабатывает список действий (навигация, запросы, открытие шторки и т.д.).
+     *
+     * @param actions список действий для выполнения
+     */
     fun handleActions(actions: List<UiAction>) {
         viewModelScope.launch {
             val handler = actionHandler
@@ -178,8 +205,6 @@ class GenerativeScreenViewModel @Inject constructor(
             }
 
             for (action in actions) {
-                // Если сейчас открыта нижняя шторка и приходит UiAction.Back,
-                // то воспринимаем это как закрытие шторки, не трогая стек навигации.
                 if (action is UiAction.Back && _bottomSheetState.value != null) {
                     _bottomSheetState.value = null
                     continue
@@ -195,7 +220,6 @@ class GenerativeScreenViewModel @Inject constructor(
                     }
 
                     is ActionResult.Success -> {
-                        // TODO: поправить в будущем. После выполнения запроса обновление происходит по отдельному экшену, а не сразу
                         if (action is UiAction.ExecuteQuery ||
                             action is UiAction.RefreshWidget ||
                             action is UiAction.RefreshLayout ||
@@ -205,10 +229,8 @@ class GenerativeScreenViewModel @Inject constructor(
                         }
                     }
                     is ActionResult.BottomSheetChanged -> {
-                        // Обновляем только состояние шторки, не трогая экран.
                         _bottomSheetState.value = result.model?.rootComponent
                     }
-                    // TODO: выяснить нужно ли прерывать оставшиеся действия при ошибке одного из
                     is ActionResult.Error -> {
                         Log.e(
                             "GenerativeScreenViewModel",
@@ -223,10 +245,14 @@ class GenerativeScreenViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Выполняет переход назад (сначала закрывает шторку, затем стек навигации).
+     *
+     * @return true, если навигация назад возможна (обработано)
+     */
     fun navigateBack(): Boolean {
         val handler = actionHandler ?: return false
 
-        // Если открыта нижняя шторка — сначала закрываем её, не трогая стек навигации.
         if (_bottomSheetState.value != null) {
             _bottomSheetState.value = null
             return true
@@ -240,7 +266,6 @@ class GenerativeScreenViewModel @Inject constructor(
                 }
 
                 is ActionResult.BottomSheetChanged -> {
-                    // Игнорируем: для команды Back состояние шторки уже обработано выше.
                 }
 
                 is ActionResult.Error -> {
@@ -253,7 +278,11 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     /**
-     * Вызывается UI-слоем, когда нужно сохранить значение виджета.
+     * Сохраняет значение параметра виджета (вызывается UI-слоем).
+     *
+     * @param widgetCode код виджета
+     * @param parameter имя параметра
+     * @param value сохраняемое значение
      */
     fun onWidgetValueChange(widgetCode: String, parameter: String, value: Any) {
         widgetValueProvider.setWidgetValue(widgetCode, parameter, value)
@@ -261,7 +290,9 @@ class GenerativeScreenViewModel @Inject constructor(
 
     /**
      * Возвращает радиус скругления (в dp) для корневого layout шторки.
-     * Берётся из roundStyle корневого компонента шторки; если корень не layout или стиль не задан — null.
+     *
+     * @param sheetRoot корневой компонент шторки
+     * @return радиус в dp или null, если корень не layout или стиль не задан
      */
     fun getSheetCornerRadiusDp(sheetRoot: ComponentModel): Int? {
         if (sheetRoot !is LayoutModel) return null
@@ -272,15 +303,15 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     /**
-     * Применить биндинги к одному компоненту
+     * Применяет биндинги и резолвит стили к компоненту.
+     *
+     * @param componentModel компонент для обработки
+     * @return компонент с применёнными биндингами и стилями
      */
     fun applyBindingsToComponent(componentModel: ComponentModel): ComponentModel {
         val binder = requestInteractor.getDataBinder()
         val dataContext = requestInteractor.getDataContext()
-        // Сначала подставляем данные (${...}) для конкретного экземпляра компонента
         val withBindings = binder.applyBindingsToComponentPublic(componentModel, dataContext) ?: componentModel
-
-        // Затем резолвим условные выражения *if(...)* и коды стилей уже ПОСЛЕ биндингов.
         val localStyleRegistry = styleRegistry
         return if (localStyleRegistry != null) {
             resolveComponent(
@@ -353,7 +384,6 @@ class GenerativeScreenViewModel @Inject constructor(
         } else {
             navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         }
-        // При смене экрана шторку закрываем (если была открыта)
         _uiState.value = GenerativeUiState.Screen(resolvedScreen.rootComponent)
     }
 

@@ -18,7 +18,11 @@ private const val TAG = "DataBinder"
 object DataBinder {
 
     /**
-     * Применяет биндинги данных к модели экрана
+     * Применяет биндинги данных к модели экрана.
+     *
+     * @param screenModel Модель экрана
+     * @param dataContext Контекст данных для биндингов
+     * @return Обновлённая модель экрана
      */
     fun applyBindings(
         screenModel: ScreenModel,
@@ -155,17 +159,10 @@ object DataBinder {
         layout: LayoutModel,
         dataContext: DataContext
     ): LayoutModel {
-        // Если это цикл, НЕ применяем биндинги к шаблону (там есть {#forIndexName}, который нужно заменить сначала)
-        // Только резолвим maxForIndex
         if (layout.type == LayoutType.VERTICAL_FOR ||
             layout.type == LayoutType.HORIZONTAL_FOR
         ) {
-            // НЕ применяем биндинги к шаблону - оставляем как есть
-            // Биндинги будут применены в LayoutRenderer после замены {#forIndexName} на индекс
-
             Log.d(TAG, "Processing FOR loop layout: forIndexName=${layout.forIndexName}, maxForIndex=${layout.maxForIndex}")
-
-            // Резолвим maxForIndex для использования в рендерере
             val maxForIndex = layout.maxForIndex?.let {
                 val resolved = resolveMaxForIndex(it, dataContext)
                 Log.d(TAG, "Resolved maxForIndex: '$it' -> $resolved")
@@ -179,9 +176,6 @@ object DataBinder {
             return layout.copy(children = layout.children, maxForIndex = maxForIndex?.toString())
         }
 
-        // Для обычных лейаутов:
-        // 1) применяем биндинги к стилям самого лейаута
-        // 2) применяем биндинги ко всем детям
         val newBackgroundColorStyleCode =
             resolveBindingsInString(layout.backgroundColorStyleCode, dataContext)
         val newRoundStyleCode =
@@ -203,7 +197,11 @@ object DataBinder {
     }
 
     /**
-     * Публичный метод для применения биндингов к компоненту (используется в LayoutRenderer для циклов)
+     * Публичный метод для применения биндингов к компоненту (используется в LayoutRenderer для циклов).
+     *
+     * @param component Компонент для применения биндингов
+     * @param dataContext Контекст данных
+     * @return Обновлённый компонент или null
      */
     fun applyBindingsToComponentPublic(
         component: ComponentModel,
@@ -213,7 +211,11 @@ object DataBinder {
     }
 
     /**
-     * Резолвит maxForIndex из строки (может быть числом или ${...} выражением)
+     * Резолвит maxForIndex из строки (может быть числом или ${...} выражением).
+     *
+     * @param maxForIndexStr Исходная строка (число или выражение)
+     * @param dataContext Контекст данных
+     * @return Int или null при ошибке
      */
     private fun resolveMaxForIndex(maxForIndexStr: String, dataContext: DataContext): Int? {
         Log.d(TAG, "Resolving maxForIndex: '$maxForIndexStr'")
@@ -245,6 +247,10 @@ object DataBinder {
     /**
      * Если в строке есть биндинги ${}, подставляет их через DataBindingParser.
      * Возвращает новую строку или null, если биндингов нет.
+     *
+     * @param value Исходная строка
+     * @param dataContext Контекст данных
+     * @return Новая строка с подставленными биндингами или null
      */
     private fun resolveBindingsInString(
         value: String?,

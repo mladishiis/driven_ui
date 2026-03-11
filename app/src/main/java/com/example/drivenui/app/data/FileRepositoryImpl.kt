@@ -9,7 +9,9 @@ import java.io.FileNotFoundException
 import javax.inject.Inject
 
 /**
- * Реализация FileRepository чтение/запись файлов.
+ * Реализация FileRepository для чтения/записи файлов микроаппа.
+ *
+ * @property context контекст приложения для доступа к filesDir
  */
 internal class FileRepositoryImpl @Inject constructor(
     private val context: Context

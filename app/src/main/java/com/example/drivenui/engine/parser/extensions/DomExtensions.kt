@@ -5,10 +5,14 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 
 /**
- * Расширения для удобной работы с DOM
+ * Расширения для удобной работы с DOM-деревом.
  */
 
-// Расширение для NodeList
+/**
+ * Преобразует NodeList в список [Node].
+ *
+ * @return Список узлов
+ */
 fun NodeList.toList(): List<Node> {
     val list = mutableListOf<Node>()
     for (i in 0 until length) {
@@ -17,6 +21,11 @@ fun NodeList.toList(): List<Node> {
     return list
 }
 
+/**
+ * Преобразует NodeList в список [Element].
+ *
+ * @return Список элементов
+ */
 fun NodeList.toElementList(): List<Element> {
     val list = mutableListOf<Element>()
     for (i in 0 until length) {
@@ -28,7 +37,12 @@ fun NodeList.toElementList(): List<Element> {
     return list
 }
 
-// Расширение для Element
+/**
+ * Возвращает дочерние элементы с указанным именем тега в виде списка.
+ *
+ * @param tagName Имя тега для поиска
+ * @return Список элементов с указанным именем
+ */
 fun Element.getElementsByTagNameAsList(tagName: String): List<Element> {
     return getElementsByTagName(tagName).toElementList()
 }

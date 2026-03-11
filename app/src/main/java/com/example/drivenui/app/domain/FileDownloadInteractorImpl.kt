@@ -15,6 +15,14 @@ import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
 import javax.inject.Inject
 
+/**
+ * Реализация [FileDownloadInteractor].
+ * Скачивает ZIP по HTTP, распаковывает в microapps/, поддерживает JSON-ответ с base64.
+ *
+ * @property context контекст приложения для доступа к filesDir и assets
+ * @property client HTTP-клиент для загрузки
+ * @property gson парсер JSON
+ */
 class FileDownloadInteractorImpl @Inject constructor(
     private val context: Context,
     private val client: OkHttpClient,
@@ -69,7 +77,6 @@ class FileDownloadInteractorImpl @Inject constructor(
                         unzipSafely(zip)
                     }
 
-                    // Сохраняем корень микроаппа: из JSON microappCode или первая подпапка
                     val microappsDir = getMicroappsDir()
                     val rootName = extractedMicroappCode
                         ?: microappsDir.listFiles()?.firstOrNull { it.isDirectory }?.name
@@ -88,11 +95,11 @@ class FileDownloadInteractorImpl @Inject constructor(
             }
         }
 
-    // ---------- unzip ----------
-
     /**
      * Безопасно распаковывает ZIP архив.
      * Продолжает работу даже если отдельные файлы не удалось распаковать.
+     *
+     * @param zip ZipInputStream архива
      */
     private fun unzipSafely(zip: ZipInputStream) {
         val targetDir = getMicroappsDir().canonicalFile
@@ -103,8 +110,6 @@ class FileDownloadInteractorImpl @Inject constructor(
         while (entry != null) {
             try {
                 val file = File(targetDir, entry.name)
-
-                // 🔒 защита от Zip Slip
                 val canonicalFile = file.canonicalFile
                 if (!canonicalFile.path.startsWith(targetDir.path)) {
                     throw SecurityException("Zip entry outside target dir: ${entry.name}")
@@ -125,7 +130,6 @@ class FileDownloadInteractorImpl @Inject constructor(
             } catch (e: Exception) {
                 errorCount++
                 Log.e(TAG, "Failed to extract entry: ${entry.name}", e)
-                // Продолжаем распаковку остальных файлов
             }
 
             zip.closeEntry()
@@ -135,8 +139,6 @@ class FileDownloadInteractorImpl @Inject constructor(
         Log.d(TAG, "Extraction completed: $extractedCount files extracted, $errorCount errors")
     }
 
-    // ---------- microapps directory ----------
-
     override suspend fun clearAssetsFolder(): Boolean =
         withContext(Dispatchers.IO) {
             try {
@@ -145,8 +147,6 @@ class FileDownloadInteractorImpl @Inject constructor(
                     dir.deleteRecursively()
                 }
                 dir.mkdirs()
-
-                // При очистке также забываем старый корень микроаппа
                 MicroappRootFinder.clearSavedMicroappRoot(context)
 
                 Log.d(TAG, "Microapps directory cleared")
@@ -190,8 +190,6 @@ class FileDownloadInteractorImpl @Inject constructor(
 
             outputFile
         }
-
-    // ---------- helpers ----------
 
     private fun getMicroappsDir(): File =
         File(context.filesDir, MICROAPPS_DIR)

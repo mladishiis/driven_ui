@@ -13,6 +13,11 @@ import com.example.drivenui.engine.generative_screen.GenerativeScreen
 import com.example.drivenui.engine.generative_screen.GenerativeScreenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Фрагмент тестового рендеринга микроаппа.
+ *
+ * Отображает [GenerativeScreen] с данными, переданными через [NavigationManager].
+ */
 @AndroidEntryPoint
 internal class TestRenderFragment : Fragment() {
 
@@ -50,6 +55,11 @@ internal class TestRenderFragment : Fragment() {
     }
 
     companion object {
+        /**
+         * Создаёт новый экземпляр фрагмента.
+         *
+         * @return экземпляр [TestRenderFragment]
+         */
         fun newInstance() = TestRenderFragment()
     }
 }

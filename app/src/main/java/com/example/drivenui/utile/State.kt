@@ -6,18 +6,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Создает класс состояния аналог [kotlinx.coroutines.flow.MutableStateFlow]
+ * Создаёт класс состояния аналог [kotlinx.coroutines.flow.MutableStateFlow].
  * Чтобы наблюдать за изменениями значений используйте
  * [PropertyObserver.bind], [PropertyObserver.bindWhenCreate], [PropertyObserver.bindWhenResumed]
+ *
+ * @param initialValue Начальное значение
+ * @return State для управления значением
  */
 fun <T> state(initialValue: T) =
     State(initialValue)
 
 /**
- * Класс состояния аналог [kotlinx.coroutines.flow.MutableStateFlow]
+ * Класс состояния аналог [kotlinx.coroutines.flow.MutableStateFlow].
  * Чтобы наблюдать за изменениями значений используйте
  * [PropertyObserver.bind], [PropertyObserver.bindWhenCreate], [PropertyObserver.bindWhenResumed]
- * @property flow поток для подписки на состояние
+ *
+ * @property flow Поток для подписки на состояние
+ * @property value Текущее значение
  */
 class State<T> internal constructor(
     initialValue: T,

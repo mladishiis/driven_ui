@@ -22,6 +22,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+/**
+ * Фрагмент экрана деталей парсинга микроаппа.
+ *
+ * Отображает результат парсинга во вкладках, обрабатывает эффекты навигации и экспорта.
+ */
 @AndroidEntryPoint
 internal class DetailsFragment : Fragment() {
 
@@ -32,13 +37,10 @@ internal class DetailsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Получаем данные из NavigationManager (новая структура)
         val parsedResult = NavigationManager.getAndClearData()
 
-        // Передаем данные в ViewModel
         viewModel.setParsedResult(parsedResult)
 
-        // Наблюдаем за эффектами
         observeEffects()
 
         return ComposeView(requireContext()).apply {
@@ -59,7 +61,6 @@ internal class DetailsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Очищаем данные при уничтожении вью
         NavigationManager.clearAllData()
     }
 
@@ -98,7 +99,6 @@ internal class DetailsFragment : Fragment() {
     }
 
     private fun showComponentStructureDialog(title: String, structureInfo: String) {
-        // Замените использование @Composable функции на Context
         val context = requireContext()
         Toast.makeText(
             context,
@@ -106,13 +106,10 @@ internal class DetailsFragment : Fragment() {
             Toast.LENGTH_LONG
         ).show()
 
-        // Логируем в консоль
         Log.d("DetailsFragment", structureInfo)
     }
 
     private fun showScreenComponentsDialog(screenTitle: String, components: List<ComponentTreeItem>) {
-        // TODO: Реализовать показ диалога или перейти на новый экран
-        // с отображением дерева компонентов
         Toast.makeText(
             requireContext(),
             "$screenTitle: ${components.size} компонентов",
@@ -121,6 +118,11 @@ internal class DetailsFragment : Fragment() {
     }
 
     companion object {
+        /**
+         * Создаёт новый экземпляр фрагмента.
+         *
+         * @return экземпляр [DetailsFragment]
+         */
         fun newInstance(): DetailsFragment {
             return DetailsFragment()
         }

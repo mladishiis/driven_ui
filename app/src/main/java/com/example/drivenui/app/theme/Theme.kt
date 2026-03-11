@@ -32,10 +32,16 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+/**
+ * Тема приложения Driven UI на базе Material 3.
+ *
+ * @param darkTheme использовать тёмную тему
+ * @param dynamicColor использовать динамические цвета (доступно с Android 12+)
+ * @param content контент, отображаемый внутри темы
+ */
 @Composable
 fun DrivenUITheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

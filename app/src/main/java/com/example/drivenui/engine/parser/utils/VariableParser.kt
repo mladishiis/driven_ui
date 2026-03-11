@@ -125,14 +125,8 @@ object VariableParser {
                 is VariableType.ContextVariable -> {
                     context["${variable.microappCode}.${variable.name}"]
                 }
-                is VariableType.GlobalVariable -> {
-                    // Глобальные переменные из shared preferences или других хранилищ
-                    null
-                }
-                is VariableType.ResponseVariable -> {
-                    // Данные из ответа запроса (требует доступа к кэшу запросов)
-                    null
-                }
+                is VariableType.GlobalVariable -> null
+                is VariableType.ResponseVariable -> null
                 is VariableType.Literal -> variable.value
             }
         } catch (e: Exception) {

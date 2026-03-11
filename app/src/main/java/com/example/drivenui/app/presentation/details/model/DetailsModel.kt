@@ -69,6 +69,17 @@ internal sealed interface DetailsEffect : VtbEffect {
 /**
  * Данные для вкладок экрана деталей (вычисляются из parsedResult).
  * Хранятся в state, чтобы не передавать ViewModel в composable.
+ *
+ * @property screens список экранов
+ * @property textStyles стили текста
+ * @property colorStyles стили цвета
+ * @property queries запросы
+ * @property events события
+ * @property widgets виджеты
+ * @property layouts лэйауты
+ * @property screenQueries экранные запросы
+ * @property eventActions действия событий
+ * @property componentModelForRender модель первого экрана для рендеринга
  */
 internal data class DetailsTabData(
     val screens: List<ScreenItem> = emptyList(),
@@ -84,7 +95,15 @@ internal data class DetailsTabData(
 )
 
 /**
- * Состояние экрана деталей
+ * Состояние экрана деталей.
+ *
+ * @property isLoading идёт загрузка
+ * @property parsedResult результат парсинга микроаппа
+ * @property tabData данные для вкладок
+ * @property selectedTabIndex индекс выбранной вкладки
+ * @property expandedSections множество ID раскрытых секций
+ * @property errorMessage сообщение об ошибке
+ * @property selectedScreenComponents компоненты выбранного экрана
  */
 internal data class DetailsState(
     val isLoading: Boolean = false,
@@ -199,14 +218,18 @@ internal data class DetailsState(
     )
 
     /**
-     * Получает статистику для отображения
+     * Получает статистику для отображения.
+     *
+     * @return карта со статистикой парсинга
      */
     fun getStats(): Map<String, Any> {
         return parsedResult?.getStats() ?: emptyMap()
     }
 
     /**
-     * Получает информацию о микроаппе
+     * Получает информацию о микроаппе.
+     *
+     * @return информация о микроаппе или null
      */
     fun getMicroappInfo(): MicroappItem? {
         return parsedResult?.microapp?.let { microapp ->
@@ -222,7 +245,9 @@ internal data class DetailsState(
     }
 
     /**
-     * Получает информацию о стилях
+     * Получает информацию о стилях.
+     *
+     * @return сводная информация о всех стилях
      */
     fun getAllStylesInfo(): AllStylesItem {
         return AllStylesItem(
@@ -235,7 +260,9 @@ internal data class DetailsState(
     }
 
     /**
-     * Получает список экранов с информацией о компонентах
+     * Получает список экранов с информацией о компонентах.
+     *
+     * @return список экранов с подсчётом компонентов
      */
     fun getScreensWithComponents(): List<ScreenItem> {
         return parsedResult?.screens?.map { screen ->
@@ -245,8 +272,8 @@ internal data class DetailsState(
                 code = screen.screenCode,
                 shortCode = screen.screenShortCode,
                 deeplink = screen.deeplink,
-                eventsCount = 0, // TODO: Получить реальное количество событий
-                layoutsCount = 0, // TODO: Получить реальное количество лэйаутов
+                eventsCount = 0,
+                layoutsCount = 0,
                 hasComponents = screen.rootComponent != null,
                 componentCount = screen.rootComponent?.let { countComponents(it) } ?: 0
             )
@@ -254,13 +281,21 @@ internal data class DetailsState(
     }
 
     /**
-     * Получает компоненты экрана по коду
+     * Получает компоненты экрана по коду.
+     *
+     * @param screenCode код экрана
+     * @return дерево компонентов для указанного экрана
      */
     fun getScreenComponents(screenCode: String): List<ComponentTreeItem> {
         val screen = parsedResult?.screens?.firstOrNull { it.screenCode == screenCode }
         return screen?.rootComponent?.let { convertToTreeItems(it) } ?: emptyList()
     }
 
+    /**
+     * Получает модель компонентов первого экрана для рендеринга.
+     *
+     * @return модель компонентов или null при отсутствии экранов
+     */
     fun getUIModelsForRender(): ComponentModel? {
         val registry = ComposeStyleRegistry(parsedResult?.styles)
         return parsedResult?.screens?.firstOrNull()?.let {
@@ -301,7 +336,7 @@ internal data class DetailsState(
             stylesCount = component.styles.size,
             eventsCount = component.events.size,
             propertiesCount = component.properties.size,
-            children = emptyList() // Дети будут добавлены отдельно
+            children = emptyList()
         ))
 
         component.children.forEach { child ->

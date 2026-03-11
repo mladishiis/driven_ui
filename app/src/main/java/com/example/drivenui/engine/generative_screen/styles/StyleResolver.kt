@@ -26,6 +26,11 @@ import com.example.drivenui.engine.value.resolveValueExpression
  * и применяет стили (после биндингов).
  * Здесь уже можно использовать resolveValueExpression для условных выражений
  * в текстовых полях и кодах стилей, которые зависят от ${} и @{}/@@{}.
+ *
+ * @param screenModel Модель экрана
+ * @param contextManager Менеджер контекста
+ * @param styleRegistry Реестр стилей
+ * @return Обновлённая модель экрана
  */
 fun resolveScreen(
     screenModel: ScreenModel,
@@ -40,6 +45,14 @@ fun resolveScreen(
     return screenModel.copy(rootComponent = resolvedRoot)
 }
 
+/**
+ * Резолвит компонент: подставляет переменные и применяет стили.
+ *
+ * @param component Компонент для резолва
+ * @param contextManager Менеджер контекста
+ * @param styleRegistry Реестр стилей
+ * @return Обновлённый компонент или null
+ */
 fun resolveComponent(
     component: ComponentModel?,
     contextManager: IContextManager,
@@ -93,11 +106,9 @@ private fun resolveLayout(
         }
     }
 
-    // Резолвим visibility (условные выражения *if...*then...*else и @{}/@@{})
     val resolvedVisibilityCode = layout.visibilityCode?.let { resolveValueExpression(it, contextManager) }
     val visibility = parseVisibility(resolvedVisibilityCode ?: layout.visibilityCode)
 
-    // Для FOR‑лейаутов не трогаем детей на этом этапе
     if (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) {
         return layout.copy(modifier = modifier, visibility = visibility, visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode)
     }
@@ -119,10 +130,7 @@ private fun resolveButton(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): ButtonModel {
-    // Резолвим текстовые поля
     val resolvedText = resolveValueExpression(button.text, contextManager)
-
-    // Применяем стили
     var roundedCornerSize = button.roundedCornerSize
     var textStyle: TextStyle = button.textStyle
     var backgroundColor: Color = button.backgroundColor
@@ -178,10 +186,7 @@ private fun resolveLabel(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): LabelModel {
-    // Резолвим текстовые поля
     val resolvedText = resolveValueExpression(label.text, contextManager)
-
-    // Применяем стили
     var textStyle: TextStyle = label.textStyle
 
     label.textStyleCode?.let { rawCode ->
@@ -219,10 +224,7 @@ private fun resolveAppBar(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): AppBarModel {
-    // Резолвим текстовые поля
     val resolvedTitle = appBar.title?.let { resolveValueExpression(it, contextManager) }
-
-    // Применяем стили
     var textStyle: TextStyle = appBar.textStyle
 
     appBar.textStyleCode?.let { rawCode ->
@@ -260,7 +262,6 @@ private fun resolveInput(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): InputModel {
-    // Резолвим текстовые поля
     val resolvedText = resolveValueExpression(input.text, contextManager)
     val resolvedHint = resolveValueExpression(input.hint, contextManager)
 
@@ -280,7 +281,6 @@ private fun resolveImage(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry
 ): ImageModel {
-    // Резолвим текстовые поля
     val resolvedUrl = image.url?.let { resolveValueExpression(it, contextManager) }
 
     var imageColor: Color = image.color

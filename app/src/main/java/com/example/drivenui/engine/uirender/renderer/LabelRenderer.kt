@@ -9,6 +9,13 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 
+/**
+ * Рендерит UI-компонент подписи (Text).
+ *
+ * @param model Модель подписи
+ * @param onActions Callback при выполнении экшенов
+ * @param modifier Дополнительный modifier
+ */
 @Composable
 fun LabelRenderer(
     model: LabelModel,

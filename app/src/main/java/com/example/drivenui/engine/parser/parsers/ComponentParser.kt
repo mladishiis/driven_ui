@@ -12,8 +12,18 @@ import com.example.drivenui.engine.parser.models.WidgetStyle
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 
+/**
+ * Парсер компонентов Driven UI из XML.
+ * Парсит screenLayout, screenLayoutWidget, properties, styles и events.
+ */
 class ComponentParser {
 
+    /**
+     * Парсит один экран из XML-строки.
+     *
+     * @param xmlContent XML-строка с элементом screen
+     * @return ParsedScreen при успешном парсинге или null
+     */
     fun parseSingleScreenXml(xmlContent: String): ParsedScreen? {
         val factory = XmlPullParserFactory.newInstance()
         val parser = factory.newPullParser()
@@ -30,7 +40,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит один экран
+     * Парсит один экран.
+     *
+     * @param parser XmlPullParser, позиционированный на теге screen
+     * @return ParsedScreen при успешном парсинге или null
      */
     private fun parseScreen(parser: XmlPullParser): ParsedScreen? {
         val title = parser.getAttributeValue(null, "title") ?: ""
@@ -79,7 +92,11 @@ class ComponentParser {
     }
 
     /**
-     * Парсит screenLayout рекурсивно
+     * Парсит screenLayout рекурсивно.
+     *
+     * @param parser XmlPullParser, позиционированный на теге screenLayout
+     * @param depth Текущая глубина вложенности
+     * @return LayoutComponent при успешном парсинге или null
      */
     private fun parseScreenLayout(parser: XmlPullParser, depth: Int): Component? {
         val title = parser.getAttributeValue(null, "title") ?: ""
@@ -120,21 +137,18 @@ class ComponentParser {
                             properties.addAll(parsePropertiesBlock(parser))
                         }
                         "property" -> {
-                            // Отдельное свойство без блока properties
                             parseComponentProperty(parser)?.let { properties.add(it) }
                         }
                         "styles" -> {
                             styles.addAll(parseStylesBlock(parser))
                         }
                         "style" -> {
-                            // Отдельный стиль без блока styles
                             parseStyle(parser)?.let { styles.add(it) }
                         }
                         "events" -> {
                             events.addAll(parseEventsBlock(parser))
                         }
                         "screenLayout" -> {
-                            // Рекурсивный вызов для вложенного layout
                             parseScreenLayout(parser, depth + 1)?.let { children.add(it) }
                         }
                         "screenLayoutWidget" -> {
@@ -169,7 +183,11 @@ class ComponentParser {
     }
 
     /**
-     * Парсит виджет внутри layout
+     * Парсит виджет внутри layout.
+     *
+     * @param parser XmlPullParser, позиционированный на теге screenLayoutWidget
+     * @param depth Текущая глубина вложенности
+     * @return WidgetComponent при успешном парсинге или null
      */
     private fun parseScreenLayoutWidget(parser: XmlPullParser, depth: Int): Component? {
         val title = parser.getAttributeValue(null, "title") ?: ""
@@ -217,7 +235,6 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        // Определяем тип виджета на основе кода
         val widgetType = determineWidgetType(widgetCode)
 
         return if (screenLayoutWidgetCode.isNotEmpty() && widgetCode.isNotEmpty()) {
@@ -228,7 +245,7 @@ class ComponentParser {
                 widgetType = widgetType,
                 properties = properties,
                 styles = styles,
-                events = events, // События виджета
+                events = events,
                 bindingProperties = bindingProperties,
             )
         } else {
@@ -237,7 +254,10 @@ class ComponentParser {
     }
 
     /**
-     * Определяет тип виджета
+     * Определяет тип виджета.
+     *
+     * @param widgetCode Код виджета
+     * @return "native" или "composite"
      */
     private fun determineWidgetType(widgetCode: String): String {
         return when (widgetCode) {
@@ -247,7 +267,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит блок свойств
+     * Парсит блок свойств.
+     *
+     * @param parser XmlPullParser, позиционированный на теге properties
+     * @return Список ComponentProperty
      */
     private fun parsePropertiesBlock(parser: XmlPullParser): List<ComponentProperty> {
         val properties = mutableListOf<ComponentProperty>()
@@ -270,7 +293,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит одно свойство с макросами
+     * Парсит одно свойство с макросами.
+     *
+     * @param parser XmlPullParser, позиционированный на теге property
+     * @return ComponentProperty при успешном парсинге или null
      */
     private fun parseComponentProperty(parser: XmlPullParser): ComponentProperty? {
         var code = ""
@@ -302,7 +328,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит блок стилей
+     * Парсит блок стилей.
+     *
+     * @param parser XmlPullParser, позиционированный на теге styles
+     * @return Список WidgetStyle
      */
     private fun parseStylesBlock(parser: XmlPullParser): List<WidgetStyle> {
         val styles = mutableListOf<WidgetStyle>()
@@ -325,7 +354,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит один стиль
+     * Парсит один стиль.
+     *
+     * @param parser XmlPullParser, позиционированный на теге style
+     * @return WidgetStyle при успешном парсинге или null
      */
     private fun parseStyle(parser: XmlPullParser): WidgetStyle? {
         var code = ""
@@ -353,7 +385,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит блок событий - ИСПРАВЛЕННАЯ ВЕРСИЯ
+     * Парсит блок событий.
+     *
+     * @param parser XmlPullParser, позиционированный на теге events
+     * @return Список WidgetEvent
      */
     private fun parseEventsBlock(parser: XmlPullParser): List<WidgetEvent> {
         val events = mutableListOf<WidgetEvent>()
@@ -363,7 +398,6 @@ class ComponentParser {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     if (parser.name == "event") {
-                        // Здесь нужно сначала проверить структуру события
                         try {
                             val event = parseEventWithComplexStructure(parser)
                             if (event != null) {
@@ -371,7 +405,6 @@ class ComponentParser {
                             }
                         } catch (e: Exception) {
                             Log.e("ComponentParser", "Ошибка при парсинге события со сложной структурой", e)
-                            // Попробуем простой вариант
                             try {
                                 val eventCode = parser.nextText().trim()
                                 if (eventCode.isNotEmpty()) {
@@ -395,7 +428,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит сложную структуру события (с тегами внутри)
+     * Парсит сложную структуру события (с тегами внутри).
+     *
+     * @param parser XmlPullParser, позиционированный на теге event
+     * @return WidgetEvent при успешном парсинге или null
      */
     private fun parseEventWithComplexStructure(parser: XmlPullParser): WidgetEvent? {
         var eventCode = ""
@@ -415,13 +451,11 @@ class ComponentParser {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
                         }
                         "eventActions" -> {
-                            // Парсим блок eventActions
                             val actions = parseEventActionsBlock(parser)
                             eventActions.addAll(actions)
                             Log.d("ComponentParser", "Добавлено действий: ${actions.size}")
                         }
                         else -> {
-                            // Если это не тег eventСode, возможно это просто текст события
                             if (eventCode.isEmpty()) {
                                 try {
                                     eventCode = parser.nextText().trim()
@@ -460,7 +494,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит блок eventActions с содержащимися в нем eventAction элементами
+     * Парсит блок eventActions с содержащимися в нём eventAction элементами.
+     *
+     * @param parser XmlPullParser, позиционированный на теге eventActions
+     * @return Список EventAction
      */
     private fun parseEventActionsBlock(parser: XmlPullParser): List<EventAction> {
         val eventActions = mutableListOf<EventAction>()
@@ -484,7 +521,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит один eventAction элемент
+     * Парсит один eventAction элемент.
+     *
+     * @param parser XmlPullParser, позиционированный на теге eventAction
+     * @return EventAction при успешном парсинге или null
      */
     private fun parseEventAction(parser: XmlPullParser): EventAction? {
         var code = ""
@@ -504,7 +544,6 @@ class ComponentParser {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
                         }
                         "properties" -> {
-                            // Парсим блок свойств действия
                             parseEventActionProperties(parser, properties)
                         }
                         else -> {
@@ -528,7 +567,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит свойства eventAction
+     * Парсит свойства eventAction.
+     *
+     * @param parser XmlPullParser, позиционированный на теге properties
+     * @param properties MutableMap для заполнения парами (code, value)
      */
     private fun parseEventActionProperties(parser: XmlPullParser, properties: MutableMap<String, String>) {
         var eventType = parser.next()
@@ -551,7 +593,10 @@ class ComponentParser {
     }
 
     /**
-     * Парсит одно свойство eventAction
+     * Парсит одно свойство eventAction.
+     *
+     * @param parser XmlPullParser, позиционированный на теге property
+     * @return Pair(code, value) при успешном парсинге или null
      */
     private fun parseEventActionProperty(parser: XmlPullParser): Pair<String, String>? {
         var code = ""
@@ -591,7 +636,10 @@ class ComponentParser {
     }
 
     /**
-     * Вспомогательная функция для отладки
+     * Вспомогательная функция для отладки.
+     *
+     * @param component Компонент для вывода в лог
+     * @param indent Отступ для вложенных элементов
      */
     fun logComponentTree(component: Component?, indent: String = "") {
         if (component == null) return

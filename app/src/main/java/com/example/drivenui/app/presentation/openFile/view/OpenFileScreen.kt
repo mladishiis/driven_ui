@@ -49,10 +49,15 @@ import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
 import com.example.drivenui.app.theme.DrivenUITheme
 
-// ---------------------------------------------------------------------------
-// Публичный компонент
-// ---------------------------------------------------------------------------
 
+/**
+ * Экран выбора и загрузки микроаппа.
+ *
+ * Отображает загрузку, пустое состояние или список микроаппов; поддерживает QR, коллекции, JSON.
+ *
+ * @param state состояние экрана (загрузка, парсинг, список микроаппов)
+ * @param onEvent колбэк для отправки событий
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun OpenFileScreen(
@@ -98,9 +103,6 @@ internal fun OpenFileScreen(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Приватные субкомпоненты — TopBar и контент
-// ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -528,9 +530,6 @@ private fun BottomActionsBar(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Preview
-// ---------------------------------------------------------------------------
 
 @Preview(name = "Loading")
 @Composable

@@ -8,7 +8,10 @@ import com.example.drivenui.engine.parser.parsers.QueryParser
 import com.example.drivenui.engine.parser.parsers.StyleParser
 
 /**
- * Главный парсер SDUI. Работает ТОЛЬКО со строками XML.
+ * Главный парсер SDUI-конфигурации микроаппов.
+ *
+ * Принимает сырые XML-строки (microapp, styles, queries, screens) и возвращает
+ * структурированный [ParsedMicroappResult]. Не работает с файлами напрямую.
  */
 class SDUIParser {
 
@@ -18,7 +21,18 @@ class SDUIParser {
     private val componentParser = ComponentParser()
 
     /**
-     * Результат парсинга
+     * Результат парсинга микроаппа. Содержит распарсенные экраны, стили, запросы и метаданные.
+     *
+     * @property microapp метаданные микроаппа (deeplink, code, persistents)
+     * @property styles текстовые, цветовые и прочие стили
+     * @property events события микроаппа
+     * @property eventActions действия событий
+     * @property screens список экранов с деревом компонентов
+     * @property queries реестр запросов к API
+     * @property screenQueries привязки запросов к экранам
+     * @property widgets реестр виджетов
+     * @property layouts реестр лейаутов
+     * @property dataContext контекст данных для биндингов
      */
     data class ParsedMicroappResult(
         val microapp: Microapp? = null,
@@ -34,7 +48,9 @@ class SDUIParser {
     ) {
 
         /**
-         * Проверяет, содержит ли результат какие-либо данные
+         * Проверяет, содержит ли результат какие-либо данные.
+         *
+         * @return true, если есть микроапп, экраны, стили, запросы или иные данные
          */
         fun hasData(): Boolean =
             microapp != null ||
@@ -45,20 +61,46 @@ class SDUIParser {
                     widgets.isNotEmpty() ||
                     layouts.isNotEmpty()
 
+        /**
+         * Возвращает экран по коду.
+         *
+         * @param screenCode код экрана
+         * @return экран или null
+         */
         fun getScreenByCode(screenCode: String): ParsedScreen? =
             screens.firstOrNull { it.screenCode == screenCode }
 
+        /**
+         * Возвращает список текстовых стилей.
+         *
+         * @return список [TextStyle]
+         */
         fun getTextStyles(): List<TextStyle> =
             styles?.textStyles.orEmpty()
 
+        /**
+         * Возвращает список цветовых стилей.
+         *
+         * @return список [ColorStyle]
+         */
         fun getColorStyles(): List<ColorStyle> =
             styles?.colorStyles.orEmpty()
 
+        /**
+         * Подсчитывает общее количество компонентов во всех экранах.
+         *
+         * @return число компонентов
+         */
         fun countAllComponents(): Int =
             screens.sumOf { screen ->
                 screen.rootComponent?.let { countComponentsRecursive(it) } ?: 0
             }
 
+        /**
+         * Возвращает статистику парсинга.
+         *
+         * @return карта с ключами microapp, screens, textStyles, colorStyles и т.д.
+         */
         fun getStats(): Map<String, Any> = mapOf(
             "microapp" to (microapp?.title ?: "нет"),
             "screens" to screens.size,
@@ -74,6 +116,7 @@ class SDUIParser {
             "componentsCount" to countAllComponents(),
         )
 
+        /** Выводит сводку парсинга в лог. */
         fun logSummary() {
             Log.d("SDUIParser", "====== SDUI PARSE RESULT ======")
             Log.d("SDUIParser", "Microapp: ${microapp?.title ?: "нет"}")
@@ -96,6 +139,11 @@ class SDUIParser {
             Log.d("SDUIParser", "==============================")
         }
 
+        /**
+         * Собирает разрешённые значения биндингов из компонентов.
+         *
+         * @return карта «код свойства» → «разрешённое значение»
+         */
         fun getResolvedValues(): Map<String, String> {
             val values = mutableMapOf<String, String>()
             screens.forEach { screen ->
@@ -105,7 +153,6 @@ class SDUIParser {
         }
 
         private fun collectResolvedValues(component: Component, values: MutableMap<String, String>) {
-            // Пример: собираем только те свойства, у которых rawValue != resolvedValue
             component.properties.forEach { prop ->
                 prop.resolvedValue?.let { values[prop.code] = it }
             }
@@ -119,13 +166,19 @@ class SDUIParser {
     }
 
     /**
-     * ЕДИНСТВЕННЫЙ публичный метод парсинга
+     * Выполняет полный парсинг конфигурации микроаппа.
+     *
+     * @param microappXml XML метаданных микроаппа
+     * @param stylesXml XML стилей (текст, цвета, отступы)
+     * @param queriesXml XML реестра запросов
+     * @param screens список пар (имя файла, xml-содержимое экрана)
+     * @return результат парсинга или пустой [ParsedMicroappResult] при ошибке
      */
     fun parse(
         microappXml: String,
         stylesXml: String,
         queriesXml: String,
-        screens: List<Pair<String, String>> // fileName → xml
+        screens: List<Pair<String, String>>
     ): ParsedMicroappResult {
 
         return try {

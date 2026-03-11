@@ -17,13 +17,21 @@ abstract class CoreMviViewModel<Event : VtbEvent, State : VtbState, Effect : Vtb
     private val _effect by lazy { command<Effect>() }
     private val _uiState by lazy { state(createInitialState()) }
 
-    /** Обновить state экрана через [reducer] */
+    /**
+     * Обновить state экрана через [reducer].
+     *
+     * @param reducer Функция преобразования текущего state в новый
+     */
     protected fun updateState(reducer: State.() -> State) {
         val newState = uiState.value.reducer()
         _uiState(newState)
     }
 
-    /** Отправить на экран событие [builder], на которое надо как-то среагировать */
+    /**
+     * Отправить на экран событие [builder], на которое надо как-то среагировать.
+     *
+     * @param builder Функция, создающая эффект
+     */
     protected fun setEffect(builder: () -> Effect) {
         val effectValue = builder()
         _effect(effectValue)
@@ -36,10 +44,11 @@ abstract class CoreMviViewModel<Event : VtbEvent, State : VtbState, Effect : Vtb
     abstract fun handleEvent(event: Event)
 
     /**
-     * Отлов ошибки корутины, с пробросом CancellationException для корректного её завершения
+     * Отлов ошибки корутины, с пробросом CancellationException для корректного её завершения.
      *
-     * @param finally   лямбда для выполнения в finally
-     * @param block     непосредственно защищаемый от краша код
+     * @param finally Лямбда для выполнения в finally
+     * @param block Защищаемый от краша код
+     * @return Result с успешным значением или ошибкой
      */
     protected suspend fun <R> runCatchingCancellable(finally: () -> Unit = {}, block: suspend () -> R): Result<R> {
         return try {
@@ -54,11 +63,17 @@ abstract class CoreMviViewModel<Event : VtbEvent, State : VtbState, Effect : Vtb
     }
 }
 
-/** Общий интерфейс для модели состояния экрана */
+/**
+ * Маркерный интерфейс для модели состояния экрана (MVI State).
+ */
 interface VtbState
 
-/** Общий интерфейс для событий с экрана во вью-модель */
+/**
+ * Маркерный интерфейс для событий с экрана во ViewModel (MVI Event).
+ */
 interface VtbEvent
 
-/** Общий интерфейс для событий с вью-модели на экран */
+/**
+ * Маркерный интерфейс для эффектов с ViewModel на экран (MVI Effect).
+ */
 interface VtbEffect

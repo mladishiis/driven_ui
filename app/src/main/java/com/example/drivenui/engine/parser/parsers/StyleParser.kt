@@ -68,9 +68,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит отдельный стиль текста из XML
+     * Парсит отдельный стиль текста из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <textStyle>
+     * @param parser XmlPullParser, позиционированный на теге textStyle
      * @return [TextStyle] объект стиля текста
      */
     private fun parseTextStyle(parser: XmlPullParser): TextStyle {
@@ -98,9 +98,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит отдельный стиль цвета из XML
+     * Парсит отдельный стиль цвета из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <colorStyle>
+     * @param parser XmlPullParser, позиционированный на теге colorStyle
      * @return [ColorStyle] объект стиля цвета
      */
     private fun parseColorStyle(parser: XmlPullParser): ColorStyle {
@@ -126,9 +126,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит цветовую тему (светлую или темную) из XML
+     * Парсит цветовую тему (светлую или тёмную) из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <lightTheme> или <darkTheme>
+     * @param parser XmlPullParser, позиционированный на теге lightTheme или darkTheme
      * @return [ColorTheme] объект цветовой темы
      */
     private fun parseColorTheme(parser: XmlPullParser): ColorTheme {
@@ -153,9 +153,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит отдельный стиль выравнивания из XML
+     * Парсит отдельный стиль выравнивания из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <alignStyle>
+     * @param parser XmlPullParser, позиционированный на теге alignStyle
      * @return [AlignmentStyle] объект стиля выравнивания
      */
     private fun parseAlignmentStyle(parser: XmlPullParser): AlignmentStyle {
@@ -177,9 +177,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит отдельный стиль отступов из XML
+     * Парсит отдельный стиль отступов из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <paddingStyle>
+     * @param parser XmlPullParser, позиционированный на теге paddingStyle
      * @return [PaddingStyle] объект стиля отступов
      */
     private fun parsePaddingStyle(parser: XmlPullParser): PaddingStyle {
@@ -209,9 +209,9 @@ class StyleParser {
     }
 
     /**
-     * Парсит отдельный стиль скругления из XML
+     * Парсит отдельный стиль скругления из XML.
      *
-     * @param parser XmlPullParser позиционированный на теге <roundStyle>
+     * @param parser XmlPullParser, позиционированный на теге roundStyle
      * @return [RoundStyle] объект стиля скругления
      */
     private fun parseRoundStyle(parser: XmlPullParser): RoundStyle {

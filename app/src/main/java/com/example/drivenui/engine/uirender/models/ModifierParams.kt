@@ -13,6 +13,13 @@ import androidx.compose.ui.unit.dp
 /**
  * Сериализуемые параметры для восстановления Modifier при загрузке из кэша.
  * Применяются на этапе отрисовки через [applyParams], а не при создании модели.
+ *
+ * @property paddingLeft Отступ слева (dp)
+ * @property paddingTop Отступ сверху (dp)
+ * @property paddingRight Отступ справа (dp)
+ * @property paddingBottom Отступ снизу (dp)
+ * @property height Высота: "fillmax", "wrapcontent" или число
+ * @property width Ширина: "fillmax", "wrapcontent" или число
  */
 data class ModifierParams(
     val paddingLeft: Int = 0,
@@ -25,6 +32,9 @@ data class ModifierParams(
     /**
      * Применяет параметры (padding, height, width) к переданному Modifier.
      * Вызывается на этапе отрисовки в рендерерах.
+     *
+     * @param modifier Базовый Modifier
+     * @return Modifier с применёнными параметрами
      */
     fun applyParams(modifier: Modifier): Modifier {
         var result: Modifier = modifier

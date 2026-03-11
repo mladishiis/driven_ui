@@ -57,7 +57,7 @@ class MicroappParser {
                         code = parser.nextText()
                     }
 
-                    "shortCode" -> {   // ✅ исправлено
+                    "shortCode" -> {
                         shortCode = parser.nextText()
                     }
 
@@ -72,7 +72,6 @@ class MicroappParser {
                         }
                     }
 
-                    // screens мы сознательно ПРОПУСКАЕМ
                     "screens" -> {
                         skipSubTree(parser)
                     }
@@ -93,7 +92,9 @@ class MicroappParser {
 
     /**
      * Безопасно пропускает вложенное дерево XML
-     * (например <screens> ... </screens>)
+     * (например <screens> ... </screens>).
+     *
+     * @param parser XmlPullParser, позиционированный на начальном теге
      */
     private fun skipSubTree(parser: XmlPullParser) {
         var depth = 1
