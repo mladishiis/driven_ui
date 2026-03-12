@@ -62,18 +62,3 @@ abstract class CoreMviViewModel<Event : VtbEvent, State : VtbState, Effect : Vtb
         }
     }
 }
-
-/**
- * Маркерный интерфейс для модели состояния экрана (MVI State).
- */
-interface VtbState
-
-/**
- * Маркерный интерфейс для событий с экрана во ViewModel (MVI Event).
- */
-interface VtbEvent
-
-/**
- * Маркерный интерфейс для эффектов с ViewModel на экран (MVI Effect).
- */
-interface VtbEffect

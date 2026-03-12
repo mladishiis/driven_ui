@@ -158,7 +158,6 @@ private fun BottomSheetHost(
         )
         ModalBottomSheet(
             onDismissRequest = { onBack() },
-            },
             sheetState = sheetState,
             shape = sheetShape,
             dragHandle = null

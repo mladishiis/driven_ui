@@ -12,8 +12,6 @@ private const val BASE_URL = "http://45.8.229.106:8091"
 private const val TAG = "MicroappCollectionApi"
 private const val HEADER_MDM_ID = "X-MDM-ID"
 
-data class MicroappCodeItem(val microappCode: String)
-
 private data class MicroappsResponse(val microapps: List<MicroappCodeItem> = emptyList())
 
 /**

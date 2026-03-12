@@ -1,7 +1,6 @@
 package com.example.drivenui.engine.cache
 
 import com.example.drivenui.engine.parser.models.AllStyles
-import com.example.drivenui.engine.parser.models.ScreenQuery
 
 /**
  * Сериализуемое представление замапленного микроаппа.
@@ -28,18 +27,3 @@ data class CachedMicroappData(
     fun hasData(): Boolean =
         microappCode.isNotBlank() || screens.isNotEmpty() || allStyles != null
 }
-
-/**
- * Сериализуемое представление экрана с замапленным деревом компонентов.
- *
- * @property id Идентификатор экрана
- * @property deeplink Deeplink экрана
- * @property requests Список запросов экрана
- * @property rootComponent Корневой компонент экрана
- */
-data class CachedScreenModel(
-    val id: String,
-    val deeplink: String = "",
-    val requests: List<ScreenQuery>,
-    val rootComponent: CachedComponentModel?,
-)
