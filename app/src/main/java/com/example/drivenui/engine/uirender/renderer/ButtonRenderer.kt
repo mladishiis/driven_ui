@@ -1,14 +1,14 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import com.example.drivenui.engine.mappers.parseTextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
@@ -26,11 +26,7 @@ fun ButtonRenderer(
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val shape = if (model.roundedCornerSize != null) {
-        RoundedCornerShape(model.roundedCornerSize.dp)
-    } else {
-        ButtonDefaults.shape
-    }
+    val shape = model.cornerRadius.toRoundedCornerShape() ?: ButtonDefaults.shape
     Button(
         modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
         shape = shape,
@@ -52,6 +48,7 @@ fun ButtonRenderer(
         Text(
             text = model.text,
             style = model.textStyle,
+            textAlign = parseTextAlign(model.textAlignmentStyle),
         )
     }
 }
@@ -65,7 +62,6 @@ private fun ButtonRendererPreview() {
             modifierParams = ModifierParams(),
             enabled = true,
             text = "Кнопка",
-            roundedCornerSize = null,
             tapActions = emptyList(),
             widgetCode = "btn1",
             alignmentStyle = "",

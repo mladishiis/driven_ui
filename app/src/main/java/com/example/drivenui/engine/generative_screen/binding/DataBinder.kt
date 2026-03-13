@@ -11,10 +11,17 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
+import com.example.drivenui.engine.uirender.models.RoundStyleCodes
 import com.example.drivenui.engine.parser.models.DataContext
 
 private const val TAG = "DataBinder"
 
+/**
+ * Применяет биндинги данных к моделям экранов и компонентов.
+ *
+ * Подставляет значения из [DataContext] в строковые поля (text, visibilityCode, коды стилей и т.д.)
+ * по шаблонам ${...}. Используется до резолва стилей и рендеринга.
+ */
 object DataBinder {
 
     /**
@@ -65,6 +72,7 @@ object DataBinder {
         val newText = resolveBindingsInString(label.text, dataContext)
         val newTextStyleCode = resolveBindingsInString(label.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(label.colorStyleCode, dataContext)
+        val newTextAlignmentStyle = resolveBindingsInString(label.textAlignmentStyle, dataContext)
         val newVisibilityCode = resolveBindingsInString(label.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: label.visibilityCode)
 
@@ -72,6 +80,7 @@ object DataBinder {
             text = newText ?: label.text,
             textStyleCode = newTextStyleCode ?: label.textStyleCode,
             colorStyleCode = newColorStyleCode ?: label.colorStyleCode,
+            textAlignmentStyle = newTextAlignmentStyle ?: label.textAlignmentStyle,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: label.visibilityCode
         )
@@ -85,7 +94,12 @@ object DataBinder {
         val newTextStyleCode = resolveBindingsInString(button.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(button.colorStyleCode, dataContext)
         val newBackgroundColorStyleCode = resolveBindingsInString(button.backgroundColorStyleCode, dataContext)
-        val newRoundStyleCode = resolveBindingsInString(button.roundStyleCode, dataContext)
+        val newRoundStyle = RoundStyleCodes(
+            code = resolveBindingsInString(button.roundStyle.code, dataContext) ?: button.roundStyle.code,
+            topCode = resolveBindingsInString(button.roundStyle.topCode, dataContext) ?: button.roundStyle.topCode,
+            bottomCode = resolveBindingsInString(button.roundStyle.bottomCode, dataContext) ?: button.roundStyle.bottomCode,
+        )
+        val newTextAlignmentStyle = resolveBindingsInString(button.textAlignmentStyle, dataContext)
         val newVisibilityCode = resolveBindingsInString(button.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: button.visibilityCode)
 
@@ -94,7 +108,8 @@ object DataBinder {
             textStyleCode = newTextStyleCode ?: button.textStyleCode,
             colorStyleCode = newColorStyleCode ?: button.colorStyleCode,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: button.backgroundColorStyleCode,
-            roundStyleCode = newRoundStyleCode ?: button.roundStyleCode,
+            roundStyle = newRoundStyle,
+            textAlignmentStyle = newTextAlignmentStyle ?: button.textAlignmentStyle,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: button.visibilityCode
         )
@@ -162,24 +177,32 @@ object DataBinder {
         if (layout.type == LayoutType.VERTICAL_FOR ||
             layout.type == LayoutType.HORIZONTAL_FOR
         ) {
-            Log.d(TAG, "Processing FOR loop layout: forIndexName=${layout.forIndexName}, maxForIndex=${layout.maxForIndex}")
-            val maxForIndex = layout.maxForIndex?.let {
+            Log.d(TAG, "Processing FOR loop layout: forIndexName=${layout.forParams.forIndexName}, maxForIndex=${layout.forParams.maxForIndex}")
+            val maxForIndex = layout.forParams.maxForIndex?.let {
                 val resolved = resolveMaxForIndex(it, dataContext)
                 Log.d(TAG, "Resolved maxForIndex: '$it' -> $resolved")
                 resolved
             }
 
             if (maxForIndex == null) {
-                Log.w(TAG, "Failed to resolve maxForIndex for FOR loop: ${layout.maxForIndex}")
+                Log.w(TAG, "Failed to resolve maxForIndex for FOR loop: ${layout.forParams.maxForIndex}")
             }
 
-            return layout.copy(children = layout.children, maxForIndex = maxForIndex?.toString())
+            return layout.copy(
+                children = layout.children,
+                forParams = layout.forParams.copy(maxForIndex = maxForIndex?.toString()),
+            )
         }
 
         val newBackgroundColorStyleCode =
             resolveBindingsInString(layout.backgroundColorStyleCode, dataContext)
-        val newRoundStyleCode =
-            resolveBindingsInString(layout.roundStyleCode, dataContext)
+        val newRoundStyle = layout.roundStyle.let { roundStyle ->
+            RoundStyleCodes(
+                code = resolveBindingsInString(roundStyle.code, dataContext) ?: roundStyle.code,
+                topCode = resolveBindingsInString(roundStyle.topCode, dataContext) ?: roundStyle.topCode,
+                bottomCode = resolveBindingsInString(roundStyle.bottomCode, dataContext) ?: roundStyle.bottomCode,
+            )
+        }
         val newVisibilityCode = resolveBindingsInString(layout.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: layout.visibilityCode)
 
@@ -190,9 +213,9 @@ object DataBinder {
         return layout.copy(
             children = processedChildren,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: layout.backgroundColorStyleCode,
-            roundStyleCode = newRoundStyleCode ?: layout.roundStyleCode,
+            roundStyle = newRoundStyle,
             visibility = visibility,
-            visibilityCode = newVisibilityCode ?: layout.visibilityCode
+            visibilityCode = newVisibilityCode ?: layout.visibilityCode,
         )
     }
 

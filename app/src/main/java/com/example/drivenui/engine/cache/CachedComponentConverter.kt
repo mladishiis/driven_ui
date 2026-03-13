@@ -4,6 +4,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.uirender.models.LayoutForParams
+import com.example.drivenui.engine.uirender.models.RoundStyleCodes
 import com.example.drivenui.engine.uirender.models.*
 
 /**
@@ -21,10 +23,12 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
-        roundStyleCode = roundStyleCode,
+        roundStyleCode = roundStyle.code,
+        roundStyleTopCode = roundStyle.topCode,
+        roundStyleBottomCode = roundStyle.bottomCode,
         alignmentStyle = alignmentStyle,
-        forIndexName = forIndexName,
-        maxForIndex = maxForIndex,
+        forIndexName = forParams.forIndexName,
+        maxForIndex = forParams.maxForIndex,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -36,6 +40,7 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
         alignmentStyle = alignmentStyle,
+        textAlignmentStyle = textAlignmentStyle,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -43,14 +48,16 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         modifierParams = modifierParams,
         enabled = enabled,
         text = text,
-        roundedCornerSize = roundedCornerSize,
-        roundStyleCode = roundStyleCode,
+        roundStyleCode = roundStyle.code,
+        roundStyleTopCode = roundStyle.topCode,
+        roundStyleBottomCode = roundStyle.bottomCode,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
         alignmentStyle = alignmentStyle,
+        textAlignmentStyle = textAlignmentStyle,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -137,10 +144,13 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
-        roundStyleCode = roundStyleCode,
+        roundStyle = RoundStyleCodes(
+            code = roundStyleCode,
+            topCode = roundStyleTopCode,
+            bottomCode = roundStyleBottomCode,
+        ),
+        forParams = LayoutForParams(forIndexName = forIndexName, maxForIndex = maxForIndex),
         alignmentStyle = alignmentStyle,
-        forIndexName = forIndexName,
-        maxForIndex = maxForIndex,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -154,6 +164,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
         alignmentStyle = alignmentStyle,
+        textAlignmentStyle = textAlignmentStyle,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -162,16 +173,20 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         modifierParams = modifierParams,
         enabled = enabled,
         text = text,
-        roundedCornerSize = roundedCornerSize,
         textStyle = TextStyle.Default,
         backgroundColor = Color.Black,
-        roundStyleCode = roundStyleCode,
+        roundStyle = RoundStyleCodes(
+            code = roundStyleCode,
+            topCode = roundStyleTopCode,
+            bottomCode = roundStyleBottomCode,
+        ),
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
         alignmentStyle = alignmentStyle,
+        textAlignmentStyle = textAlignmentStyle,
         visibility = visibility,
         visibilityCode = visibilityCode
     )

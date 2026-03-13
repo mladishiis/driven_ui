@@ -11,8 +11,10 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
+import com.example.drivenui.engine.uirender.models.LayoutForParams
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
+import com.example.drivenui.engine.uirender.models.RoundStyleCodes
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
 
 /**
@@ -81,10 +83,13 @@ fun LayoutComponent.mapLayoutToUIModel(
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
-        roundStyleCode = styles.find { it.code == "roundStyle" }?.value,
+        roundStyle = RoundStyleCodes(
+            code = styles.find { it.code == "roundStyle" }?.value,
+            topCode = styles.find { it.code == "roundStyleTop" }?.value,
+            bottomCode = styles.find { it.code == "roundStyleBottom" }?.value,
+        ),
+        forParams = LayoutForParams(forIndexName = forIndexName, maxForIndex = maxForIndex),
         alignmentStyle = getAlignmentStyle(),
-        forIndexName = forIndexName,
-        maxForIndex = maxForIndex,
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )
@@ -163,6 +168,7 @@ fun WidgetComponent.mapWidgetToLabelModel(
             colorStyleCode = colorStyleCode,
             tapActions = getOnTapEvents(events),
             alignmentStyle = getAlignmentStyle(),
+            textAlignmentStyle = getTextAlignmentStyle().ifBlank { "alignLeft" },
             visibility = visibility,
             visibilityCode = visibilityRaw,
         )
@@ -210,7 +216,11 @@ fun WidgetComponent.mapWidgetToButtonModel(
 ): ButtonModel {
     val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
     val enabledProperty = properties.find { it.code == "enabled" }?.resolvedValue?.toBoolean() ?: true
-    val roundStyleCode = styles.find { it.code == "roundStyle" }?.value
+    val roundStyle = RoundStyleCodes(
+        code = styles.find { it.code == "roundStyle" }?.value,
+        topCode = styles.find { it.code == "roundStyleTop" }?.value,
+        bottomCode = styles.find { it.code == "roundStyleBottom" }?.value,
+    )
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
@@ -221,14 +231,14 @@ fun WidgetComponent.mapWidgetToButtonModel(
         modifierParams = modifierParams,
         text = textProperty,
         enabled = enabledProperty,
-        roundedCornerSize = null,
-        roundStyleCode = roundStyleCode,
+        roundStyle = roundStyle,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignmentStyle = getAlignmentStyle(),
+        textAlignmentStyle = getTextAlignmentStyle().ifBlank { "alignCenter" },
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )

@@ -4,6 +4,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import com.example.drivenui.engine.generative_screen.models.UiAction
 
+/**
+ * Модель UI-компонента текстовой метки.
+ *
+ * @property modifier Modifier для Compose
+ * @property modifierParams параметры модификатора
+ * @property text текст метки
+ * @property widgetCode уникальный код виджета
+ * @property textStyle стиль текста
+ * @property textStyleCode код стиля текста
+ * @property colorStyleCode код стиля цвета
+ * @property tapActions экшены при нажатии
+ * @property alignmentStyle стиль выравнивания виджета
+ * @property textAlignmentStyle выравнивание текста (alignLeft, alignCenter, alignRight)
+ * @property visibility видимость
+ * @property visibilityCode код условной видимости
+ */
 data class LabelModel(
     val modifier: Modifier,
     val modifierParams: ModifierParams = ModifierParams(),
@@ -14,6 +30,7 @@ data class LabelModel(
     val colorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     override val alignmentStyle: String,
+    val textAlignmentStyle: String = "alignLeft",
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

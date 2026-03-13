@@ -15,6 +15,15 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
+private fun alignmentForStyle(alignmentStyle: String): Alignment = when (alignmentStyle.trim().lowercase()) {
+    "aligncenter" -> Alignment.Center
+    "alignleft", "alignstart" -> Alignment.CenterStart
+    "alignright", "alignend" -> Alignment.CenterEnd
+    "aligntop" -> Alignment.TopCenter
+    "alignbottom" -> Alignment.BottomCenter
+    else -> Alignment.Center
+}
+
 @Composable
 fun LayoutRenderer(
     model: LayoutModel,
@@ -96,13 +105,15 @@ private fun ColumnRenderer(
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(
-                model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = isRoot,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
+            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
+                ComponentRenderer(
+                    model = applyBindingsForComponent?.invoke(child) ?: child,
+                    isRoot = isRoot,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
+            }
         }
     }
 }
@@ -117,13 +128,15 @@ private fun RowRenderer(
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            ComponentRenderer(
-                model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = isRoot,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
+            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
+                ComponentRenderer(
+                    model = applyBindingsForComponent?.invoke(child) ?: child,
+                    isRoot = isRoot,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
+            }
         }
     }
 }
@@ -136,8 +149,8 @@ private fun LazyColumnRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    val forIndexName = model.forIndexName ?: return
-    val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
+    val forIndexName = model.forParams.forIndexName ?: return
+    val maxForIndex = model.forParams.maxForIndex?.toIntOrNull() ?: return
 
     LazyColumn(modifier = model.modifier) {
         items(maxForIndex) { index ->
@@ -165,8 +178,8 @@ private fun LazyRowRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    val forIndexName = model.forIndexName ?: return
-    val maxForIndex = model.maxForIndex?.toIntOrNull() ?: return
+    val forIndexName = model.forParams.forIndexName ?: return
+    val maxForIndex = model.forParams.maxForIndex?.toIntOrNull() ?: return
 
     LazyRow(modifier = model.modifier) {
         items(maxForIndex) { index ->
@@ -196,25 +209,7 @@ private fun BoxRenderer(
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
-            val modifier = when (child.alignmentStyle.lowercase()) {
-                "aligncenter" -> Modifier
-                    .align(Alignment.Center)
-
-                "alignleft", "alignstart" -> Modifier
-                    .align(Alignment.CenterStart)
-
-                "alignright", "alignend" -> Modifier
-                    .align(Alignment.CenterEnd)
-
-                "aligntop" -> Modifier
-                    .align(Alignment.TopCenter)
-
-                "alignbottom" -> Modifier
-                    .align(Alignment.BottomCenter)
-
-                else -> Modifier
-            }
-            Box(modifier = modifier) {
+            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
                 ComponentRenderer(
                     model = applyBindingsForComponent?.invoke(child) ?: child,
                     isRoot = isRoot,

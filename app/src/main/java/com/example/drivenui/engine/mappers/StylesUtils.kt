@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.mappers
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.text.style.TextAlign
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
@@ -9,6 +10,25 @@ import com.example.drivenui.engine.parser.models.Component
 
 fun Component.getAlignmentStyle(): String =
     this.styles.find { it.code == "alignmentStyle" }?.value ?: ""
+
+/**
+ * Получает стиль выравнивания текста из styles компонента.
+ */
+fun Component.getTextAlignmentStyle(): String =
+    this.styles.find { it.code == "textAlignmentStyle" }?.value ?: ""
+
+/**
+ * Преобразует строку textAlignmentStyle в Compose TextAlign.
+ *
+ * @param value alignLeft, alignCenter, alignRight (или alignStart, alignEnd)
+ * @return TextAlign
+ */
+fun parseTextAlign(value: String): TextAlign = when (value.trim().lowercase()) {
+    "aligncenter", "align_center" -> TextAlign.Center
+    "alignright", "align_right", "alignend", "align_end" -> TextAlign.End
+    "alignjustify", "align_justify" -> TextAlign.Justify
+    else -> TextAlign.Start // alignLeft, alignStart, align_left, default
+}
 
 /**
  * Парсит значение visibility из строки.

@@ -1,7 +1,6 @@
 package com.example.drivenui.engine.generative_screen.styles
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -17,6 +16,7 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
+import com.example.drivenui.engine.uirender.models.CornerRadius
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.value.resolveValueExpression
@@ -78,11 +78,29 @@ private fun resolveLayout(
     var modifier = layout.modifier
 
     var cornerRadius: Int? = null
-    layout.roundStyleCode?.let { rawCode ->
+    var cornerRadiusTop: Int? = null
+    var cornerRadiusBottom: Int? = null
+
+    layout.roundStyle.code?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val roundStyle = styleRegistry.getRoundStyle(resolvedCode)
-        cornerRadius = roundStyle?.radiusValue
+        cornerRadius = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
     }
+    if (cornerRadius == null) {
+        layout.roundStyle.topCode?.let { rawCode ->
+            val resolvedCode = resolveValueExpression(rawCode, contextManager)
+            cornerRadiusTop = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        }
+        layout.roundStyle.bottomCode?.let { rawCode ->
+            val resolvedCode = resolveValueExpression(rawCode, contextManager)
+            cornerRadiusBottom = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        }
+    }
+
+    val resolvedCornerRadius = CornerRadius(
+        all = cornerRadius,
+        top = cornerRadiusTop,
+        bottom = cornerRadiusBottom,
+    )
 
     layout.backgroundColorStyleCode?.let { rawCode ->
         val shouldDeferBackground =
@@ -93,12 +111,9 @@ private fun resolveLayout(
             val resolvedCode = resolveValueExpression(rawCode, contextManager)
             val color = styleRegistry.getComposeColor(resolvedCode)
             if (color != null) {
-                val cr = cornerRadius
-                modifier = if (cr != null) {
-                    modifier.background(
-                        color = color,
-                        shape = RoundedCornerShape(cr.dp),
-                    )
+                val shape = resolvedCornerRadius.toRoundedCornerShape()
+                modifier = if (shape != null) {
+                    modifier.background(color = color, shape = shape)
                 } else {
                     modifier.background(color)
                 }
@@ -110,7 +125,12 @@ private fun resolveLayout(
     val visibility = parseVisibility(resolvedVisibilityCode ?: layout.visibilityCode)
 
     if (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) {
-        return layout.copy(modifier = modifier, visibility = visibility, visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode)
+        return layout.copy(
+            modifier = modifier,
+            cornerRadius = resolvedCornerRadius,
+            visibility = visibility,
+            visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode,
+        )
     }
 
     val resolvedChildren = layout.children.mapNotNull {
@@ -119,9 +139,10 @@ private fun resolveLayout(
 
     return layout.copy(
         modifier = modifier,
+        cornerRadius = resolvedCornerRadius,
         children = resolvedChildren,
         visibility = visibility,
-        visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode
+        visibilityCode = resolvedVisibilityCode ?: layout.visibilityCode,
     )
 }
 
@@ -131,14 +152,26 @@ private fun resolveButton(
     styleRegistry: ComposeStyleRegistry
 ): ButtonModel {
     val resolvedText = resolveValueExpression(button.text, contextManager)
-    var roundedCornerSize = button.roundedCornerSize
+    var cornerRadius = button.cornerRadius
     var textStyle: TextStyle = button.textStyle
     var backgroundColor: Color = button.backgroundColor
 
-    button.roundStyleCode?.let { rawCode ->
+    button.roundStyle.code?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        val roundStyle = styleRegistry.getRoundStyle(resolvedCode)
-        roundedCornerSize = roundStyle?.radiusValue
+        cornerRadius = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue?.let { CornerRadius(all = it) } ?: cornerRadius
+    }
+    if (cornerRadius.all == null) {
+        var top = cornerRadius.top
+        var bottom = cornerRadius.bottom
+        button.roundStyle.topCode?.let { rawCode ->
+            val resolvedCode = resolveValueExpression(rawCode, contextManager)
+            top = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        }
+        button.roundStyle.bottomCode?.let { rawCode ->
+            val resolvedCode = resolveValueExpression(rawCode, contextManager)
+            bottom = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        }
+        cornerRadius = CornerRadius(top = top, bottom = bottom)
     }
 
     button.textStyleCode?.let { rawCode ->
@@ -173,11 +206,11 @@ private fun resolveButton(
 
     return button.copy(
         text = resolvedText,
-        roundedCornerSize = roundedCornerSize,
+        cornerRadius = cornerRadius,
         textStyle = textStyle,
         backgroundColor = backgroundColor,
         visibility = visibility,
-        visibilityCode = resolvedVisibilityCode ?: button.visibilityCode
+        visibilityCode = resolvedVisibilityCode ?: button.visibilityCode,
     )
 }
 

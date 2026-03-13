@@ -450,7 +450,7 @@ data class AllStyles(
 /**
  * Стиль виджета или лэйаута
  *
- * @property code Тип стиля (textStyle, colorStyle, alignmentStyle, paddingStyle, roundStyle)
+ * @property code Тип стиля (textStyle, colorStyle, alignmentStyle, paddingStyle, roundStyle, roundStyleTop, roundStyleBottom)
  * @property value Значение стиля (код конкретного стиля из реестра)
  */
 @Parcelize
