@@ -24,6 +24,18 @@ private fun alignmentForStyle(alignmentStyle: String): Alignment = when (alignme
     else -> Alignment.Center
 }
 
+private fun alignmentHorizontalForStyle(alignmentStyle: String): Alignment.Horizontal = when (alignmentStyle.trim().lowercase()) {
+    "alignleft", "alignstart" -> Alignment.Start
+    "alignright", "alignend" -> Alignment.End
+    else -> Alignment.CenterHorizontally
+}
+
+private fun alignmentVerticalForStyle(alignmentStyle: String): Alignment.Vertical = when (alignmentStyle.trim().lowercase()) {
+    "aligntop" -> Alignment.Top
+    "alignbottom" -> Alignment.Bottom
+    else -> Alignment.CenterVertically
+}
+
 @Composable
 fun LayoutRenderer(
     model: LayoutModel,
@@ -105,7 +117,7 @@ private fun ColumnRenderer(
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
+            Box(modifier = Modifier.align(alignmentHorizontalForStyle(child.alignmentStyle))) {
                 ComponentRenderer(
                     model = applyBindingsForComponent?.invoke(child) ?: child,
                     isRoot = isRoot,
@@ -128,7 +140,7 @@ private fun RowRenderer(
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
+            Box(modifier = Modifier.align(alignmentVerticalForStyle(child.alignmentStyle))) {
                 ComponentRenderer(
                     model = applyBindingsForComponent?.invoke(child) ?: child,
                     isRoot = isRoot,

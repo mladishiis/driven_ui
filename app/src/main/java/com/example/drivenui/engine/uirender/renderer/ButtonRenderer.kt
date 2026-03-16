@@ -1,15 +1,16 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import com.example.drivenui.engine.mappers.parseTextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.drivenui.engine.generative_screen.models.UiAction
+import com.example.drivenui.engine.mappers.parseTextAlign
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 
@@ -46,6 +47,7 @@ fun ButtonRenderer(
         }
     ) {
         Text(
+            modifier = Modifier.fillMaxWidth(),
             text = model.text,
             style = model.textStyle,
             textAlign = parseTextAlign(model.textAlignmentStyle),
