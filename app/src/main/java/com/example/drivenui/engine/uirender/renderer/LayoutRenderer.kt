@@ -15,26 +15,29 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
-private fun alignmentForStyle(alignmentStyle: String): Alignment = when (alignmentStyle.trim().lowercase()) {
-    "aligncenter" -> Alignment.Center
-    "alignleft", "alignstart" -> Alignment.CenterStart
-    "alignright", "alignend" -> Alignment.CenterEnd
-    "aligntop" -> Alignment.TopCenter
-    "alignbottom" -> Alignment.BottomCenter
-    else -> Alignment.Center
-}
+private fun alignmentForStyle(alignmentStyle: String): Alignment =
+    when (alignmentStyle.trim().lowercase()) {
+        "aligncenter" -> Alignment.Center
+        "alignleft", "alignstart" -> Alignment.CenterStart
+        "alignright", "alignend" -> Alignment.CenterEnd
+        "aligntop" -> Alignment.TopCenter
+        "alignbottom" -> Alignment.BottomCenter
+        else -> Alignment.Center
+    }
 
-private fun alignmentHorizontalForStyle(alignmentStyle: String): Alignment.Horizontal = when (alignmentStyle.trim().lowercase()) {
-    "alignleft", "alignstart" -> Alignment.Start
-    "alignright", "alignend" -> Alignment.End
-    else -> Alignment.CenterHorizontally
-}
+private fun alignmentHorizontalForStyle(alignmentStyle: String): Alignment.Horizontal =
+    when (alignmentStyle.trim().lowercase()) {
+        "alignleft", "alignstart" -> Alignment.Start
+        "alignright", "alignend" -> Alignment.End
+        else -> Alignment.CenterHorizontally
+    }
 
-private fun alignmentVerticalForStyle(alignmentStyle: String): Alignment.Vertical = when (alignmentStyle.trim().lowercase()) {
-    "aligntop" -> Alignment.Top
-    "alignbottom" -> Alignment.Bottom
-    else -> Alignment.CenterVertically
-}
+private fun alignmentVerticalForStyle(alignmentStyle: String): Alignment.Vertical =
+    when (alignmentStyle.trim().lowercase()) {
+        "aligntop" -> Alignment.Top
+        "alignbottom" -> Alignment.Bottom
+        else -> Alignment.CenterVertically
+    }
 
 @Composable
 fun LayoutRenderer(
@@ -55,7 +58,9 @@ fun LayoutRenderer(
         }
     }
 
-    val baseModifier = modifier.then(model.modifierParams.applyParams(Modifier))
+    val baseModifier = modifier
+        .then(model.modifierParams.applyParams(Modifier))
+        .then(model.modifier)
     val layoutModifier = if (model.onTapActions.isNotEmpty()) {
         baseModifier.then(
             Modifier.clickable {
@@ -76,6 +81,7 @@ fun LayoutRenderer(
             onWidgetValueChange,
             applyBindingsForComponent,
         )
+
         LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
             modelWithClickable,
             isRoot,
@@ -83,6 +89,7 @@ fun LayoutRenderer(
             onWidgetValueChange,
             applyBindingsForComponent,
         )
+
         LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
             modelWithClickable,
             isRoot,
@@ -90,6 +97,7 @@ fun LayoutRenderer(
             onWidgetValueChange,
             applyBindingsForComponent,
         )
+
         LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
             modelWithClickable,
             isRoot,
@@ -97,6 +105,7 @@ fun LayoutRenderer(
             onWidgetValueChange,
             applyBindingsForComponent,
         )
+
         LayoutType.LAYER -> BoxRenderer(
             modelWithClickable,
             isRoot,
@@ -117,15 +126,14 @@ private fun ColumnRenderer(
 ) {
     Column(modifier = model.modifier) {
         model.children.forEach { child ->
-            Box(modifier = Modifier.align(alignmentHorizontalForStyle(child.alignmentStyle))) {
-                ComponentRenderer(
-                    model = applyBindingsForComponent?.invoke(child) ?: child,
-                    isRoot = isRoot,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
-            }
+            ComponentRenderer(
+                modifier = Modifier.align(alignmentHorizontalForStyle(child.alignmentStyle)),
+                model = applyBindingsForComponent?.invoke(child) ?: child,
+                isRoot = isRoot,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
         }
     }
 }
@@ -140,15 +148,14 @@ private fun RowRenderer(
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
-            Box(modifier = Modifier.align(alignmentVerticalForStyle(child.alignmentStyle))) {
-                ComponentRenderer(
-                    model = applyBindingsForComponent?.invoke(child) ?: child,
-                    isRoot = isRoot,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
-            }
+            ComponentRenderer(
+                modifier = Modifier.align(alignmentVerticalForStyle(child.alignmentStyle)),
+                model = applyBindingsForComponent?.invoke(child) ?: child,
+                isRoot = isRoot,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
         }
     }
 }
@@ -169,7 +176,8 @@ private fun LazyColumnRenderer(
             val indexStr = index.toString()
             model.children.forEach { templateChild ->
                 val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings = applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                val childWithBindings =
+                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
                     isRoot = isRoot,
@@ -198,7 +206,8 @@ private fun LazyRowRenderer(
             val indexStr = index.toString()
             model.children.forEach { templateChild ->
                 val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings = applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                val childWithBindings =
+                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
                     isRoot = isRoot,
@@ -221,15 +230,14 @@ private fun BoxRenderer(
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
-            Box(modifier = Modifier.align(alignmentForStyle(child.alignmentStyle))) {
-                ComponentRenderer(
-                    model = applyBindingsForComponent?.invoke(child) ?: child,
-                    isRoot = isRoot,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
-            }
+            ComponentRenderer(
+                modifier = Modifier.align(alignmentForStyle(child.alignmentStyle)),
+                model = applyBindingsForComponent?.invoke(child) ?: child,
+                isRoot = isRoot,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
         }
     }
 }
