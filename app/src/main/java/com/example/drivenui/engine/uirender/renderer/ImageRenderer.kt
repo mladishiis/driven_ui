@@ -1,6 +1,5 @@
 package com.example.drivenui.engine.uirender.renderer
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
@@ -14,10 +13,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.drivenui.R
-import com.example.drivenui.app.data.MicroappRootFinder
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ImageModel
-import java.io.File
+import com.example.drivenui.engine.uirender.utils.resolveImageData
 
 /**
  * Рендерит UI-компонент изображения.
@@ -75,33 +73,4 @@ fun ImageRenderer(
             colorFilter = colorFilter,
         )
     }
-}
-
-/**
- * Резолвит значение из url в источник данных для Coil:
- * - если это полный URL, возвращает его как есть;
- * - если это имя файла (например, "close.svg"), ищет:
- *   1) во временной папке microapp: microapps/{microappName}/resources/images
- *   2) в assets: resources/images.
- *
- * @param context Контекст приложения
- * @param url URL или путь к изображению
- * @return URI, File или путь к asset; null если url пустой
- */
-private fun resolveImageData(context: Context, url: String?): Any? {
-    if (url.isNullOrBlank()) return null
-
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-        return url
-    }
-
-    val microappRoot = MicroappRootFinder.findMicroappRoot(context)
-    if (microappRoot != null) {
-        val runtimeFile = File(microappRoot, url)
-        if (runtimeFile.exists()) {
-            return runtimeFile
-        }
-    }
-
-    return "file:///android_asset/$url"
 }
