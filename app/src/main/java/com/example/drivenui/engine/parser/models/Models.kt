@@ -20,20 +20,6 @@ enum class ComponentType {
 }
 
 /**
- * Свойство компонента с поддержкой биндингов.
- *
- * @property code Код свойства
- * @property rawValue Исходное значение (может содержать макросы)
- * @property resolvedValue Значение после подстановки
- */
-@Parcelize
-data class ComponentProperty(
-    val code: String,
-    val rawValue: String,
-    val resolvedValue: String = rawValue,
-): Parcelable
-
-/**
  * Описание биндинга данных.
  *
  * @property sourceType Тип источника
@@ -91,10 +77,10 @@ data class DataContext(
  * Базовый компонент UI в дереве парсинга.
  */
 @Parcelize
-sealed class Component: Parcelable {
+sealed class Component : Parcelable {
     abstract val title: String
     abstract val code: String
-    abstract val properties: List<ComponentProperty>
+    abstract val properties: Map<String, String>
     abstract val styles: List<WidgetStyle>
     abstract val events: List<WidgetEvent>
     abstract val children: List<Component>
@@ -112,7 +98,7 @@ data class LayoutComponent(
     override val code: String,
     val layoutCode: String,
     val maxForIndex: String? = null,
-    override val properties: List<ComponentProperty> = emptyList(),
+    override val properties: Map<String, String> = emptyMap(),
     override val styles: List<WidgetStyle> = emptyList(),
     override val events: List<WidgetEvent> = emptyList(),
     override val children: List<Component> = emptyList(),
@@ -130,7 +116,7 @@ data class WidgetComponent(
     override val code: String,
     val widgetCode: String,
     val widgetType: String,
-    override val properties: List<ComponentProperty> = emptyList(),
+    override val properties: Map<String, String> = emptyMap(),
     override val styles: List<WidgetStyle> = emptyList(),
     override val events: List<WidgetEvent> = emptyList(),
     override val children: List<Component> = emptyList(),

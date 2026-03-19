@@ -13,10 +13,10 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property onCreateActions экшены при создании
  * @property onTapActions экшены при нажатии
  * @property backgroundColorStyleCode код стиля фона
- * @property roundStyle коды стилей скругления (вход для StyleResolver)
+ * @property radiusValues значения radius, radiusTop, radiusBottom из properties (вход для StyleResolver)
  * @property cornerRadius резолвенные значения радиуса (заполняет StyleResolver)
  * @property forParams параметры цикла FOR (для verticalFor/horizontalFor)
- * @property alignmentStyle стиль выравнивания
+ * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код условной видимости
  */
@@ -28,10 +28,10 @@ data class LayoutModel(
     val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String? = null,
-    val roundStyle: RoundStyleCodes = RoundStyleCodes(),
+    val radiusValues: RadiusValues = RadiusValues(),
     val cornerRadius: CornerRadius = CornerRadius(),
     val forParams: LayoutForParams = LayoutForParams(),
-    override val alignmentStyle: String,
+    override val alignment: String,
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

@@ -50,7 +50,7 @@ fun ButtonRenderer(
             modifier = Modifier.fillMaxWidth(),
             text = model.text,
             style = model.textStyle,
-            textAlign = parseTextAlign(model.textAlignmentStyle),
+            textAlign = parseTextAlign(model.textAlignment),
         )
     }
 }
@@ -66,7 +66,7 @@ private fun ButtonRendererPreview() {
             text = "Кнопка",
             tapActions = emptyList(),
             widgetCode = "btn1",
-            alignmentStyle = "",
+            alignment = "",
         ),
         onActions = {},
     )

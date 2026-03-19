@@ -13,10 +13,10 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property onCreateActions действия при создании
  * @property onTapActions действия при нажатии
  * @property backgroundColorStyleCode код стиля фона
- * @property roundStyleCode код стиля скругления (приоритет над top/bottom)
- * @property roundStyleTopCode код стиля скругления сверху
- * @property roundStyleBottomCode код стиля скругления снизу
- * @property alignmentStyle стиль выравнивания
+ * @property radius радиус всех углов в dp (приоритет над top/bottom)
+ * @property radiusTop радиус верхних углов в dp
+ * @property radiusBottom радиус нижних углов в dp
+ * @property alignment выравнивание
  * @property forIndexName имя переменной индекса для шаблонов
  * @property maxForIndex максимальное значение индекса
  * @property visibility видимость
@@ -29,10 +29,10 @@ data class CachedLayoutModel(
     val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String?,
-    val roundStyleCode: String?,
-    val roundStyleTopCode: String? = null,
-    val roundStyleBottomCode: String? = null,
-    override val alignmentStyle: String,
+    val radius: String?,
+    val radiusTop: String? = null,
+    val radiusBottom: String? = null,
+    override val alignment: String,
     val forIndexName: String?,
     val maxForIndex: String?,
     override val visibility: Boolean = true,

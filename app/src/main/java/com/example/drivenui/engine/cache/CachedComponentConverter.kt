@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.uirender.models.LayoutForParams
-import com.example.drivenui.engine.uirender.models.RoundStyleCodes
+import com.example.drivenui.engine.uirender.models.RadiusValues
 import com.example.drivenui.engine.uirender.models.*
 
 /**
@@ -23,10 +23,10 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
-        roundStyleCode = roundStyle.code,
-        roundStyleTopCode = roundStyle.topCode,
-        roundStyleBottomCode = roundStyle.bottomCode,
-        alignmentStyle = alignmentStyle,
+        radius = radiusValues.radius,
+        radiusTop = radiusValues.radiusTop,
+        radiusBottom = radiusValues.radiusBottom,
+        alignment = alignment,
         forIndexName = forParams.forIndexName,
         maxForIndex = forParams.maxForIndex,
         visibility = visibility,
@@ -39,8 +39,8 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
-        alignmentStyle = alignmentStyle,
-        textAlignmentStyle = textAlignmentStyle,
+        alignment = alignment,
+        textAlignment = textAlignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -48,16 +48,16 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         modifierParams = modifierParams,
         enabled = enabled,
         text = text,
-        roundStyleCode = roundStyle.code,
-        roundStyleTopCode = roundStyle.topCode,
-        roundStyleBottomCode = roundStyle.bottomCode,
+        radius = radiusValues.radius,
+        radiusTop = radiusValues.radiusTop,
+        radiusBottom = radiusValues.radiusBottom,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
-        alignmentStyle = alignmentStyle,
-        textAlignmentStyle = textAlignmentStyle,
+        alignment = alignment,
+        textAlignment = textAlignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -67,7 +67,7 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         widgetCode = widgetCode,
         tapActions = tapActions,
         colorStyleCode = colorStyleCode,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -79,7 +79,7 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -90,7 +90,7 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         readOnly = readOnly,
         widgetCode = widgetCode,
         finishTypingActions = finishTypingActions,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -144,13 +144,13 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
-        roundStyle = RoundStyleCodes(
-            code = roundStyleCode,
-            topCode = roundStyleTopCode,
-            bottomCode = roundStyleBottomCode,
+        radiusValues = RadiusValues(
+            radius = radius,
+            radiusTop = radiusTop,
+            radiusBottom = radiusBottom,
         ),
         forParams = LayoutForParams(forIndexName = forIndexName, maxForIndex = maxForIndex),
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -163,8 +163,8 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
-        alignmentStyle = alignmentStyle,
-        textAlignmentStyle = textAlignmentStyle,
+        alignment = alignment,
+        textAlignment = textAlignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -175,18 +175,18 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         text = text,
         textStyle = TextStyle.Default,
         backgroundColor = Color.Black,
-        roundStyle = RoundStyleCodes(
-            code = roundStyleCode,
-            topCode = roundStyleTopCode,
-            bottomCode = roundStyleBottomCode,
+        radiusValues = RadiusValues(
+            radius = radius,
+            radiusTop = radiusTop,
+            radiusBottom = radiusBottom,
         ),
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
-        alignmentStyle = alignmentStyle,
-        textAlignmentStyle = textAlignmentStyle,
+        alignment = alignment,
+        textAlignment = textAlignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -198,7 +198,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         tapActions = tapActions,
         colorStyleCode = colorStyleCode,
         color = Color.Unspecified,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -212,7 +212,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         colorStyleCode = colorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )
@@ -224,7 +224,7 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         readOnly = readOnly,
         widgetCode = widgetCode,
         finishTypingActions = finishTypingActions,
-        alignmentStyle = alignmentStyle,
+        alignment = alignment,
         visibility = visibility,
         visibilityCode = visibilityCode
     )

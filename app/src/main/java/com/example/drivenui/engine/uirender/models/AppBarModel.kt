@@ -16,7 +16,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property colorStyleCode код стиля цвета
  * @property tapActions экшены при нажатии
  * @property widgetCode уникальный код виджета
- * @property alignmentStyle стиль выравнивания
+ * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код условной видимости
  */
@@ -30,7 +30,7 @@ data class AppBarModel(
     val colorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     val widgetCode: String,
-    override val alignmentStyle: String,
+    override val alignment: String,
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

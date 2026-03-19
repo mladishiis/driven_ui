@@ -39,7 +39,7 @@ fun LabelRenderer(
         text = model.text,
         modifier = labelModifier,
         style = model.textStyle,
-        textAlign = parseTextAlign(model.textAlignmentStyle),
+        textAlign = parseTextAlign(model.textAlignment),
     )
 }
 
@@ -53,7 +53,7 @@ private fun LabelRendererPreview() {
             text = "Подпись",
             widgetCode = "lbl1",
             tapActions = emptyList(),
-            alignmentStyle = "",
+            alignment = "",
         ),
         onActions = {},
     )

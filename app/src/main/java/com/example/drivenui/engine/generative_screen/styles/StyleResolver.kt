@@ -81,18 +81,18 @@ private fun resolveLayout(
     var cornerRadiusTop: Int? = null
     var cornerRadiusBottom: Int? = null
 
-    layout.roundStyle.code?.let { rawCode ->
-        val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        cornerRadius = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+    layout.radiusValues.radius?.let { rawCode ->
+        val resolved = resolveValueExpression(rawCode, contextManager)
+        cornerRadius = resolved.toIntOrNull()
     }
     if (cornerRadius == null) {
-        layout.roundStyle.topCode?.let { rawCode ->
-            val resolvedCode = resolveValueExpression(rawCode, contextManager)
-            cornerRadiusTop = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        layout.radiusValues.radiusTop?.let { rawCode ->
+            val resolved = resolveValueExpression(rawCode, contextManager)
+            cornerRadiusTop = resolved.toIntOrNull()
         }
-        layout.roundStyle.bottomCode?.let { rawCode ->
-            val resolvedCode = resolveValueExpression(rawCode, contextManager)
-            cornerRadiusBottom = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        layout.radiusValues.radiusBottom?.let { rawCode ->
+            val resolved = resolveValueExpression(rawCode, contextManager)
+            cornerRadiusBottom = resolved.toIntOrNull()
         }
     }
 
@@ -156,20 +156,20 @@ private fun resolveButton(
     var textStyle: TextStyle = button.textStyle
     var backgroundColor: Color = button.backgroundColor
 
-    button.roundStyle.code?.let { rawCode ->
-        val resolvedCode = resolveValueExpression(rawCode, contextManager)
-        cornerRadius = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue?.let { CornerRadius(all = it) } ?: cornerRadius
+    button.radiusValues.radius?.let { rawCode ->
+        val resolved = resolveValueExpression(rawCode, contextManager)
+        cornerRadius = resolved.toIntOrNull()?.let { CornerRadius(all = it) } ?: cornerRadius
     }
     if (cornerRadius.all == null) {
         var top = cornerRadius.top
         var bottom = cornerRadius.bottom
-        button.roundStyle.topCode?.let { rawCode ->
-            val resolvedCode = resolveValueExpression(rawCode, contextManager)
-            top = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        button.radiusValues.radiusTop?.let { rawCode ->
+            val resolved = resolveValueExpression(rawCode, contextManager)
+            top = resolved.toIntOrNull()
         }
-        button.roundStyle.bottomCode?.let { rawCode ->
-            val resolvedCode = resolveValueExpression(rawCode, contextManager)
-            bottom = styleRegistry.getRoundStyle(resolvedCode)?.radiusValue
+        button.radiusValues.radiusBottom?.let { rawCode ->
+            val resolved = resolveValueExpression(rawCode, contextManager)
+            bottom = resolved.toIntOrNull()
         }
         cornerRadius = CornerRadius(top = top, bottom = bottom)
     }

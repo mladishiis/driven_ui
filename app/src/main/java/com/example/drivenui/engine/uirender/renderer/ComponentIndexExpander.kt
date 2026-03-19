@@ -8,7 +8,7 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutForParams
 import com.example.drivenui.engine.uirender.models.LayoutModel
-import com.example.drivenui.engine.uirender.models.RoundStyleCodes
+import com.example.drivenui.engine.uirender.models.RadiusValues
 
 /**
  * Заменяет `{#forIndexName}` на конкретный индекс во всех строках компонента.
@@ -30,11 +30,11 @@ internal fun expandComponentWithIndex(
                     expandComponentWithIndex(child, forIndexName, index)
                 },
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
-                roundStyle = component.roundStyle.let { roundStyle ->
-                    RoundStyleCodes(
-                        code = roundStyle.code.replaceIndex(),
-                        topCode = roundStyle.topCode.replaceIndex(),
-                        bottomCode = roundStyle.bottomCode.replaceIndex(),
+                radiusValues = component.radiusValues.let { rv ->
+                    RadiusValues(
+                        radius = rv.radius.replaceIndex(),
+                        radiusTop = rv.radiusTop.replaceIndex(),
+                        radiusBottom = rv.radiusBottom.replaceIndex(),
                     )
                 },
                 forParams = component.forParams.let { forParams ->
@@ -52,7 +52,7 @@ internal fun expandComponentWithIndex(
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
-                textAlignmentStyle = component.textAlignmentStyle.replaceIndex(),
+                textAlignment = component.textAlignment.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
@@ -60,17 +60,17 @@ internal fun expandComponentWithIndex(
             component.copy(
                 text = component.text.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
-                roundStyle = component.roundStyle.let { roundStyle ->
-                    RoundStyleCodes(
-                        code = roundStyle.code.replaceIndex(),
-                        topCode = roundStyle.topCode.replaceIndex(),
-                        bottomCode = roundStyle.bottomCode.replaceIndex(),
+                radiusValues = component.radiusValues.let { rv ->
+                    RadiusValues(
+                        radius = rv.radius.replaceIndex(),
+                        radiusTop = rv.radiusTop.replaceIndex(),
+                        radiusBottom = rv.radiusBottom.replaceIndex(),
                     )
                 },
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
-                textAlignmentStyle = component.textAlignmentStyle.replaceIndex(),
+                textAlignment = component.textAlignment.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }

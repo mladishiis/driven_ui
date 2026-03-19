@@ -15,14 +15,14 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property cornerRadius резолвенные значения радиуса скругления (заполняет StyleResolver)
  * @property textStyle стиль текста
  * @property backgroundColor цвет фона
- * @property roundStyle коды стилей скругления (резолвятся в cornerRadius)
+ * @property radiusValues значения radius, radiusTop, radiusBottom из properties (резолвятся в cornerRadius)
  * @property textStyleCode код стиля текста
  * @property colorStyleCode код стиля цвета текста
  * @property backgroundColorStyleCode код стиля фона
  * @property tapActions экшены при нажатии
  * @property widgetCode уникальный код виджета
- * @property alignmentStyle стиль выравнивания виджета
- * @property textAlignmentStyle выравнивание текста (alignLeft, alignCenter, alignRight)
+ * @property alignment выравнивание виджета
+ * @property textAlignment выравнивание текста (alignLeft, alignCenter, alignRight)
  * @property visibility видимость
  * @property visibilityCode код условной видимости
  */
@@ -34,14 +34,14 @@ data class ButtonModel(
     val cornerRadius: CornerRadius = CornerRadius(),
     val textStyle: TextStyle = TextStyle.Default,
     val backgroundColor: Color = Color.Black,
-    val roundStyle: RoundStyleCodes = RoundStyleCodes(),
+    val radiusValues: RadiusValues = RadiusValues(),
     val textStyleCode: String? = null,
     val colorStyleCode: String? = null,
     val backgroundColorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     val widgetCode: String,
-    override val alignmentStyle: String,
-    val textAlignmentStyle: String = "alignCenter",
+    override val alignment: String,
+    val textAlignment: String = "alignCenter",
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

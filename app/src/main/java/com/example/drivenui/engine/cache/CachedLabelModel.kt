@@ -12,8 +12,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property textStyleCode код стиля текста
  * @property colorStyleCode код стиля цвета
  * @property tapActions действия при нажатии
- * @property alignmentStyle стиль выравнивания виджета
- * @property textAlignmentStyle выравнивание текста
+ * @property alignment выравнивание виджета
+ * @property textAlignment выравнивание текста
  * @property visibility видимость
  * @property visibilityCode код видимости
  */
@@ -24,8 +24,8 @@ data class CachedLabelModel(
     val textStyleCode: String?,
     val colorStyleCode: String?,
     val tapActions: List<UiAction>,
-    override val alignmentStyle: String,
-    val textAlignmentStyle: String = "alignLeft",
+    override val alignment: String,
+    val textAlignment: String = "alignLeft",
     override val visibility: Boolean = true,
     override val visibilityCode: String? = null
 ) : CachedComponentModel

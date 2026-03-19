@@ -2,7 +2,6 @@ package com.example.drivenui.engine.parser.parsers
 
 import android.util.Log
 import com.example.drivenui.engine.parser.models.Component
-import com.example.drivenui.engine.parser.models.ComponentProperty
 import com.example.drivenui.engine.parser.models.EventAction
 import com.example.drivenui.engine.parser.models.LayoutComponent
 import com.example.drivenui.engine.parser.models.ParsedScreen
@@ -105,7 +104,7 @@ class ComponentParser {
         var screenLayoutIndex = 0
         var maxForIndex: String? = null
         var forIndexName: String? = null
-        val properties = mutableListOf<ComponentProperty>()
+        val properties = mutableMapOf<String, String>()
         val styles = mutableListOf<WidgetStyle>()
         val events = mutableListOf<WidgetEvent>()
         val children = mutableListOf<Component>()
@@ -134,10 +133,10 @@ class ComponentParser {
                             maxForIndex = parser.nextText().trim()
                         }
                         "properties" -> {
-                            properties.addAll(parsePropertiesBlock(parser))
+                            properties.putAll(parsePropertiesBlock(parser))
                         }
                         "property" -> {
-                            parseComponentProperty(parser)?.let { properties.add(it) }
+                            parseProperty(parser)?.let { (code, value) -> properties[code] = value }
                         }
                         "styles" -> {
                             styles.addAll(parseStylesBlock(parser))
@@ -193,7 +192,7 @@ class ComponentParser {
         val title = parser.getAttributeValue(null, "title") ?: ""
         var screenLayoutWidgetCode = ""
         var widgetCode = ""
-        val properties = mutableListOf<ComponentProperty>()
+        val properties = mutableMapOf<String, String>()
         val styles = mutableListOf<WidgetStyle>()
         val events = mutableListOf<WidgetEvent>()
         val bindingProperties = mutableListOf<String>()
@@ -212,10 +211,10 @@ class ComponentParser {
                             widgetCode = parser.nextText().trim()
                         }
                         "properties" -> {
-                            properties.addAll(parsePropertiesBlock(parser))
+                            properties.putAll(parsePropertiesBlock(parser))
                         }
                         "property" -> {
-                            parseComponentProperty(parser)?.let { properties.add(it) }
+                            parseProperty(parser)?.let { (code, value) -> properties[code] = value }
                         }
                         "styles" -> {
                             styles.addAll(parseStylesBlock(parser))
@@ -270,17 +269,17 @@ class ComponentParser {
      * Парсит блок свойств.
      *
      * @param parser XmlPullParser, позиционированный на теге properties
-     * @return Список ComponentProperty
+     * @return Map код → значение
      */
-    private fun parsePropertiesBlock(parser: XmlPullParser): List<ComponentProperty> {
-        val properties = mutableListOf<ComponentProperty>()
+    private fun parsePropertiesBlock(parser: XmlPullParser): Map<String, String> {
+        val properties = mutableMapOf<String, String>()
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "properties")) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
                     if (parser.name == "property") {
-                        parseComponentProperty(parser)?.let { properties.add(it) }
+                        parseProperty(parser)?.let { (code, value) -> properties[code] = value }
                     } else {
                         skipCurrentTag(parser)
                     }
@@ -293,12 +292,12 @@ class ComponentParser {
     }
 
     /**
-     * Парсит одно свойство с макросами.
+     * Парсит одно свойство.
      *
      * @param parser XmlPullParser, позиционированный на теге property
-     * @return ComponentProperty при успешном парсинге или null
+     * @return Pair(code, value) или null
      */
-    private fun parseComponentProperty(parser: XmlPullParser): ComponentProperty? {
+    private fun parseProperty(parser: XmlPullParser): Pair<String, String>? {
         var code = ""
         var value = ""
 
@@ -316,15 +315,7 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        return if (code.isNotEmpty()) {
-            ComponentProperty(
-                code = code,
-                rawValue = value,
-                resolvedValue = value, // Пока без подстановки
-            )
-        } else {
-            null
-        }
+        return if (code.isNotEmpty()) code to value else null
     }
 
     /**

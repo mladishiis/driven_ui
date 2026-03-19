@@ -297,10 +297,9 @@ class GenerativeScreenViewModel @Inject constructor(
     fun getSheetCornerRadiusDp(sheetRoot: ComponentModel): Int? {
         if (sheetRoot !is LayoutModel) return null
         sheetRoot.cornerRadius.all?.let { return it }
-        val code = sheetRoot.roundStyle.code ?: return null
-        val registry = styleRegistry ?: return null
-        val resolvedCode = resolveValueExpression(code, contextManager)
-        return registry.getRoundStyle(resolvedCode)?.radiusValue
+        val radiusStr = sheetRoot.radiusValues.radius ?: return null
+        val resolved = resolveValueExpression(radiusStr, contextManager)
+        return resolved.toIntOrNull()
     }
 
     /**

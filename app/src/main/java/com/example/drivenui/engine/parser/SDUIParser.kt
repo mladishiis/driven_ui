@@ -153,9 +153,7 @@ class SDUIParser {
         }
 
         private fun collectResolvedValues(component: Component, values: MutableMap<String, String>) {
-            component.properties.forEach { prop ->
-                prop.resolvedValue?.let { values[prop.code] = it }
-            }
+            values.putAll(component.properties)
             component.children.forEach { child ->
                 collectResolvedValues(child, values)
             }

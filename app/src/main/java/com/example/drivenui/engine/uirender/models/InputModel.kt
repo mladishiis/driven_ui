@@ -13,7 +13,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property readOnly только чтение
  * @property widgetCode уникальный код виджета
  * @property finishTypingActions экшены при завершении ввода
- * @property alignmentStyle стиль выравнивания
+ * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код условной видимости
  */
@@ -25,7 +25,7 @@ data class InputModel(
     val readOnly: Boolean,
     val widgetCode: String,
     val finishTypingActions: List<UiAction>,
-    override val alignmentStyle: String,
+    override val alignment: String,
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

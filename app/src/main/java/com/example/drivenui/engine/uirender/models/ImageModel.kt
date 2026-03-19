@@ -14,7 +14,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property tapActions Экшены при нажатии
  * @property colorStyleCode Код стиля цвета
  * @property color Цвет для tint-фильтра
- * @property alignmentStyle Стиль выравнивания
+ * @property alignment Выравнивание
  * @property visibility Видимость компонента
  * @property visibilityCode Код условной видимости
  */
@@ -26,7 +26,7 @@ data class ImageModel(
     val tapActions: List<UiAction>,
     val colorStyleCode: String? = null,
     val color: Color = Color.Unspecified,
-    override val alignmentStyle: String,
+    override val alignment: String,
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,
 ) : ComponentModel

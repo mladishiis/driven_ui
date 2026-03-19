@@ -11,7 +11,7 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
-import com.example.drivenui.engine.uirender.models.RoundStyleCodes
+import com.example.drivenui.engine.uirender.models.RadiusValues
 import com.example.drivenui.engine.parser.models.DataContext
 
 private const val TAG = "DataBinder"
@@ -72,7 +72,7 @@ object DataBinder {
         val newText = resolveBindingsInString(label.text, dataContext)
         val newTextStyleCode = resolveBindingsInString(label.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(label.colorStyleCode, dataContext)
-        val newTextAlignmentStyle = resolveBindingsInString(label.textAlignmentStyle, dataContext)
+        val newTextAlignmentStyle = resolveBindingsInString(label.textAlignment, dataContext)
         val newVisibilityCode = resolveBindingsInString(label.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: label.visibilityCode)
 
@@ -80,7 +80,7 @@ object DataBinder {
             text = newText ?: label.text,
             textStyleCode = newTextStyleCode ?: label.textStyleCode,
             colorStyleCode = newColorStyleCode ?: label.colorStyleCode,
-            textAlignmentStyle = newTextAlignmentStyle ?: label.textAlignmentStyle,
+            textAlignment = newTextAlignmentStyle ?: label.textAlignment,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: label.visibilityCode
         )
@@ -94,12 +94,12 @@ object DataBinder {
         val newTextStyleCode = resolveBindingsInString(button.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(button.colorStyleCode, dataContext)
         val newBackgroundColorStyleCode = resolveBindingsInString(button.backgroundColorStyleCode, dataContext)
-        val newRoundStyle = RoundStyleCodes(
-            code = resolveBindingsInString(button.roundStyle.code, dataContext) ?: button.roundStyle.code,
-            topCode = resolveBindingsInString(button.roundStyle.topCode, dataContext) ?: button.roundStyle.topCode,
-            bottomCode = resolveBindingsInString(button.roundStyle.bottomCode, dataContext) ?: button.roundStyle.bottomCode,
+        val newRadiusValues = RadiusValues(
+            radius = resolveBindingsInString(button.radiusValues.radius, dataContext) ?: button.radiusValues.radius,
+            radiusTop = resolveBindingsInString(button.radiusValues.radiusTop, dataContext) ?: button.radiusValues.radiusTop,
+            radiusBottom = resolveBindingsInString(button.radiusValues.radiusBottom, dataContext) ?: button.radiusValues.radiusBottom,
         )
-        val newTextAlignmentStyle = resolveBindingsInString(button.textAlignmentStyle, dataContext)
+        val newTextAlignmentStyle = resolveBindingsInString(button.textAlignment, dataContext)
         val newVisibilityCode = resolveBindingsInString(button.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: button.visibilityCode)
 
@@ -108,8 +108,8 @@ object DataBinder {
             textStyleCode = newTextStyleCode ?: button.textStyleCode,
             colorStyleCode = newColorStyleCode ?: button.colorStyleCode,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: button.backgroundColorStyleCode,
-            roundStyle = newRoundStyle,
-            textAlignmentStyle = newTextAlignmentStyle ?: button.textAlignmentStyle,
+            radiusValues = newRadiusValues,
+            textAlignment = newTextAlignmentStyle ?: button.textAlignment,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: button.visibilityCode
         )
@@ -196,11 +196,11 @@ object DataBinder {
 
         val newBackgroundColorStyleCode =
             resolveBindingsInString(layout.backgroundColorStyleCode, dataContext)
-        val newRoundStyle = layout.roundStyle.let { roundStyle ->
-            RoundStyleCodes(
-                code = resolveBindingsInString(roundStyle.code, dataContext) ?: roundStyle.code,
-                topCode = resolveBindingsInString(roundStyle.topCode, dataContext) ?: roundStyle.topCode,
-                bottomCode = resolveBindingsInString(roundStyle.bottomCode, dataContext) ?: roundStyle.bottomCode,
+        val newRadiusValues = layout.radiusValues.let { rv: RadiusValues ->
+            RadiusValues(
+                radius = resolveBindingsInString(rv.radius, dataContext) ?: rv.radius,
+                radiusTop = resolveBindingsInString(rv.radiusTop, dataContext) ?: rv.radiusTop,
+                radiusBottom = resolveBindingsInString(rv.radiusBottom, dataContext) ?: rv.radiusBottom,
             )
         }
         val newVisibilityCode = resolveBindingsInString(layout.visibilityCode, dataContext)
@@ -213,7 +213,7 @@ object DataBinder {
         return layout.copy(
             children = processedChildren,
             backgroundColorStyleCode = newBackgroundColorStyleCode ?: layout.backgroundColorStyleCode,
-            roundStyle = newRoundStyle,
+            radiusValues = newRadiusValues,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: layout.visibilityCode,
         )

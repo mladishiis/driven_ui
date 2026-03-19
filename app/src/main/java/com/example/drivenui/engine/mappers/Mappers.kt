@@ -14,7 +14,7 @@ import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutForParams
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
-import com.example.drivenui.engine.uirender.models.RoundStyleCodes
+import com.example.drivenui.engine.uirender.models.RadiusValues
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
 
 /**
@@ -73,7 +73,7 @@ fun LayoutComponent.mapLayoutToUIModel(
     modifierParams: ModifierParams,
     styleRegistry: ComposeStyleRegistry
 ): LayoutModel {
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return LayoutModel(
         modifier = modifier,
@@ -83,13 +83,13 @@ fun LayoutComponent.mapLayoutToUIModel(
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
-        roundStyle = RoundStyleCodes(
-            code = styles.find { it.code == "roundStyle" }?.value,
-            topCode = styles.find { it.code == "roundStyleTop" }?.value,
-            bottomCode = styles.find { it.code == "roundStyleBottom" }?.value,
+        radiusValues = RadiusValues(
+            radius = properties["radius"],
+            radiusTop = properties["radiusTop"],
+            radiusBottom = properties["radiusBottom"],
         ),
         forParams = LayoutForParams(forIndexName = forIndexName, maxForIndex = maxForIndex),
-        alignmentStyle = getAlignmentStyle(),
+        alignment = getAlignment(),
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )
@@ -135,7 +135,7 @@ fun WidgetComponent.mapWidgetToUiModel(
                 text = "Custom Widget",
                 widgetCode = widgetCode,
                 tapActions = getOnTapEvents(events),
-                alignmentStyle = this.getAlignmentStyle(),
+                alignment = this.getAlignment(),
             )
         }
     }
@@ -153,22 +153,22 @@ fun WidgetComponent.mapWidgetToLabelModel(
     modifier: Modifier,
     modifierParams: ModifierParams
 ): LabelModel? {
-    val textProperty = properties.find { it.code == "text" }
+    val text = properties["text"]
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
-    return if (textProperty != null) {
+    return if (text != null) {
         LabelModel(
             modifier = modifier,
             modifierParams = modifierParams,
-            text = textProperty.resolvedValue,
+            text = text,
             widgetCode = code,
             textStyleCode = textStyleCode,
             colorStyleCode = colorStyleCode,
             tapActions = getOnTapEvents(events),
-            alignmentStyle = getAlignmentStyle(),
-            textAlignmentStyle = getTextAlignmentStyle().ifBlank { "alignLeft" },
+            alignment = getAlignment(),
+            textAlignment = getTextAlignment().ifBlank { "alignLeft" },
             visibility = visibility,
             visibilityCode = visibilityRaw,
         )
@@ -185,9 +185,9 @@ fun WidgetComponent.mapWidgetToLabelModel(
  * @return ImageModel
  */
 fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: ModifierParams): ImageModel {
-    val urlProperty = properties.find { it.code == "url" }?.resolvedValue
+    val urlProperty = properties["url"]
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return ImageModel(
         modifier = modifier,
@@ -196,7 +196,7 @@ fun WidgetComponent.mapWidgetToImageModel(modifier: Modifier, modifierParams: Mo
         widgetCode = code,
         tapActions = getOnTapEvents(events),
         colorStyleCode = colorStyleCode,
-        alignmentStyle = getAlignmentStyle(),
+        alignment = getAlignment(),
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )
@@ -214,31 +214,31 @@ fun WidgetComponent.mapWidgetToButtonModel(
     modifier: Modifier,
     modifierParams: ModifierParams
 ): ButtonModel {
-    val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
-    val enabledProperty = properties.find { it.code == "enabled" }?.resolvedValue?.toBoolean() ?: true
-    val roundStyle = RoundStyleCodes(
-        code = styles.find { it.code == "roundStyle" }?.value,
-        topCode = styles.find { it.code == "roundStyleTop" }?.value,
-        bottomCode = styles.find { it.code == "roundStyleBottom" }?.value,
+    val textProperty = properties["text"] ?: ""
+    val enabledProperty = properties["enabled"]?.toBoolean() ?: true
+    val radiusValues = RadiusValues(
+        radius = properties["radius"],
+        radiusTop = properties["radiusTop"],
+        radiusBottom = properties["radiusBottom"],
     )
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return ButtonModel(
         modifier = modifier,
         modifierParams = modifierParams,
         text = textProperty,
         enabled = enabledProperty,
-        roundStyle = roundStyle,
+        radiusValues = radiusValues,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
-        alignmentStyle = getAlignmentStyle(),
-        textAlignmentStyle = getTextAlignmentStyle().ifBlank { "alignCenter" },
+        alignment = getAlignment(),
+        textAlignment = getTextAlignment().ifBlank { "alignCenter" },
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )
@@ -256,11 +256,11 @@ fun WidgetComponent.mapWidgetToAppbarModel(
     modifier: Modifier,
     modifierParams: ModifierParams
 ): AppBarModel {
-    val titleProperty = properties.find { it.code == "title" }?.resolvedValue ?: ""
-    val iconProperty = properties.find { it.code == "leftIconUrl" }?.resolvedValue
+    val titleProperty = properties["title"] ?: ""
+    val iconProperty = properties["leftIconUrl"]
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return AppBarModel(
         modifier = modifier,
@@ -271,7 +271,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(
         iconLeftUrl = iconProperty,
         tapActions = getOnTapEvents(events),
         widgetCode = code,
-        alignmentStyle = getAlignmentStyle(),
+        alignment = getAlignment(),
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )
@@ -289,10 +289,10 @@ fun WidgetComponent.mapWidgetToInputModel(
     modifier: Modifier,
     modifierParams: ModifierParams
 ): InputModel? {
-    val textProperty = properties.find { it.code == "text" }?.resolvedValue ?: ""
-    val hintProperty = properties.find { it.code == "hint" }?.resolvedValue ?: ""
-    val readOnlyProperty = properties.find { it.code == "readOnly" }?.resolvedValue?.toBoolean() ?: false
-    val visibilityRaw = properties.find { it.code == "visibility" }?.resolvedValue
+    val textProperty = properties["text"] ?: ""
+    val hintProperty = properties["hint"] ?: ""
+    val readOnlyProperty = properties["readOnly"]?.toBoolean() ?: false
+    val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return InputModel(
         modifier = modifier,
@@ -302,7 +302,7 @@ fun WidgetComponent.mapWidgetToInputModel(
         readOnly = readOnlyProperty,
         widgetCode = code,
         finishTypingActions = getOnFinishTypingEvents(events),
-        alignmentStyle = getAlignmentStyle(),
+        alignment = getAlignment(),
         visibility = visibility,
         visibilityCode = visibilityRaw,
     )

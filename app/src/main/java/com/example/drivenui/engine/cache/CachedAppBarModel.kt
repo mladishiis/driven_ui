@@ -13,7 +13,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property colorStyleCode код стиля цвета
  * @property tapActions действия при нажатии
  * @property widgetCode код виджета
- * @property alignmentStyle стиль выравнивания
+ * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код видимости
  */
@@ -25,7 +25,7 @@ data class CachedAppBarModel(
     val colorStyleCode: String?,
     val tapActions: List<UiAction>,
     val widgetCode: String,
-    override val alignmentStyle: String,
+    override val alignment: String,
     override val visibility: Boolean = true,
     override val visibilityCode: String? = null
 ) : CachedComponentModel
