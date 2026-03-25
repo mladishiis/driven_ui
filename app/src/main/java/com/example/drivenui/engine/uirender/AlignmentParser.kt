@@ -22,11 +22,6 @@ fun parseBoxAlignment(value: String): Alignment =
         "bottomleft" -> Alignment.BottomStart
         "bottomcenter" -> Alignment.BottomCenter
         "bottomright" -> Alignment.BottomEnd
-        "aligncenter" -> Alignment.Center
-        "alignleft", "alignstart" -> Alignment.CenterStart
-        "alignright", "alignend" -> Alignment.CenterEnd
-        "aligntop" -> Alignment.TopCenter
-        "alignbottom" -> Alignment.BottomCenter
         else -> Alignment.Center
     }
 
@@ -38,9 +33,9 @@ fun parseBoxAlignment(value: String): Alignment =
  */
 fun parseColumnAlignment(value: String): Alignment.Horizontal =
     when (value.trim().lowercase()) {
-        "alignleft", "alignstart", "left" -> Alignment.Start
-        "alignright", "alignend", "right" -> Alignment.End
-        "aligncenter", "center" -> Alignment.CenterHorizontally
+        "left" -> Alignment.Start
+        "right" -> Alignment.End
+        "center" -> Alignment.CenterHorizontally
         else -> Alignment.CenterHorizontally
     }
 
@@ -52,8 +47,8 @@ fun parseColumnAlignment(value: String): Alignment.Horizontal =
  */
 fun parseRowAlignment(value: String): Alignment.Vertical =
     when (value.trim().lowercase()) {
-        "aligntop", "top" -> Alignment.Top
-        "alignbottom", "bottom" -> Alignment.Bottom
-        "aligncenter", "center" -> Alignment.CenterVertically
+        "topcenter" -> Alignment.Top
+        "bottomcenter" -> Alignment.Bottom
+        "center" -> Alignment.CenterVertically
         else -> Alignment.CenterVertically
     }
