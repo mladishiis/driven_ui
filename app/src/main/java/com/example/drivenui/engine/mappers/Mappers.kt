@@ -107,7 +107,7 @@ fun WidgetComponent.mapWidgetToUiModel(
     modifier: Modifier,
     modifierParams: ModifierParams
 ): ComponentModel? {
-    return when (widgetCode) {
+    return when (widgetCode.lowercase()) {
         "appbar" -> {
             mapWidgetToAppbarModel(modifier, modifierParams)
         }
