@@ -260,6 +260,8 @@ fun WidgetComponent.mapWidgetToAppbarModel(
     val iconProperty = properties["leftIconUrl"]
     val colorStyleCode = styles.find { it.code == "colorStyle" }?.value
     val textStyleCode = styles.find { it.code == "textStyle" }?.value
+    val leftIconColorStyleCode = styles.find { it.code == "leftIconColorStyle" }?.value
+    val backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value
     val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
     return AppBarModel(
@@ -268,6 +270,8 @@ fun WidgetComponent.mapWidgetToAppbarModel(
         title = titleProperty,
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
+        leftIconColorStyleCode = leftIconColorStyleCode,
+        backgroundColorStyleCode = backgroundColorStyleCode,
         iconLeftUrl = iconProperty,
         tapActions = getOnTapEvents(events),
         widgetCode = code,

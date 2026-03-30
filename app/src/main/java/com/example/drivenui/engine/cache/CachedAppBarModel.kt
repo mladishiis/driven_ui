@@ -10,7 +10,9 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property title заголовок
  * @property iconLeftUrl URL иконки слева
  * @property textStyleCode код стиля текста
- * @property colorStyleCode код стиля цвета
+ * @property colorStyleCode код стиля цвета заголовка
+ * @property leftIconColorStyleCode код стиля цвета левой иконки
+ * @property backgroundColorStyleCode код стиля фона панели
  * @property tapActions действия при нажатии
  * @property widgetCode код виджета
  * @property alignment выравнивание
@@ -23,6 +25,8 @@ data class CachedAppBarModel(
     val iconLeftUrl: String?,
     val textStyleCode: String?,
     val colorStyleCode: String?,
+    val leftIconColorStyleCode: String? = null,
+    val backgroundColorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     val widgetCode: String,
     override val alignment: String,

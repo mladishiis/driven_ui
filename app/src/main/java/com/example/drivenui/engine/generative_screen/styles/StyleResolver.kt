@@ -259,6 +259,8 @@ private fun resolveAppBar(
 ): AppBarModel {
     val resolvedTitle = appBar.title?.let { resolveValueExpression(it, contextManager) }
     var textStyle: TextStyle = appBar.textStyle
+    var leftIconTint: Color = appBar.leftIconTint
+    var containerColor: Color = appBar.containerColor
 
     appBar.textStyleCode?.let { rawCode ->
         val resolvedCode = resolveValueExpression(rawCode, contextManager)
@@ -279,12 +281,30 @@ private fun resolveAppBar(
         }
     }
 
+    appBar.leftIconColorStyleCode?.let { rawCode ->
+        val resolvedCode = resolveValueExpression(rawCode, contextManager)
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
+            leftIconTint = color
+        }
+    }
+
+    appBar.backgroundColorStyleCode?.let { rawCode ->
+        val resolvedCode = resolveValueExpression(rawCode, contextManager)
+        val color = styleRegistry.getComposeColor(resolvedCode)
+        if (color != null) {
+            containerColor = color
+        }
+    }
+
     val resolvedVisibilityCode = appBar.visibilityCode?.let { resolveValueExpression(it, contextManager) }
     val visibility = parseVisibility(resolvedVisibilityCode ?: appBar.visibilityCode)
 
     return appBar.copy(
         title = resolvedTitle,
         textStyle = textStyle,
+        leftIconTint = leftIconTint,
+        containerColor = containerColor,
         visibility = visibility,
         visibilityCode = resolvedVisibilityCode ?: appBar.visibilityCode
     )

@@ -8,10 +8,14 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,9 +44,26 @@ fun AppBarRenderer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val defaultColors = TopAppBarDefaults.topAppBarColors()
+    val barColors = TopAppBarDefaults.topAppBarColors(
+        containerColor = if (model.containerColor != Color.Unspecified) {
+            model.containerColor
+        } else {
+            defaultColors.containerColor
+        },
+        scrolledContainerColor = defaultColors.scrolledContainerColor,
+        navigationIconContentColor = if (model.leftIconTint != Color.Unspecified) {
+            model.leftIconTint
+        } else {
+            defaultColors.navigationIconContentColor
+        },
+        titleContentColor = defaultColors.titleContentColor,
+        actionIconContentColor = defaultColors.actionIconContentColor,
+    )
 
     CenterAlignedTopAppBar(
         modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
+        colors = barColors,
         title = {
             if (model.title != null) {
                 Text(
@@ -58,6 +79,7 @@ fun AppBarRenderer(
                 AppBarIcon(
                     context = context,
                     iconUrl = model.iconLeftUrl,
+                    iconTint = model.leftIconTint,
                     onTap = { if (model.tapActions.isNotEmpty()) onActions(model.tapActions) },
                 )
             }
@@ -69,15 +91,22 @@ fun AppBarRenderer(
 private fun AppBarIcon(
     context: Context,
     iconUrl: String,
+    iconTint: Color,
     onTap: () -> Unit,
 ) {
     val data = remember(iconUrl) { resolveImageData(context, iconUrl) }
+    val colorFilter = if (iconTint != Color.Unspecified) {
+        ColorFilter.tint(iconTint)
+    } else {
+        null
+    }
 
     IconButton(onClick = onTap) {
         if (data == null) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = null,
+                tint = if (iconTint != Color.Unspecified) iconTint else MaterialTheme.colorScheme.onSurface,
             )
         } else {
             AsyncImage(
@@ -88,6 +117,7 @@ private fun AppBarIcon(
                     .build(),
                 error = painterResource(id = R.drawable.ic_24_close),
                 contentDescription = null,
+                colorFilter = colorFilter,
             )
         }
     }

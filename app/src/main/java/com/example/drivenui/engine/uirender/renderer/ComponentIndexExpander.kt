@@ -11,8 +11,20 @@ import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.RadiusValues
 
 /**
- * Заменяет `{#forIndexName}` на конкретный индекс во всех строках компонента.
- * Используется в LazyColumn/LazyRow для рендеринга шаблонов с переменным индексом.
+ * Подставляет в строковые поля компонента плейсхолдер цикла `{#<имя>}` на фактическое значение [index].
+ *
+ * Паттерн строится как `"{#" + forIndexName + "}"` (например при `forIndexName == "carrier_index"`
+ * ищется подстрока `{#carrier_index}` и заменяется на [index]).
+ *
+ * Рекурсивно обходит дочерние элементы у [LayoutModel]. Для остальных поддерживаемых типов
+ * (Label, Button, AppBar, Input, Image) заменяются только перечисленные в реализации поля.
+ * Неподдерживаемые подтипы [ComponentModel] возвращаются без изменений.
+ *
+ * Используется в шаблонах `verticalFor` / `horizontalFor` (LazyColumn/LazyRow).
+ *
+ * @param component корень или узел дерева компонентов
+ * @param forIndexName имя переменной индекса из разметки (как в `<forIndexName>`, без фигурных скобок)
+ * @param index строковое значение текущей итерации (обычно `"0"`, `"1"`, …)
  */
 internal fun expandComponentWithIndex(
     component: ComponentModel,
@@ -77,9 +89,12 @@ internal fun expandComponentWithIndex(
         is AppBarModel -> {
             component.copy(
                 title = component.title.replaceIndex(),
+                iconLeftUrl = component.iconLeftUrl.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
+                leftIconColorStyleCode = component.leftIconColorStyleCode.replaceIndex(),
+                backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }

@@ -122,6 +122,8 @@ object DataBinder {
         val newTitle = appBar.title?.let { resolveBindingsInString(it, dataContext) }
         val newTextStyleCode = resolveBindingsInString(appBar.textStyleCode, dataContext)
         val newColorStyleCode = resolveBindingsInString(appBar.colorStyleCode, dataContext)
+        val newLeftIconColorStyleCode = resolveBindingsInString(appBar.leftIconColorStyleCode, dataContext)
+        val newBackgroundColorStyleCode = resolveBindingsInString(appBar.backgroundColorStyleCode, dataContext)
         val newVisibilityCode = resolveBindingsInString(appBar.visibilityCode, dataContext)
         val visibility = parseVisibility(newVisibilityCode ?: appBar.visibilityCode)
 
@@ -129,6 +131,8 @@ object DataBinder {
             title = newTitle ?: appBar.title,
             textStyleCode = newTextStyleCode ?: appBar.textStyleCode,
             colorStyleCode = newColorStyleCode ?: appBar.colorStyleCode,
+            leftIconColorStyleCode = newLeftIconColorStyleCode ?: appBar.leftIconColorStyleCode,
+            backgroundColorStyleCode = newBackgroundColorStyleCode ?: appBar.backgroundColorStyleCode,
             visibility = visibility,
             visibilityCode = newVisibilityCode ?: appBar.visibilityCode
         )
