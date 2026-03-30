@@ -82,7 +82,7 @@ fun LayoutComponent.mapLayoutToUIModel(
         children = children.mapToUiModelList(styleRegistry),
         onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
-        backgroundColorStyleCode = styles.find { it.code == "colorStyle" }?.value,
+        backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value,
         radiusValues = RadiusValues(
             radius = properties["radius"],
             radiusTop = properties["radiusTop"],
