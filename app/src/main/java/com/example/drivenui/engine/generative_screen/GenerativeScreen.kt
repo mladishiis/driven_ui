@@ -1,6 +1,5 @@
 package com.example.drivenui.engine.generative_screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -73,7 +72,6 @@ fun GenerativeScreenUi(
     getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null }
 ) {
     DrivenUITheme {
-        BackHandler { onBack() }
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { innerPadding ->

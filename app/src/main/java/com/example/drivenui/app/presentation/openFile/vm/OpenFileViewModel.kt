@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.R
-import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.drivenui.app.data.MicroappCollectionApi
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
 import com.example.drivenui.app.domain.FileDownloadInteractor
@@ -16,9 +15,11 @@ import com.example.drivenui.app.presentation.openFile.model.MicroappItem
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
+import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.parser.SDUIParser
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,6 +34,7 @@ import javax.inject.Inject
  * @property microappStorage хранилище закэшированных микроаппов
  * @property collectionApi API для синхронизации коллекций
  * @property microappSource источник микроаппа (assets или file system)
+ * @property contextManager переменные контекста микроаппов в памяти — сбрасываются при удалении кэша
  */
 @HiltViewModel
 internal class OpenFileViewModel @Inject constructor(
@@ -42,6 +44,7 @@ internal class OpenFileViewModel @Inject constructor(
     private val microappStorage: MicroappStorage,
     private val collectionApi: MicroappCollectionApi,
     private val microappSource: MicroappSource,
+    private val contextManager: IContextManager,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
     init {
@@ -308,6 +311,7 @@ internal class OpenFileViewModel @Inject constructor(
                 val singleListCodes = microappStorage.getSingleListCodes().toSet()
                 collectionCodes.filter { it !in singleListCodes }.forEach { code ->
                     microappStorage.delete(code)
+                    contextManager.clearMicroappContext(code)
                 }
                 microappStorage.clearCollectionId()
                 loadSavedMicroapps()
@@ -324,6 +328,7 @@ internal class OpenFileViewModel @Inject constructor(
                 val singleListCodes = microappStorage.getSingleListCodes()
                 singleListCodes.filter { it !in collectionCodes }.forEach { code ->
                     microappStorage.delete(code)
+                    contextManager.clearMicroappContext(code)
                 }
                 microappStorage.clearSingleListCodes()
                 loadSavedMicroapps()
@@ -379,6 +384,7 @@ internal class OpenFileViewModel @Inject constructor(
             val singleListCodes = microappStorage.getSingleListCodes().toSet()
             oldCollectionCodes.filter { it !in serverCodesSet && it !in singleListCodes }.forEach { code ->
                 microappStorage.delete(code)
+                contextManager.clearMicroappContext(code)
                 Log.d("OpenFileViewModel", "Удалён микроапп, отсутствующий в коллекции: $code")
             }
             for (microappCode in allCodes) {

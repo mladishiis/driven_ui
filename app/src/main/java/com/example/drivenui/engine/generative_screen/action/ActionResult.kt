@@ -25,6 +25,11 @@ sealed class ActionResult {
     data class BottomSheetChanged(val model: ScreenModel?) : ActionResult()
 
     /**
+     * Запрос выхода из микроаппа: стек навигации на корне, назад некуда (например [UiAction.Back] с первого экрана).
+     */
+    data object ExitMicroapp : ActionResult()
+
+    /**
      * Ошибка при обработке действия.
      *
      * @property message Сообщение об ошибке

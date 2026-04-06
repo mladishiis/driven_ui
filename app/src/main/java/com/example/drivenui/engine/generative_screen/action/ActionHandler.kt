@@ -90,7 +90,7 @@ class ActionHandler(
         return if (previousScreen != null) {
             ActionResult.NavigationChanged(isBack = true)
         } else {
-            ActionResult.Error("Cannot navigate back: already at root")
+            ActionResult.ExitMicroapp
         }
     }
 

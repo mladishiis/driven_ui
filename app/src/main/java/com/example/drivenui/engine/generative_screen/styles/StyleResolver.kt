@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
@@ -13,10 +12,10 @@ import com.example.drivenui.engine.mappers.parseVisibility
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.CornerRadius
 import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
-import com.example.drivenui.engine.uirender.models.CornerRadius
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.value.resolveValueExpression
@@ -83,7 +82,7 @@ private fun resolveLayout(
 
     layout.radiusValues.radius?.let { rawCode ->
         val resolved = resolveValueExpression(rawCode, contextManager)
-        cornerRadius = resolved.toIntOrNull()
+        cornerRadius = resolved.toIntOrNull()?.takeIf { it > 0 }
     }
     if (cornerRadius == null) {
         layout.radiusValues.radiusTop?.let { rawCode ->
@@ -158,7 +157,10 @@ private fun resolveButton(
 
     button.radiusValues.radius?.let { rawCode ->
         val resolved = resolveValueExpression(rawCode, contextManager)
-        cornerRadius = resolved.toIntOrNull()?.let { CornerRadius(all = it) } ?: cornerRadius
+        val uniform = resolved.toIntOrNull()?.takeIf { it > 0 }
+        if (uniform != null) {
+            cornerRadius = CornerRadius(all = uniform)
+        }
     }
     if (cornerRadius.all == null) {
         var top = cornerRadius.top

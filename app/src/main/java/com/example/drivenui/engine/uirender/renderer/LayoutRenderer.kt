@@ -26,12 +26,8 @@ fun LayoutRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    LaunchedEffect(Unit) {
-        if (isRoot) {
-            val actions = model.onCreateActions
-                .filterNot { it is UiAction.ExecuteQuery }
-            onActions(actions)
-        } else {
+    if (!isRoot) {
+        LaunchedEffect(Unit) {
             onActions(model.onCreateActions)
         }
     }
@@ -54,7 +50,6 @@ fun LayoutRenderer(
     when (model.type) {
         LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
             modelWithClickable,
-            isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
@@ -62,7 +57,6 @@ fun LayoutRenderer(
 
         LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
             modelWithClickable,
-            isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
@@ -70,7 +64,6 @@ fun LayoutRenderer(
 
         LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
             modelWithClickable,
-            isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
@@ -78,7 +71,6 @@ fun LayoutRenderer(
 
         LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
             modelWithClickable,
-            isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
@@ -86,7 +78,6 @@ fun LayoutRenderer(
 
         LayoutType.LAYER -> BoxRenderer(
             modelWithClickable,
-            isRoot,
             onActions,
             onWidgetValueChange,
             applyBindingsForComponent,
@@ -97,7 +88,6 @@ fun LayoutRenderer(
 @Composable
 private fun ColumnRenderer(
     model: LayoutModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
@@ -107,7 +97,7 @@ private fun ColumnRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseColumnAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = isRoot,
+                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
@@ -119,7 +109,6 @@ private fun ColumnRenderer(
 @Composable
 private fun RowRenderer(
     model: LayoutModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
@@ -129,7 +118,7 @@ private fun RowRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseRowAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = isRoot,
+                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
@@ -141,7 +130,6 @@ private fun RowRenderer(
 @Composable
 private fun LazyColumnRenderer(
     model: LayoutModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
@@ -158,7 +146,7 @@ private fun LazyColumnRenderer(
                     applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
-                    isRoot = isRoot,
+                    isRoot = false,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -171,7 +159,6 @@ private fun LazyColumnRenderer(
 @Composable
 private fun LazyRowRenderer(
     model: LayoutModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
@@ -188,7 +175,7 @@ private fun LazyRowRenderer(
                     applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
-                    isRoot = isRoot,
+                    isRoot = false,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -201,7 +188,6 @@ private fun LazyRowRenderer(
 @Composable
 private fun BoxRenderer(
     model: LayoutModel,
-    isRoot: Boolean = false,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
@@ -211,7 +197,7 @@ private fun BoxRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseBoxAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = isRoot,
+                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,

@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.data.RequestInteractor
+import com.example.drivenui.engine.cache.CachedMicroappData
+import com.example.drivenui.engine.cache.toScreenModel
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
@@ -19,15 +21,15 @@ import com.example.drivenui.engine.generative_screen.styles.resolveComponent
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
+import com.example.drivenui.engine.parser.models.AllStyles
+import com.example.drivenui.engine.parser.models.ParsedScreen
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.value.resolveValueExpression
-import com.example.drivenui.engine.cache.CachedMicroappData
-import com.example.drivenui.engine.cache.toScreenModel
-import com.example.drivenui.engine.parser.models.AllStyles
-import com.example.drivenui.engine.parser.models.ParsedScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -73,6 +75,13 @@ class GenerativeScreenViewModel @Inject constructor(
      */
     private val _bottomSheetState = MutableStateFlow<ComponentModel?>(null)
     val bottomSheetState = _bottomSheetState.asStateFlow()
+
+    /**
+     * Событие «выйти из микроаппа» (например [UiAction.Back] на корневом экране стека).
+     * Хост (фрагмент) подписывается и вызывает popBackStack.
+     */
+    private val _exitMicroappEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val exitMicroappEvents = _exitMicroappEvents.asSharedFlow()
 
     /**
      * Устанавливает результат парсинга и загружает начальный экран.
@@ -198,48 +207,62 @@ class GenerativeScreenViewModel @Inject constructor(
      */
     fun handleActions(actions: List<UiAction>) {
         viewModelScope.launch {
-            val handler = actionHandler
-            if (handler == null) {
-                Log.w("GenerativeScreenViewModel", "ActionHandler not initialized")
-                return@launch
+            runActionsSequentially(actions)
+        }
+    }
+
+    private suspend fun runActionsSequentially(actions: List<UiAction>) {
+        val handler = actionHandler
+        if (handler == null) {
+            Log.w("GenerativeScreenViewModel", "ActionHandler not initialized")
+            return
+        }
+
+        for (action in actions) {
+            if (action is UiAction.Back && _bottomSheetState.value != null) {
+                _bottomSheetState.value = null
+                continue
             }
 
-            for (action in actions) {
-                if (action is UiAction.Back && _bottomSheetState.value != null) {
-                    _bottomSheetState.value = null
-                    continue
+            when (val result = handler.handleAction(action)) {
+                is ActionResult.NavigationChanged -> {
+                    if (result.isBack) {
+                        updateUiStateFromNavigation()
+                    } else {
+                        handleNavigationChanged()
+                    }
                 }
 
-                when (val result = handler.handleAction(action)) {
-                    is ActionResult.NavigationChanged -> {
-                        if (result.isBack) {
-                            updateUiStateFromNavigation()
-                        } else {
-                            handleNavigationChanged()
-                        }
+                is ActionResult.Success -> {
+                    if (action is UiAction.ExecuteQuery ||
+                        action is UiAction.RefreshWidget ||
+                        action is UiAction.RefreshLayout ||
+                        action is UiAction.RefreshScreen
+                    ) {
+                        updateUiStateFromNavigation()
                     }
-
-                    is ActionResult.Success -> {
-                        if (action is UiAction.ExecuteQuery ||
-                            action is UiAction.RefreshWidget ||
-                            action is UiAction.RefreshLayout ||
-                            action is UiAction.RefreshScreen
-                        ) {
-                            updateUiStateFromNavigation()
-                        }
-                    }
-                    is ActionResult.BottomSheetChanged -> {
-                        _bottomSheetState.value = result.model?.rootComponent
-                    }
-                    is ActionResult.Error -> {
-                        Log.e(
-                            "GenerativeScreenViewModel",
-                            "Action error: ${result.message}",
-                            result.exception
+                }
+                is ActionResult.BottomSheetChanged -> {
+                    if (result.model == null) {
+                        _bottomSheetState.value = null
+                    } else {
+                        runActionsSequentially(
+                            rootLayoutOnCreateActions(result.model.rootComponent),
                         )
-                        _uiState.value = GenerativeUiState.Error(result.message)
-                        break
+                        _bottomSheetState.value = result.model.rootComponent
                     }
+                }
+                is ActionResult.ExitMicroapp -> {
+                    _exitMicroappEvents.tryEmit(Unit)
+                }
+                is ActionResult.Error -> {
+                    Log.e(
+                        "GenerativeScreenViewModel",
+                        "Action error: ${result.message}",
+                        result.exception
+                    )
+                    _uiState.value = GenerativeUiState.Error(result.message)
+                    break
                 }
             }
         }
@@ -248,7 +271,8 @@ class GenerativeScreenViewModel @Inject constructor(
     /**
      * Выполняет переход назад (сначала закрывает шторку, затем стек навигации).
      *
-     * @return true, если навигация назад возможна (обработано)
+     * @return true, если событие обработано внутри микроаппа (не закрывать хост);
+     * false — на корне стека или без обработчика: хост должен выйти из микроаппа (например popBackStack).
      */
     fun navigateBack(): Boolean {
         val handler = actionHandler ?: return false
@@ -258,23 +282,23 @@ class GenerativeScreenViewModel @Inject constructor(
             return true
         }
 
+        if (!navigationManager.canNavigateBack()) {
+            return false
+        }
+
         viewModelScope.launch {
             when (val result = handler.handleAction(UiAction.Back)) {
-                is ActionResult.NavigationChanged,
-                is ActionResult.Success -> {
-                    updateUiStateFromNavigation()
-                }
-
-                is ActionResult.BottomSheetChanged -> {
-                }
-
+                is ActionResult.NavigationChanged -> updateUiStateFromNavigation()
+                is ActionResult.Success -> Unit
+                is ActionResult.ExitMicroapp -> Unit
+                is ActionResult.BottomSheetChanged -> Unit
                 is ActionResult.Error -> {
                     Log.w("GenerativeScreenViewModel", "Navigate back error: ${result.message}")
                 }
             }
         }
 
-        return navigationManager.canNavigateBack()
+        return true
     }
 
     /**
@@ -360,42 +384,34 @@ class GenerativeScreenViewModel @Inject constructor(
         baseScreen: ScreenModel,
         replaceCurrent: Boolean,
     ) {
-        val onCreateQueries = extractOnCreateQueries(baseScreen.rootComponent)
-
-        val finalScreen = if (onCreateQueries.isNotEmpty()) {
-            _uiState.value = GenerativeUiState.Loading
-
-            var processedScreen = baseScreen
-            for (queryCode in onCreateQueries) {
-                processedScreen = requestInteractor.executeQueryAndUpdateScreen(
-                    screenModel = processedScreen,
-                    queryCode = queryCode,
-                )
-            }
-            processedScreen
-        } else {
-            baseScreen
-        }
-
         val localStyleRegistry = styleRegistry ?: return
-        val resolvedScreen = resolveScreen(finalScreen, contextManager, localStyleRegistry)
+        val preComposeActions = rootLayoutOnCreateActions(baseScreen.rootComponent)
+        if (preComposeActions.isNotEmpty()) {
+            _uiState.value = GenerativeUiState.Loading
+        }
+        val leadingQueryCount = countLeadingExecuteQueries(preComposeActions)
+        var workingScreen = baseScreen
+        for (action in preComposeActions.take(leadingQueryCount)) {
+            workingScreen = requestInteractor.executeQueryAndUpdateScreen(
+                screenModel = workingScreen,
+                queryCode = (action as UiAction.ExecuteQuery).queryCode,
+            )
+        }
+        val resolvedScreen = resolveScreen(workingScreen, contextManager, localStyleRegistry)
         if (replaceCurrent) {
             navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         } else {
             navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         }
-        _uiState.value = GenerativeUiState.Screen(resolvedScreen.rootComponent)
+        runActionsSequentially(preComposeActions.drop(leadingQueryCount))
+        updateUiStateFromNavigation()
     }
 
-    private fun extractOnCreateQueries(rootComponent: ComponentModel?): List<String> {
-        if (rootComponent !is LayoutModel) {
-            return emptyList()
-        }
+    private fun countLeadingExecuteQueries(orderedOnCreate: List<UiAction>): Int =
+        orderedOnCreate.takeWhile { it is UiAction.ExecuteQuery }.size
 
-        return rootComponent.onCreateActions
-            .filterIsInstance<UiAction.ExecuteQuery>()
-            .map { it.queryCode }
-    }
+    private fun rootLayoutOnCreateActions(root: ComponentModel?): List<UiAction> =
+        (root as? LayoutModel)?.onCreateActions ?: emptyList()
 
     override fun onCleared() {
         super.onCleared()

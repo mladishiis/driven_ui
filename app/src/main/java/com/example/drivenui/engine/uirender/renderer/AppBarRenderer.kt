@@ -62,7 +62,6 @@ fun AppBarRenderer(
     )
 
     CenterAlignedTopAppBar(
-        modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
         colors = barColors,
         title = {
             if (model.title != null) {
