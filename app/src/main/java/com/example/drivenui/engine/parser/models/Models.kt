@@ -203,6 +203,7 @@ data class ParsedScreen(
     val deeplink: String,
     val rootComponent: Component? = null,
     val requests: List<ScreenQuery> = emptyList(),
+    val events: List<WidgetEvent> = emptyList(),
 ): Parcelable
 
 /**

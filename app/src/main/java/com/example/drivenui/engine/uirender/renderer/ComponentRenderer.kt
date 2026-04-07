@@ -18,7 +18,6 @@ fun ComponentRenderer(
     model: ComponentModel,
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
-    isRoot: Boolean = false,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
@@ -28,7 +27,6 @@ fun ComponentRenderer(
             model = model,
             onActions = onActions,
             modifier = modifier,
-            isRoot = isRoot,
             onWidgetValueChange = onWidgetValueChange,
             applyBindingsForComponent = applyBindingsForComponent,
         )

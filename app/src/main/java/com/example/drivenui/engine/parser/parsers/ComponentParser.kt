@@ -50,6 +50,7 @@ class ComponentParser {
         var screenShortCode = ""
         var deeplink = ""
         var rootComponent: Component? = null
+        val screenEvents = mutableListOf<WidgetEvent>()
 
         Log.d("ComponentParser", "Парсинг экрана: $title")
 
@@ -68,6 +69,9 @@ class ComponentParser {
                         "deeplink" -> {
                             deeplink = parser.nextText().trim()
                         }
+                        "events" -> {
+                            screenEvents.addAll(parseEventsBlock(parser))
+                        }
                         "screenLayout" -> {
                             rootComponent = parseScreenLayout(parser, 0)
                             if (rootComponent != null) {
@@ -84,7 +88,14 @@ class ComponentParser {
         }
 
         return if (screenCode.isNotEmpty()) {
-            ParsedScreen(title, screenCode, screenShortCode, deeplink, rootComponent)
+            ParsedScreen(
+                title = title,
+                screenCode = screenCode,
+                screenShortCode = screenShortCode,
+                deeplink = deeplink,
+                rootComponent = rootComponent,
+                events = screenEvents,
+            )
         } else {
             null
         }

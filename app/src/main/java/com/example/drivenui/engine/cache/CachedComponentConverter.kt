@@ -20,7 +20,6 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         modifierParams = modifierParams,
         type = type,
         children = children.map { it.toCached() },
-        onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
         radius = radiusValues.radius,
@@ -111,6 +110,8 @@ fun CachedScreenModel.toScreenModel(): ScreenModel =
         id = id,
         deeplink = deeplink,
         requests = requests,
+        onCreateActions = onCreateActions ?: emptyList(),
+        onDestroyActions = onDestroyActions ?: emptyList(),
         rootComponent = rootComponent?.toComponentModel()
     )
 
@@ -126,6 +127,8 @@ fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
         id = id,
         deeplink = deeplink,
         requests = requests,
+        onCreateActions = onCreateActions,
+        onDestroyActions = onDestroyActions,
         rootComponent = rootComponent?.toCached()
     )
 
@@ -143,7 +146,6 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         modifierParams = modifierParams,
         type = type,
         children = children.map { it.toComponentModel() },
-        onCreateActions = onCreateActions,
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
         radiusValues = RadiusValues(

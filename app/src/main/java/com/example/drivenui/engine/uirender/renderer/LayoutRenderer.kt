@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -22,16 +21,9 @@ fun LayoutRenderer(
     model: LayoutModel,
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
-    isRoot: Boolean = false,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    if (!isRoot) {
-        LaunchedEffect(Unit) {
-            onActions(model.onCreateActions)
-        }
-    }
-
     val baseModifier = modifier
         .then(model.modifierParams.applyParams(Modifier))
         .then(model.modifier)
@@ -97,7 +89,6 @@ private fun ColumnRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseColumnAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
@@ -118,7 +109,6 @@ private fun RowRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseRowAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
@@ -146,7 +136,6 @@ private fun LazyColumnRenderer(
                     applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
-                    isRoot = false,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -175,7 +164,6 @@ private fun LazyRowRenderer(
                     applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
                 ComponentRenderer(
                     model = childWithBindings,
-                    isRoot = false,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -197,7 +185,6 @@ private fun BoxRenderer(
             ComponentRenderer(
                 modifier = Modifier.align(parseBoxAlignment(child.alignment)),
                 model = applyBindingsForComponent?.invoke(child) ?: child,
-                isRoot = false,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,

@@ -10,8 +10,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property modifierParams модификаторы
  * @property type тип лэйаута
  * @property children дочерние компоненты
- * @property onCreateActions действия при создании
- * @property onTapActions действия при нажатии
+ * @property onTapActions действия при нажатии (onTap)
  * @property backgroundColorStyleCode код стиля фона
  * @property radius радиус всех углов в dp (приоритет над top/bottom)
  * @property radiusTop радиус верхних углов в dp
@@ -26,7 +25,6 @@ data class CachedLayoutModel(
     override val modifierParams: ModifierParams,
     val type: LayoutType,
     val children: List<CachedComponentModel>,
-    val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String?,
     val radius: String?,

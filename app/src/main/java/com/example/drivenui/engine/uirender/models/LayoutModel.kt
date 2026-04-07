@@ -10,8 +10,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property modifierParams параметры модификатора (padding, размеры)
  * @property type тип layout (VERTICAL_LAYOUT, HORIZONTAL_LAYOUT, LAYER, VERTICAL_FOR, HORIZONTAL_FOR)
  * @property children дочерние компоненты
- * @property onCreateActions экшены при создании
- * @property onTapActions экшены при нажатии
+ * @property onTapActions экшены при нажатии (onTap)
  * @property backgroundColorStyleCode код стиля фона
  * @property radiusValues значения radius, radiusTop, radiusBottom из properties (вход для StyleResolver)
  * @property cornerRadius резолвенные значения радиуса (заполняет StyleResolver)
@@ -25,7 +24,6 @@ data class LayoutModel(
     val modifierParams: ModifierParams = ModifierParams(),
     val type: LayoutType,
     val children: List<ComponentModel>,
-    val onCreateActions: List<UiAction>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String? = null,
     val radiusValues: RadiusValues = RadiusValues(),

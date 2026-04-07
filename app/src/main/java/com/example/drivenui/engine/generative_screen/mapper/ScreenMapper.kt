@@ -2,6 +2,8 @@ package com.example.drivenui.engine.generative_screen.mapper
 
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
+import com.example.drivenui.engine.mappers.getOnCreateEvents
+import com.example.drivenui.engine.mappers.getOnDestroyEvents
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
 import com.example.drivenui.engine.parser.models.AllStyles
 import com.example.drivenui.engine.parser.models.ParsedScreen
@@ -18,6 +20,8 @@ class ScreenMapper(
             id = parsedScreen.screenCode,
             deeplink = parsedScreen.deeplink,
             requests = parsedScreen.requests,
+            onCreateActions = getOnCreateEvents(parsedScreen.events),
+            onDestroyActions = getOnDestroyEvents(parsedScreen.events),
             rootComponent = mapParsedScreenToUI(parsedScreen, styleRegistry)
         )
     }

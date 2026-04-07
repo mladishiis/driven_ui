@@ -80,7 +80,6 @@ fun LayoutComponent.mapLayoutToUIModel(
         modifierParams = modifierParams,
         type = getLayoutTypeFromString(layoutCode),
         children = children.mapToUiModelList(styleRegistry),
-        onCreateActions = getOnCreateEvents(events),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value,
         radiusValues = RadiusValues(
@@ -134,7 +133,7 @@ fun WidgetComponent.mapWidgetToUiModel(
                 modifierParams = modifierParams,
                 text = "Custom Widget",
                 widgetCode = widgetCode,
-                tapActions = getOnTapEvents(events),
+                tapActions = emptyList(),
                 alignment = this.getAlignment(),
             )
         }
@@ -283,6 +282,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(
 
 /**
  * Преобразует WidgetComponent в InputModel.
+ * Из событий маппится только `onFinishTyping`; `onTyping`, `onFocus`, `onFinishFocus` — позже.
  *
  * @receiver WidgetComponent
  * @param modifier Базовый Modifier

@@ -114,7 +114,6 @@ private fun ScreenContent(
             state.model?.also {
                 ComponentRenderer(
                     model = it,
-                    isRoot = true,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -167,7 +166,6 @@ private fun BottomSheetHost(
             ) {
                 ComponentRenderer(
                     model = sheetModel,
-                    isRoot = false,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent

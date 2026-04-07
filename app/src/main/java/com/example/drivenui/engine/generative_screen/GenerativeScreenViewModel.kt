@@ -246,13 +246,13 @@ class GenerativeScreenViewModel @Inject constructor(
                     if (result.model == null) {
                         _bottomSheetState.value = null
                     } else {
-                        runActionsSequentially(
-                            rootLayoutOnCreateActions(result.model.rootComponent),
-                        )
-                        _bottomSheetState.value = result.model.rootComponent
+                        viewModelScope.launch {
+                            openBottomSheetAfterScreenOnCreate(result.model)
+                        }
                     }
                 }
                 is ActionResult.ExitMicroapp -> {
+                    runDestroyActionsForCurrentScreen()
                     _exitMicroappEvents.tryEmit(Unit)
                 }
                 is ActionResult.Error -> {
@@ -283,10 +283,15 @@ class GenerativeScreenViewModel @Inject constructor(
         }
 
         if (!navigationManager.canNavigateBack()) {
-            return false
+            viewModelScope.launch {
+                runDestroyActionsForCurrentScreen()
+                _exitMicroappEvents.tryEmit(Unit)
+            }
+            return true
         }
 
         viewModelScope.launch {
+            runDestroyActionsForCurrentScreen()
             when (val result = handler.handleAction(UiAction.Back)) {
                 is ActionResult.NavigationChanged -> updateUiStateFromNavigation()
                 is ActionResult.Success -> Unit
@@ -385,7 +390,7 @@ class GenerativeScreenViewModel @Inject constructor(
         replaceCurrent: Boolean,
     ) {
         val localStyleRegistry = styleRegistry ?: return
-        val preComposeActions = rootLayoutOnCreateActions(baseScreen.rootComponent)
+        val preComposeActions = baseScreen.onCreateActions
         if (preComposeActions.isNotEmpty()) {
             _uiState.value = GenerativeUiState.Loading
         }
@@ -410,8 +415,27 @@ class GenerativeScreenViewModel @Inject constructor(
     private fun countLeadingExecuteQueries(orderedOnCreate: List<UiAction>): Int =
         orderedOnCreate.takeWhile { it is UiAction.ExecuteQuery }.size
 
-    private fun rootLayoutOnCreateActions(root: ComponentModel?): List<UiAction> =
-        (root as? LayoutModel)?.onCreateActions ?: emptyList()
+    
+    private suspend fun openBottomSheetAfterScreenOnCreate(screen: ScreenModel) {
+        val localStyleRegistry = styleRegistry ?: return
+        val preComposeActions = screen.onCreateActions
+        val leadingQueryCount = countLeadingExecuteQueries(preComposeActions)
+        var workingScreen = screen
+        for (action in preComposeActions.take(leadingQueryCount)) {
+            workingScreen = requestInteractor.executeQueryAndUpdateScreen(
+                screenModel = workingScreen,
+                queryCode = (action as UiAction.ExecuteQuery).queryCode,
+            )
+        }
+        val resolvedScreen = resolveScreen(workingScreen, contextManager, localStyleRegistry)
+        runActionsSequentially(preComposeActions.drop(leadingQueryCount))
+        _bottomSheetState.value = resolvedScreen.rootComponent
+    }
+
+    private suspend fun runDestroyActionsForCurrentScreen() {
+        val definition = navigationManager.getCurrentScreen()?.definition ?: return
+        runActionsSequentially(definition.onDestroyActions)
+    }
 
     override fun onCleared() {
         super.onCleared()

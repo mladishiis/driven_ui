@@ -5,9 +5,16 @@ import com.example.drivenui.engine.parser.models.EventAction
 import com.example.drivenui.engine.parser.models.WidgetEvent
 
 /**
- * Извлекает экшены события onTap из списка событий виджета.
+ * Соответствие кодов событий (`eventCode`) целям в дереве UI:
+ * - **Экран** — `onCreate`, `onDestroy` ([getOnCreateEvents], [getOnDestroyEvents])
+ * - **Layout, button, label, image, appBar** — `onTap` ([getOnTapEvents]); у прочих виджетов onTap не маппится
+ * - **Input** — задуманы `onTyping`, `onFinishTyping`, `onFocus`, `onFinishFocus`; в рендере пока обрабатывается только [getOnFinishTypingEvents]
+ */
+
+/**
+ * Извлекает экшены события onTap
  *
- * @param events Список событий виджета
+ * @param events Список событий компонента
  * @return Список UiAction для onTap или пустой список
  */
 fun getOnTapEvents(events: List<WidgetEvent>): List<UiAction> =
@@ -15,9 +22,9 @@ fun getOnTapEvents(events: List<WidgetEvent>): List<UiAction> =
         ?: emptyList()
 
 /**
- * Извлекает экшены события onFinishTyping из списка событий виджета.
+ * Извлекает экшены события onFinishTyping для input
  *
- * @param events Список событий виджета
+ * @param events Список событий виджета input
  * @return Список UiAction для onFinishTyping или пустой список
  */
 fun getOnFinishTypingEvents(events: List<WidgetEvent>): List<UiAction> =
@@ -25,13 +32,23 @@ fun getOnFinishTypingEvents(events: List<WidgetEvent>): List<UiAction> =
         ?: emptyList()
 
 /**
- * Извлекает экшены события onCreate из списка событий виджета.
+ * Извлекает экшены onCreate
  *
- * @param events Список событий виджета
+ * @param events Список событий экрана
  * @return Список UiAction для onCreate или пустой список
  */
 fun getOnCreateEvents(events: List<WidgetEvent>): List<UiAction> =
     events.find { it.eventCode == "onCreate" }?.eventActions?.mapToUiActionsList()
+        ?: emptyList()
+
+/**
+ * Извлекает экшены onDestroy
+ *
+ * @param events Список событий экрана
+ * @return Список UiAction для onDestroy или пустой список
+ */
+fun getOnDestroyEvents(events: List<WidgetEvent>): List<UiAction> =
+    events.find { it.eventCode == "onDestroy" }?.eventActions?.mapToUiActionsList()
         ?: emptyList()
 
 /**
