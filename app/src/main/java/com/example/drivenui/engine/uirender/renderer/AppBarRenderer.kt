@@ -64,9 +64,10 @@ fun AppBarRenderer(
     CenterAlignedTopAppBar(
         colors = barColors,
         title = {
-            if (model.title != null) {
+            val titleText = model.displayTitle ?: model.title
+            if (titleText != null) {
                 Text(
-                    text = model.title,
+                    text = titleText,
                     style = model.textStyle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -74,10 +75,11 @@ fun AppBarRenderer(
             }
         },
         navigationIcon = {
-            if (model.iconLeftUrl != null) {
+            val iconUrl = model.displayIconLeftUrl ?: model.iconLeftUrl
+            if (iconUrl != null) {
                 AppBarIcon(
                     context = context,
-                    iconUrl = model.iconLeftUrl,
+                    iconUrl = iconUrl,
                     iconTint = model.leftIconTint,
                     onTap = { if (model.tapActions.isNotEmpty()) onActions(model.tapActions) },
                 )

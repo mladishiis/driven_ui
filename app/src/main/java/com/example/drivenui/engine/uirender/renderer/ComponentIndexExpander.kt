@@ -53,6 +53,7 @@ internal fun expandComponentWithIndex(
                     LayoutForParams(
                         forIndexName = forParams.forIndexName,
                         maxForIndex = forParams.maxForIndex.replaceIndex(),
+                        resolvedMaxForIndex = forParams.resolvedMaxForIndex.replaceIndex(),
                     )
                 },
                 visibilityCode = component.visibilityCode.replaceIndex(),
@@ -61,6 +62,7 @@ internal fun expandComponentWithIndex(
         is LabelModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
+                displayText = component.displayText.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
@@ -71,6 +73,7 @@ internal fun expandComponentWithIndex(
         is ButtonModel -> {
             component.copy(
                 text = component.text.replaceIndex(),
+                displayText = component.displayText.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 radiusValues = component.radiusValues.let { rv ->
                     RadiusValues(
@@ -89,7 +92,9 @@ internal fun expandComponentWithIndex(
         is AppBarModel -> {
             component.copy(
                 title = component.title.replaceIndex(),
+                displayTitle = component.displayTitle.replaceIndex(),
                 iconLeftUrl = component.iconLeftUrl.replaceIndex(),
+                displayIconLeftUrl = component.displayIconLeftUrl.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
@@ -102,6 +107,8 @@ internal fun expandComponentWithIndex(
             component.copy(
                 text = component.text.replaceIndex(),
                 hint = component.hint.replaceIndex(),
+                displayText = component.displayText.replaceIndex(),
+                displayHint = component.displayHint.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
@@ -109,6 +116,7 @@ internal fun expandComponentWithIndex(
         is ImageModel -> {
             component.copy(
                 url = component.url.replaceIndex(),
+                displayUrl = component.displayUrl.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),

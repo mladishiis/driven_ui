@@ -36,7 +36,7 @@ fun LabelRenderer(
     }
 
     Text(
-        text = model.text,
+        text = model.displayText ?: model.text,
         modifier = labelModifier,
         style = model.textStyle,
         textAlign = parseTextAlign(model.textAlignment),

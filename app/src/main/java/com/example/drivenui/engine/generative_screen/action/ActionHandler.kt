@@ -7,17 +7,9 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
-import com.example.drivenui.engine.generative_screen.styles.resolveComponent
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
-import com.example.drivenui.engine.uirender.models.AppBarModel
-import com.example.drivenui.engine.uirender.models.ButtonModel
-import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.engine.uirender.models.ImageModel
-import com.example.drivenui.engine.uirender.models.InputModel
-import com.example.drivenui.engine.uirender.models.LabelModel
-import com.example.drivenui.engine.uirender.models.LayoutModel
 
 /**
  * Обработчик UI-действий: навигация, deeplink, запросы, шторки, контекст.
@@ -81,7 +73,12 @@ class ActionHandler(
         val screenModel = screenProvider.findScreen(screenCode)
             ?: return ActionResult.Error("Bottom sheet screen not found: $screenCode")
 
-        val resolvedScreen = resolveScreen(screenModel, contextManager, styleRegistry)
+        val resolvedScreen = resolveScreen(
+            screenModel,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
         return ActionResult.BottomSheetChanged(resolvedScreen)
     }
 
@@ -112,7 +109,12 @@ class ActionHandler(
      * Резолвит переменные контекста в экране и пушит результат в стек навигации.
      */
     private fun openResolvedScreen(screenModel: ScreenModel): ActionResult {
-        val resolvedScreen = resolveScreen(screenModel, contextManager, styleRegistry)
+        val resolvedScreen = resolveScreen(
+            screenModel,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
         navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.NavigationChanged(isBack = false)
     }
@@ -120,30 +122,39 @@ class ActionHandler(
     /**
      * Метод для обновления всего экранаа
      */
-    private suspend fun handleRefreshScreen(screenCode: String): ActionResult {
+    private suspend fun handleRefreshScreen(@Suppress("UNUSED_PARAMETER") screenCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
             ?: return ActionResult.Error("No current screen to refresh")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
-        val resolvedScreen = resolveScreen(screenWithBindings, contextManager, styleRegistry)
+        val resolvedScreen = resolveScreen(
+            screenWithBindings,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 
         return ActionResult.Success
     }
 
     /**
-     * Метод для обновления конкретного виджета
+     * Обновляет экран: повторно применяет биндинги (FOR) и полный резолв шаблонов в поля display*.
      */
-    private fun handleRefreshWidget(widgetCode: String): ActionResult {
+    private suspend fun handleRefreshWidget(@Suppress("UNUSED_PARAMETER") widgetCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
             ?: return ActionResult.Error("No current screen to refresh widget on")
 
-        val updatedRoot = refreshWidgetInComponent(definition.rootComponent, widgetCode)
-        val updatedScreen = definition.copy(rootComponent = updatedRoot)
-
-        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(updatedScreen))
+        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
+        val resolvedScreen = resolveScreen(
+            screenWithBindings,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
+        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.Success
     }
 
@@ -151,68 +162,20 @@ class ActionHandler(
      * Метод для обновления конкретного лейаута
      * Пока что реализовано как обновление всего экрана
      */
-    private fun handleRefreshLayout(layoutCode: String): ActionResult {
+    private suspend fun handleRefreshLayout(@Suppress("UNUSED_PARAMETER") layoutCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
             ?: return ActionResult.Error("No current screen to refresh layout on")
 
-        val resolvedScreen = resolveScreen(definition, contextManager, styleRegistry)
+        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
+        val resolvedScreen = resolveScreen(
+            screenWithBindings,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.Success
-    }
-
-    /**
-     * Обновляет данные виджета в дереве компонентов по widgetCode.
-     * @todo Рефакторинг или вынести куда-то вообще
-     */
-    private fun refreshWidgetInComponent(
-        component: ComponentModel?,
-        widgetCode: String,
-    ): ComponentModel? {
-        return when (component) {
-            null -> null
-            is LayoutModel -> component.copy(
-                children = component.children.map { child ->
-                    refreshWidgetInComponent(child, widgetCode) ?: child
-                },
-            )
-            is InputModel -> {
-                if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager, styleRegistry) as? InputModel ?: component
-                } else {
-                    component
-                }
-            }
-            is ButtonModel -> {
-                if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager, styleRegistry) as? ButtonModel ?: component
-                } else {
-                    component
-                }
-            }
-            is LabelModel -> {
-                if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager, styleRegistry) as? LabelModel ?: component
-                } else {
-                    component
-                }
-            }
-            is ImageModel -> {
-                if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager, styleRegistry) as? ImageModel ?: component
-                } else {
-                    component
-                }
-            }
-            is AppBarModel -> {
-                if (component.widgetCode == widgetCode) {
-                    resolveComponent(component, contextManager, styleRegistry) as? AppBarModel ?: component
-                } else {
-                    component
-                }
-            }
-            else -> component
-        }
     }
 
     private suspend fun handleExecuteQuery(queryCode: String): ActionResult {
@@ -226,7 +189,12 @@ class ActionHandler(
             queryCode = queryCode,
         )
 
-        val resolvedScreen = resolveScreen(processedScreen, contextManager, styleRegistry)
+        val resolvedScreen = resolveScreen(
+            processedScreen,
+            contextManager,
+            styleRegistry,
+            requestInteractor.getDataContext(),
+        )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 
         return ActionResult.Success

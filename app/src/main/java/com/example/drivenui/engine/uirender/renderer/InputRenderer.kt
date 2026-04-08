@@ -34,11 +34,25 @@ fun InputRenderer(
     onWidgetValueChange: WidgetValueSetter,
     modifier: Modifier = Modifier,
 ) {
-    var text by remember(model) { mutableStateOf(model.text) }
+    val resolvedText = model.displayText ?: model.text
+    val resolvedHint = model.displayHint ?: model.hint
 
-    var isFirstValue by remember(model) { mutableStateOf(true) }
+    var text by remember(model.widgetCode) { mutableStateOf(resolvedText) }
+
+    var isFirstValue by remember(model.widgetCode) { mutableStateOf(true) }
+
+    var suppressSyncFromModel by remember(model.widgetCode) { mutableStateOf(false) }
 
     val finishTypingActions = remember(model) { model.finishTypingActions }
+
+    LaunchedEffect(resolvedText) {
+        suppressSyncFromModel = true
+        if (text != resolvedText) {
+            text = resolvedText
+        } else {
+            suppressSyncFromModel = false
+        }
+    }
 
     val fieldTextStyle = MaterialTheme.typography.bodyLarge.copy(
         color = MaterialTheme.colorScheme.onSurface,
@@ -48,6 +62,10 @@ fun InputRenderer(
     )
 
     LaunchedEffect(text) {
+        if (suppressSyncFromModel) {
+            suppressSyncFromModel = false
+            return@LaunchedEffect
+        }
         if (isFirstValue) {
             isFirstValue = false
             return@LaunchedEffect
@@ -92,9 +110,9 @@ fun InputRenderer(
                         vertical = InputOutlinePaddingVertical,
                     ),
             ) {
-                if (text.isEmpty() && model.hint.isNotEmpty()) {
+                if (text.isEmpty() && resolvedHint.isNotEmpty()) {
                     Text(
-                        text = model.hint,
+                        text = resolvedHint,
                         style = hintTextStyle,
                     )
                 }

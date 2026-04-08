@@ -10,7 +10,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  *
  * @property modifier Modifier для Compose
  * @property modifierParams параметры модификатора
- * @property title заголовок
+ * @property title шаблон заголовка из XML
+ * @property displayTitle результат полного резолва для заголовка
  * @property iconLeftUrl URL иконки слева
  * @property textStyle стиль текста
  * @property textStyleCode код стиля текста
@@ -29,7 +30,9 @@ data class AppBarModel(
     val modifier: Modifier,
     val modifierParams: ModifierParams = ModifierParams(),
     val title: String?,
+    val displayTitle: String? = null,
     val iconLeftUrl: String?,
+    val displayIconLeftUrl: String? = null,
     val textStyle: TextStyle = TextStyle.Default,
     val textStyleCode: String? = null,
     val colorStyleCode: String? = null,

@@ -11,7 +11,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property modifier Modifier для Compose
  * @property modifierParams параметры модификатора
  * @property enabled активна ли кнопка
- * @property text текст кнопки
+ * @property text шаблон текста из XML
+ * @property displayText результат полного резолва для отрисовки
  * @property cornerRadius резолвенные значения радиуса скругления (заполняет StyleResolver)
  * @property textStyle стиль текста
  * @property backgroundColor цвет фона
@@ -31,6 +32,7 @@ data class ButtonModel(
     val modifierParams: ModifierParams = ModifierParams(),
     val enabled: Boolean,
     val text: String,
+    val displayText: String? = null,
     val cornerRadius: CornerRadius = CornerRadius(),
     val textStyle: TextStyle = TextStyle.Default,
     val backgroundColor: Color = Color.Black,

@@ -2,7 +2,7 @@ package com.example.drivenui.app.data
 
 import android.content.Context
 import android.util.Log
-import com.example.drivenui.engine.generative_screen.binding.DataBinder
+import com.example.drivenui.engine.generative_screen.binding.ForLayoutBinding
 import com.example.drivenui.engine.generative_screen.binding.DataBindingParser
 import com.example.drivenui.engine.generative_screen.binding.DataContextProvider
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
@@ -20,7 +20,7 @@ import javax.inject.Singleton
 /**
  * Интерактор для выполнения запросов и применения биндингов к экранам.
  *
- * Загружает mock-данные из ScreenQuery, обеспечивает DataContext и DataBinder
+ * Загружает mock-данные из ScreenQuery, обеспечивает DataContext и [ForLayoutBinding]
  * для рендереров.
  *
  * @property appContext контекст приложения для доступа к assets и файловой системе
@@ -71,7 +71,7 @@ class RequestInteractor @Inject constructor(
 
         loadComponentBindingsJsonFiles(screenModel)
         dataContextProvider.debugInfo()
-        return DataBinder.applyBindings(
+        return ForLayoutBinding.applyBindings(
             screenModel,
             dataContextProvider.getDataContext()
         )
@@ -86,15 +86,15 @@ class RequestInteractor @Inject constructor(
      */
     fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
         Log.d(TAG, "Applying bindings to screen: ${screenModel.id} (without executing queries)")
-        return DataBinder.applyBindings(screenModel, dataContextProvider.getDataContext())
+        return ForLayoutBinding.applyBindings(screenModel, dataContextProvider.getDataContext())
     }
 
     /**
-     * Возвращает DataBinder для применения биндингов в рендерерах.
+     * Возвращает [ForLayoutBinding] для обхода дерева и `resolvedMaxForIndex` на FOR-layout’ах.
      *
-     * @return синглтон DataBinder
+     * @return синглтон [ForLayoutBinding]
      */
-    fun getDataBinder(): DataBinder = DataBinder
+    fun getForLayoutBinding(): ForLayoutBinding = ForLayoutBinding
 
     /**
      * Возвращает DataContext для применения биндингов в рендерерах.

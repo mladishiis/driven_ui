@@ -17,6 +17,7 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
 import com.example.drivenui.engine.generative_screen.styles.resolveComponent
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
@@ -25,7 +26,6 @@ import com.example.drivenui.engine.parser.models.AllStyles
 import com.example.drivenui.engine.parser.models.ParsedScreen
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
-import com.example.drivenui.engine.value.resolveValueExpression
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -327,7 +327,11 @@ class GenerativeScreenViewModel @Inject constructor(
         if (sheetRoot !is LayoutModel) return null
         sheetRoot.cornerRadius.all?.let { return it }
         val radiusStr = sheetRoot.radiusValues.radius ?: return null
-        val resolved = resolveValueExpression(radiusStr, contextManager)
+        val resolved = resolveTemplateString(
+            radiusStr,
+            requestInteractor.getDataContext(),
+            contextManager,
+        ) ?: radiusStr
         return resolved.toIntOrNull()
     }
 
@@ -338,15 +342,16 @@ class GenerativeScreenViewModel @Inject constructor(
      * @return компонент с применёнными биндингами и стилями
      */
     fun applyBindingsToComponent(componentModel: ComponentModel): ComponentModel {
-        val binder = requestInteractor.getDataBinder()
+        val forLayoutBinding = requestInteractor.getForLayoutBinding()
         val dataContext = requestInteractor.getDataContext()
-        val withBindings = binder.applyBindingsToComponentPublic(componentModel, dataContext) ?: componentModel
+        val withBindings = forLayoutBinding.applyBindingsToComponent(componentModel, dataContext)
         val localStyleRegistry = styleRegistry
         return if (localStyleRegistry != null) {
             resolveComponent(
                 withBindings,
                 contextManager,
-                localStyleRegistry
+                localStyleRegistry,
+                dataContext,
             ) ?: withBindings
         } else {
             withBindings
@@ -402,7 +407,12 @@ class GenerativeScreenViewModel @Inject constructor(
                 queryCode = (action as UiAction.ExecuteQuery).queryCode,
             )
         }
-        val resolvedScreen = resolveScreen(workingScreen, contextManager, localStyleRegistry)
+        val resolvedScreen = resolveScreen(
+            workingScreen,
+            contextManager,
+            localStyleRegistry,
+            requestInteractor.getDataContext(),
+        )
         if (replaceCurrent) {
             navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         } else {
@@ -427,7 +437,12 @@ class GenerativeScreenViewModel @Inject constructor(
                 queryCode = (action as UiAction.ExecuteQuery).queryCode,
             )
         }
-        val resolvedScreen = resolveScreen(workingScreen, contextManager, localStyleRegistry)
+        val resolvedScreen = resolveScreen(
+            workingScreen,
+            contextManager,
+            localStyleRegistry,
+            requestInteractor.getDataContext(),
+        )
         runActionsSequentially(preComposeActions.drop(leadingQueryCount))
         _bottomSheetState.value = resolvedScreen.rootComponent
     }

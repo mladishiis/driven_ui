@@ -2,6 +2,12 @@ package com.example.drivenui.engine.value
 
 import com.example.drivenui.engine.context.IContextManager
 
+/** Сначала `@@{…}` (движок), чтобы не перехватывать вложенный `@{` внутри `@@{`. */
+private val ENGINE_CONTEXT_VAR_PATTERN = Regex("@@\\{([^}]+)\\}")
+
+/** `@{microappCode.variableName}` в любой позиции строки. */
+private val MICROAPP_CONTEXT_VAR_PATTERN = Regex("@\\{([^}]+)\\}")
+
 /**
  * Резолвит строковое значение с учётом условных выражений *if(...)*then(...)*else(...)
  * и подстановки переменных контекста @{microapp.var} и @@{var}.
@@ -152,7 +158,11 @@ private fun stripQuotes(value: String): String {
 }
 
 /**
- * Подставляет переменные контекста @{microapp.var} и @@{var}.
+ * Подставляет переменные контекста `@{microapp.var}` и `@@{var}` во **всех** вхождениях
+ * (в том числе внутри условий `*if(...)*then*else*` и в ветках then/else).
+ *
+ * Порядок: сначала `@@{…}`, затем `@{…}` — иначе префикс `@{` из `@@{foo}` ошибочно
+ * обрабатывался бы как microapp.
  *
  * @param raw Исходная строка
  * @param contextManager Менеджер контекста
@@ -162,26 +172,32 @@ private fun resolveContextVariables(
     raw: String,
     contextManager: IContextManager
 ): String {
-    if (raw.startsWith("@{") && raw.endsWith("}")) {
-        val content = raw.substring(2, raw.length - 1)
+    if (raw.isEmpty()) return raw
+
+    var result = ENGINE_CONTEXT_VAR_PATTERN.replace(raw) { match ->
+        val name = match.groupValues[1].trim()
+        if (name.isEmpty()) {
+            match.value
+        } else {
+            contextManager.getEngineVariable(name)?.toString() ?: match.value
+        }
+    }
+
+    result = MICROAPP_CONTEXT_VAR_PATTERN.replace(result) { match ->
+        val content = match.groupValues[1]
         val parts = content.split(".", limit = 2)
         if (parts.size == 2) {
             val microappCode = parts[0].trim()
             val variableName = parts[1].trim()
             if (microappCode.isNotEmpty() && variableName.isNotEmpty()) {
-                val resolved = contextManager.getMicroappVariable(microappCode, variableName)
-                return resolved?.toString() ?: raw
+                contextManager.getMicroappVariable(microappCode, variableName)?.toString() ?: match.value
+            } else {
+                match.value
             }
+        } else {
+            match.value
         }
     }
 
-    if (raw.startsWith("@@{") && raw.endsWith("}")) {
-        val content = raw.substring(3, raw.length - 1).trim()
-        if (content.isNotEmpty()) {
-            val resolved = contextManager.getEngineVariable(content)
-            return resolved?.toString() ?: raw
-        }
-    }
-
-    return raw
+    return result
 }

@@ -9,7 +9,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  *
  * @property modifier Modifier для Compose-компонента
  * @property modifierParams Параметры модификатора (размеры, отступы)
- * @property url URL или путь к изображению
+ * @property url шаблон URL из XML
+ * @property displayUrl результат полного резолва для загрузки изображения
  * @property widgetCode Уникальный код виджета
  * @property tapActions Экшены при нажатии
  * @property colorStyleCode Код стиля цвета
@@ -22,6 +23,7 @@ data class ImageModel(
     val modifier: Modifier,
     val modifierParams: ModifierParams = ModifierParams(),
     val url: String?,
+    val displayUrl: String? = null,
     val widgetCode: String,
     val tapActions: List<UiAction>,
     val colorStyleCode: String? = null,

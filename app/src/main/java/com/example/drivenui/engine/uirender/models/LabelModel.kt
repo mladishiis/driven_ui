@@ -9,7 +9,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  *
  * @property modifier Modifier для Compose
  * @property modifierParams параметры модификатора
- * @property text текст метки
+ * @property text шаблон текста из XML (может содержать `${}`, `@{...}`, `@@{...}`); не перезаписывается биндером
+ * @property displayText результат полного резолва для отрисовки; null до первого [com.example.drivenui.engine.generative_screen.styles.resolveScreen]
  * @property widgetCode уникальный код виджета
  * @property textStyle стиль текста
  * @property textStyleCode код стиля текста
@@ -24,6 +25,7 @@ data class LabelModel(
     val modifier: Modifier,
     val modifierParams: ModifierParams = ModifierParams(),
     val text: String,
+    val displayText: String? = null,
     val widgetCode: String,
     val textStyle: TextStyle = TextStyle.Default,
     val textStyleCode: String? = null,

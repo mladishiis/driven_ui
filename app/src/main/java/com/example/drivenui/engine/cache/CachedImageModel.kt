@@ -7,7 +7,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * Кэшированная модель изображения.
  *
  * @property modifierParams модификаторы
- * @property url URL изображения
+ * @property url шаблон URL
+ * @property displayUrl результат резолва для загрузки
  * @property widgetCode код виджета
  * @property tapActions действия при нажатии
  * @property colorStyleCode код стиля цвета
@@ -18,6 +19,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
 data class CachedImageModel(
     override val modifierParams: ModifierParams,
     val url: String?,
+    val displayUrl: String? = null,
     val widgetCode: String,
     val tapActions: List<UiAction>,
     val colorStyleCode: String?,

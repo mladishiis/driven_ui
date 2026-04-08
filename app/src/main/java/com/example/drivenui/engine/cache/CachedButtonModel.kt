@@ -8,7 +8,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  *
  * @property modifierParams модификаторы
  * @property enabled активна ли кнопка
- * @property text текст
+ * @property text шаблон текста
+ * @property displayText результат резолва для отрисовки
  * @property radius радиус всех углов в dp (приоритет над top/bottom)
  * @property radiusTop радиус верхних углов в dp
  * @property radiusBottom радиус нижних углов в dp
@@ -26,6 +27,7 @@ data class CachedButtonModel(
     override val modifierParams: ModifierParams,
     val enabled: Boolean,
     val text: String,
+    val displayText: String? = null,
     val radius: String?,
     val radiusTop: String? = null,
     val radiusBottom: String? = null,

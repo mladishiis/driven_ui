@@ -31,6 +31,7 @@ fun ImageRenderer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val urlForLoad = model.displayUrl ?: model.url
 
     val baseModifier = modifier.then(model.modifierParams.applyParams(Modifier))
     val imageModifier = if (model.tapActions.isNotEmpty()) {
@@ -43,8 +44,8 @@ fun ImageRenderer(
         baseModifier
     }
 
-    val data = remember(model.url) {
-        resolveImageData(context, model.url)
+    val data = remember(urlForLoad) {
+        resolveImageData(context, urlForLoad)
     }
 
     val colorFilter = if (model.color != Color.Unspecified) {

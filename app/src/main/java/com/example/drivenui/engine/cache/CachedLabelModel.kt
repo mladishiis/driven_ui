@@ -7,7 +7,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * Кэшированная модель лейбла.
  *
  * @property modifierParams модификаторы
- * @property text текст
+ * @property text шаблон текста из разметки
+ * @property displayText результат резолва для отрисовки
  * @property widgetCode код виджета
  * @property textStyleCode код стиля текста
  * @property colorStyleCode код стиля цвета
@@ -20,6 +21,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
 data class CachedLabelModel(
     override val modifierParams: ModifierParams,
     val text: String,
+    val displayText: String? = null,
     val widgetCode: String,
     val textStyleCode: String?,
     val colorStyleCode: String?,

@@ -48,7 +48,7 @@ fun ButtonRenderer(
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
-            text = model.text,
+            text = model.displayText ?: model.text,
             style = model.textStyle,
             textAlign = parseTextAlign(model.textAlignment),
         )

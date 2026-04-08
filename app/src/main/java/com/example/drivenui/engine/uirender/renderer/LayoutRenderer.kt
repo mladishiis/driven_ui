@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
@@ -125,7 +126,9 @@ private fun LazyColumnRenderer(
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val forIndexName = model.forParams.forIndexName ?: return
-    val maxForIndex = model.forParams.maxForIndex?.toIntOrNull() ?: return
+    val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
+        ?: model.forParams.maxForIndex?.toIntOrNull()
+        ?: return
 
     LazyColumn(modifier = model.modifier) {
         items(maxForIndex) { index ->
@@ -153,7 +156,9 @@ private fun LazyRowRenderer(
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val forIndexName = model.forParams.forIndexName ?: return
-    val maxForIndex = model.forParams.maxForIndex?.toIntOrNull() ?: return
+    val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
+        ?: model.forParams.maxForIndex?.toIntOrNull()
+        ?: return
 
     LazyRow(modifier = model.modifier) {
         items(maxForIndex) { index ->

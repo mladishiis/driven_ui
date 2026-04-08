@@ -7,8 +7,10 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * Кэшированная модель поля ввода.
  *
  * @property modifierParams модификаторы
- * @property text текст
- * @property hint подсказка
+ * @property text шаблон значения
+ * @property hint шаблон подсказки
+ * @property displayText результат резолва значения
+ * @property displayHint результат резолва подсказки
  * @property readOnly только для чтения
  * @property widgetCode код виджета
  * @property finishTypingActions действия при завершении ввода
@@ -20,6 +22,8 @@ data class CachedInputModel(
     override val modifierParams: ModifierParams,
     val text: String,
     val hint: String,
+    val displayText: String? = null,
+    val displayHint: String? = null,
     val readOnly: Boolean,
     val widgetCode: String,
     val finishTypingActions: List<UiAction>,

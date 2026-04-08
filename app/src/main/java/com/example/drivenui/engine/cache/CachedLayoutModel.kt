@@ -17,7 +17,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property radiusBottom радиус нижних углов в dp
  * @property alignment выравнивание
  * @property forIndexName имя переменной индекса для шаблонов
- * @property maxForIndex максимальное значение индекса
+ * @property maxForIndex шаблон максимального индекса (FOR)
+ * @property resolvedMaxForIndex число итераций после биндинга (строка); null если не резолвилось
  * @property visibility видимость
  * @property visibilityCode код видимости
  */
@@ -33,6 +34,7 @@ data class CachedLayoutModel(
     override val alignment: String,
     val forIndexName: String?,
     val maxForIndex: String?,
+    val resolvedMaxForIndex: String? = null,
     override val visibility: Boolean = true,
     override val visibilityCode: String? = null
 ) : CachedComponentModel
