@@ -92,7 +92,7 @@ internal class OpenFileViewModel @Inject constructor(
 
     /**
      * Обрабатывает загрузку и парсинг файла (полный микроапп или шаблон).
-     * Логика парсинга единая и допускает отсутствие microapp.xml / allQueries.xml.
+     * Логика парсинга единая и допускает отсутствие microapp.xml.
      */
     private fun handleUploadFile() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -130,7 +130,6 @@ internal class OpenFileViewModel @Inject constructor(
                             screensCount = parsedResult.screens.size,
                             textStylesCount = parsedResult.styles?.textStyles?.size ?: 0,
                             colorStylesCount = parsedResult.styles?.colorStyles?.size ?: 0,
-                            queriesCount = parsedResult.queries.size,
                             componentsCount = parsedResult.screens.sumOf { countComponents(it.rootComponent) },
                             hasBindings = state.selectedJsonFiles.isNotEmpty(),
                             jsonFilesCount = state.selectedJsonFiles.size,
@@ -444,7 +443,6 @@ internal class OpenFileViewModel @Inject constructor(
         Log.d("OpenFileViewModel", "=== Результат парсинга ===")
         Log.d("OpenFileViewModel", "Микроапп: ${result.microapp?.title ?: "Не найден"}")
         Log.d("OpenFileViewModel", "Экранов: ${result.screens.size}")
-        Log.d("OpenFileViewModel", "Запросов API: ${result.queries.size}")
 
         result.screens.forEachIndexed { index, screen ->
             Log.d("OpenFileViewModel", "Экран ${index + 1}: ${screen.title} (${screen.screenCode})")

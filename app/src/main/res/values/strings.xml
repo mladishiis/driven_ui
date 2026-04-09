@@ -102,7 +102,6 @@
     <string name="tab_widgets">Виджеты</string>
     <string name="tab_layouts">Лэйауты</string>
     <string name="tab_details">Детали</string>
-    <string name="tab_test">TEST</string>
 
     <!-- DetailsViewModel messages -->
     <string name="parsing_details">Детали парсинга</string>

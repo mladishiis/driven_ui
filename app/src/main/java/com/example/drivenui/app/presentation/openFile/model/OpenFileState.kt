@@ -72,11 +72,6 @@ internal data class OpenFileState(
     val colorStylesCount: Int get() = parsingResult?.styles?.colorStyles?.size ?: 0
 
     /**
-     * Получает количество запросов API
-     */
-    val queriesCount: Int get() = parsingResult?.queries?.size ?: 0
-
-    /**
      * Получает количество разрешенных биндингов
      */
     val resolvedBindingsCount: Int get() = parsingResult?.getResolvedValues()?.size ?: 0

@@ -48,7 +48,7 @@ class ActionHandler(
                 is UiAction.Back -> handleBack()
                 is UiAction.OpenDeeplink -> handleOpenDeeplink(action.deeplink)
                 is UiAction.RefreshScreen -> handleRefreshScreen(action.screenCode)
-                is UiAction.ExecuteQuery -> handleExecuteQuery(action.queryCode)
+                is UiAction.ExecuteQuery -> handleExecuteQuery(action)
                 is UiAction.DataTransform -> handleDataTransform(action)
                 is UiAction.SaveToContext -> handleSaveToContext(action)
                 is UiAction.NativeCode -> handleNativeCode(action)
@@ -178,7 +178,7 @@ class ActionHandler(
         return ActionResult.Success
     }
 
-    private suspend fun handleExecuteQuery(queryCode: String): ActionResult {
+    private suspend fun handleExecuteQuery(action: UiAction.ExecuteQuery): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         if (currentScreen?.definition == null) {
             return ActionResult.Error("No current screen to execute query on")
@@ -186,7 +186,7 @@ class ActionHandler(
 
         val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
             screenModel = currentScreen.definition,
-            queryCode = queryCode,
+            action = action,
         )
 
         val resolvedScreen = resolveScreen(

@@ -117,7 +117,6 @@ fun CachedScreenModel.toScreenModel(): ScreenModel =
     ScreenModel(
         id = id,
         deeplink = deeplink,
-        requests = requests,
         onCreateActions = onCreateActions ?: emptyList(),
         onDestroyActions = onDestroyActions ?: emptyList(),
         rootComponent = rootComponent?.toComponentModel()
@@ -134,7 +133,6 @@ fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
     CachedScreenModel(
         id = id,
         deeplink = deeplink,
-        requests = requests,
         onCreateActions = onCreateActions,
         onDestroyActions = onDestroyActions,
         rootComponent = rootComponent?.toCached()

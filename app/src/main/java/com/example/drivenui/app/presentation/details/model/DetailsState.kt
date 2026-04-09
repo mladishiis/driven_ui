@@ -70,16 +70,6 @@ internal data class DetailsState(
     val alignmentStylesCount: Int get() = parsedResult?.styles?.alignmentStyles?.size ?: 0
 
     /**
-     * Количество запросов
-     */
-    val queriesCount: Int get() = parsedResult?.queries?.size ?: 0
-
-    /**
-     * Количество экранных запросов
-     */
-    val screenQueriesCount: Int get() = parsedResult?.screenQueries?.size ?: 0
-
-    /**
      * Количество событий
      */
     val eventsCount: Int get() = parsedResult?.events?.events?.size ?: 0
@@ -123,12 +113,10 @@ internal data class DetailsState(
         R.string.tab_overview,
         R.string.tab_screens,
         R.string.tab_styles,
-        R.string.tab_queries,
         R.string.tab_events,
         R.string.tab_widgets,
         R.string.tab_layouts,
         R.string.tab_details,
-        R.string.tab_test,
     )
 
     /**

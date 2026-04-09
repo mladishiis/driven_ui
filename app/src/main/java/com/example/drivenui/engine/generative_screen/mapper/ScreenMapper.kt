@@ -14,12 +14,10 @@ class ScreenMapper(
 
     fun mapToScreenModel(
         parsedScreen: ParsedScreen,
-        requests: List<String> = emptyList()
     ): ScreenModel {
         return ScreenModel(
             id = parsedScreen.screenCode,
             deeplink = parsedScreen.deeplink,
-            requests = parsedScreen.requests,
             onCreateActions = getOnCreateEvents(parsedScreen.events),
             onDestroyActions = getOnDestroyEvents(parsedScreen.events),
             rootComponent = mapParsedScreenToUI(parsedScreen, styleRegistry)

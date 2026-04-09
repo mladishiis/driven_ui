@@ -174,7 +174,6 @@ internal class OpenFileFragment : Fragment() {
             append("Экранов: ${effect.screensCount}\n")
             append("Стилей текста: ${effect.textStylesCount}\n")
             append("Стилей цвета: ${effect.colorStylesCount}\n")
-            append("Запросов API: ${effect.queriesCount}\n")
             if (effect.componentsCount > 0) {
                 append("Компонентов: ${effect.componentsCount}\n")
             }

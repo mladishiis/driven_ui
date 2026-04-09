@@ -59,7 +59,6 @@ import com.example.drivenui.app.presentation.details.model.DetailsState
 import com.example.drivenui.app.presentation.details.model.DetailsTabData
 import com.example.drivenui.app.presentation.details.model.EventItem
 import com.example.drivenui.app.presentation.details.model.LayoutItem
-import com.example.drivenui.app.presentation.details.model.QueryItem
 import com.example.drivenui.app.presentation.details.model.ScreenItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
 import com.example.drivenui.app.theme.DrivenUITheme
@@ -67,7 +66,7 @@ import com.example.drivenui.app.theme.DrivenUITheme
 /**
  * Экран деталей парсинга микроаппа.
  *
- * Отображает вкладки с обзором, экранами, стилями, запросами, событиями, виджетами и лейаутами.
+ * Отображает вкладки с обзором, экранами, стилями, событиями, виджетами и лейаутами.
  * Поддерживает экспорт данных в JSON.
  *
  * @param state состояние экрана (результат парсинга, вкладки, загрузка)
@@ -176,11 +175,10 @@ internal fun DetailsScreen(
                     0 -> OverviewTab(state = state, onEvent = onEvent)
                     1 -> ScreensTab(tabData = state.tabData, state = state, onEvent = onEvent)
                     2 -> StylesTab(tabData = state.tabData, state = state, onEvent = onEvent)
-                    3 -> QueriesTab(tabData = state.tabData, state = state, onEvent = onEvent)
-                    4 -> EventsTab(tabData = state.tabData, state = state, onEvent = onEvent)
-                    5 -> WidgetsTab(tabData = state.tabData, state = state, onEvent = onEvent)
-                    6 -> LayoutsTab(tabData = state.tabData, state = state, onEvent = onEvent)
-                    7 -> DetailsTab(state = state, onEvent = onEvent)
+                    3 -> EventsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    4 -> WidgetsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    5 -> LayoutsTab(tabData = state.tabData, state = state, onEvent = onEvent)
+                    6 -> DetailsTab(state = state, onEvent = onEvent)
                 }
             }
         }
@@ -229,8 +227,8 @@ private fun OverviewTab(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        StatCard(stringResource(R.string.queries), state.queriesCount.toString())
                         StatCard(stringResource(R.string.events), state.eventsCount.toString())
+                        StatCard(stringResource(R.string.tab_widgets), state.widgetsCount.toString())
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
@@ -436,39 +434,6 @@ private fun StylesTab(
 }
 
 @Composable
-private fun QueriesTab(
-    tabData: DetailsTabData,
-    state: DetailsState,
-    onEvent: (DetailsEvent) -> Unit,
-) {
-    val queries = tabData.queries
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
-            Text(
-                stringResource(R.string.queries_api_count, queries.size),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        if (queries.isEmpty()) {
-            item {
-                Text(stringResource(R.string.queries_not_found))
-            }
-        } else {
-            items(queries) { query ->
-                QueryCard(query, onEvent)
-            }
-        }
-    }
-}
-
-@Composable
 private fun EventsTab(
     tabData: DetailsTabData,
     state: DetailsState,
@@ -617,35 +582,6 @@ private fun ScreenCard(
 }
 
 @Composable
-private fun QueryCard(
-    query: QueryItem,
-    onEvent: (DetailsEvent) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onEvent(DetailsEvent.OnCopyToClipboard(query.endpoint))
-            }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                query.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(stringResource(R.string.code_label, query.code))
-            Text(stringResource(R.string.method, query.type))
-            Text(stringResource(R.string.endpoint, query.endpoint))
-            Text(stringResource(R.string.params_count, query.propertiesCount))
-        }
-    }
-}
-
-@Composable
 private fun EventCard(
     event: EventItem,
     onEvent: (DetailsEvent) -> Unit
@@ -713,7 +649,6 @@ private fun createExportJson(parsedMicroapp: com.example.drivenui.engine.parser.
         appendLine("    \"screens\": ${parsedMicroapp.screens.size},")
         appendLine("    \"textStyles\": ${parsedMicroapp.styles?.textStyles?.size ?: 0},")
         appendLine("    \"colorStyles\": ${parsedMicroapp.styles?.colorStyles?.size ?: 0},")
-        appendLine("    \"queries\": ${parsedMicroapp.queries.size},")
         appendLine("    \"events\": ${parsedMicroapp.events?.events?.size ?: 0}")
         appendLine("  }")
         appendLine("}")
@@ -821,34 +756,6 @@ private fun DetailsTab(
                                 "  • $persistent",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        }
-                    }
-                }
-            }
-        }
-
-        val screenQueries = state.tabData.screenQueries
-        item {
-            ExpandableSection(
-                title = "Экранные запросы (${screenQueries.size})",
-                initiallyExpanded = state.expandedSections.contains("screen_queries"),
-                onExpandedChange = { expanded ->
-                    onEvent(DetailsEvent.OnSectionExpanded("screen_queries", expanded))
-                }
-            ) {
-                if (screenQueries.isEmpty()) {
-                    Text(stringResource(R.string.screen_queries_not_found))
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        screenQueries.forEach { query ->
-                            Card(modifier = Modifier.fillMaxWidth()) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text(query.code, fontWeight = FontWeight.Medium)
-                                    Text(stringResource(R.string.screen_label, query.screenCode))
-                                    Text(stringResource(R.string.query_label, query.queryCode))
-                                    Text(stringResource(R.string.order_label, query.order))
-                                }
-                            }
                         }
                     }
                 }
@@ -1039,20 +946,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
         }
         appendLine("  ],")
 
-        appendLine("  \"queries\": [")
-        parsedMicroapp.queries.forEachIndexed { queryIndex, query ->
-            appendLine("    {")
-            appendLine("      \"title\": \"${escapeJson(query.title)}\",")
-            appendLine("      \"code\": \"${escapeJson(query.code)}\",")
-            appendLine("      \"type\": \"${escapeJson(query.type)}\",")
-            appendLine("      \"endpoint\": \"${escapeJson(query.endpoint)}\",")
-            appendLine("      \"propertiesCount\": ${query.properties.size}")
-            append("    }")
-            if (queryIndex < parsedMicroapp.queries.size - 1) append(",")
-            appendLine()
-        }
-        appendLine("  ],")
-
         appendLine("  \"events\": [")
         parsedMicroapp.events?.events?.forEachIndexed { eventIndex, event ->
             appendLine("    {")
@@ -1143,38 +1036,6 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
             appendLine("  ],")
         } catch (e: Exception) {
             appendLine("  \"layouts\": [],")
-        }
-
-        try {
-            val screenQueriesField = parsedMicroapp::class.java.getDeclaredField("screenQueries")
-            screenQueriesField.isAccessible = true
-            val screenQueries =
-                screenQueriesField.get(parsedMicroapp) as? List<*> ?: emptyList<Any>()
-
-            appendLine("  \"screenQueries\": [")
-            screenQueries.forEachIndexed { sqIndex, sq ->
-                if (sq is com.example.drivenui.engine.parser.models.ScreenQuery) {
-                    appendLine("    {")
-                    appendLine("      \"code\": \"${escapeJson(sq.code)}\",")
-                    appendLine("      \"screenCode\": \"${escapeJson(sq.screenCode)}\",")
-                    appendLine("      \"queryCode\": \"${escapeJson(sq.queryCode)}\",")
-                    appendLine("      \"order\": ${sq.order},")
-                    appendLine("      \"properties\": {")
-                    val screenQueryProps = sq.properties.entries.toList()
-                    screenQueryProps.forEachIndexed { propIndex, entry ->
-                        append("        \"${escapeJson(entry.key)}\": \"${escapeJson(entry.value)}\"")
-                        if (propIndex < screenQueryProps.size - 1) append(",")
-                        appendLine()
-                    }
-                    appendLine("      }")
-                    append("    }")
-                    if (sqIndex < screenQueries.size - 1) append(",")
-                    appendLine()
-                }
-            }
-            appendLine("  ],")
-        } catch (e: Exception) {
-            appendLine("  \"screenQueries\": [],")
         }
 
         try {

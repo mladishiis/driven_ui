@@ -43,7 +43,6 @@ internal class FileInteractorImpl @Inject constructor(
                 val result = parser.parse(
                     microappXml = fileProvider.readMicroapp(),
                     stylesXml = fileProvider.readStyles(),
-                    queriesXml = fileProvider.readQueries(),
                     screens = fileProvider.readScreens(),
                 )
 
@@ -72,7 +71,6 @@ internal class FileInteractorImpl @Inject constructor(
                 val result = parser.parse(
                     microappXml = fileProvider.readMicroappOrEmpty(),
                     stylesXml = stylesXml,
-                    queriesXml = fileProvider.readQueriesOrEmpty(),
                     screens = screens,
                 )
 
@@ -148,7 +146,6 @@ internal class FileInteractorImpl @Inject constructor(
         lastParsedResult?.let { result ->
             mapOf(
                 "resolvedBindings" to result.getResolvedValues().size,
-                "screenQueries" to result.screenQueries.size,
                 "hasDataContext" to (result.dataContext != null),
             )
         }

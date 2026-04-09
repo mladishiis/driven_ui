@@ -202,69 +202,7 @@ data class ParsedScreen(
     val screenShortCode: String,
     val deeplink: String,
     val rootComponent: Component? = null,
-    val requests: List<ScreenQuery> = emptyList(),
     val events: List<WidgetEvent> = emptyList(),
-): Parcelable
-
-/**
- * Свойство запроса к API
- *
- * @property code Тип свойства (query_parameter, query_string, query_body)
- * @property variableName Имя переменной в запросе
- * @property variableValue Значение переменной (может быть константой или ссылкой на переменную)
- */
-data class QueryProperty(
-    val paramType: String,
-    val variableName: String,
-    val variableValue: String,
-)
-
-/**
- * Условие выполнения запроса
- *
- * @property code Тип условия (http_response_code, variable)
- * @property value Значение условия
- */
-data class QueryCondition(
-    val code: String,
-    val value: String,
-)
-
-/**
- * Запрос к API
- *
- * @property title Человекочитаемое название запроса
- * @property code Уникальный код запроса (например, "activeProductsForMain")
- * @property type HTTP метод (GET, POST, PUT, PATCH, DELETE)
- * @property endpoint Endpoint API
- * @property properties Список свойств запроса
- */
-data class Query(
-    val title: String,
-    val code: String,
-    val type: String,
-    val endpoint: String,
-    val mockFile: String?,
-    val properties: List<QueryProperty>,
-)
-
-/**
- * Запрос, привязанный к конкретному экрану
- *
- * @property code Уникальный код экранного запроса
- * @property screenCode Код экрана, к которому привязан запрос
- * @property queryCode Код запроса из реестра allQueries
- * @property order Порядковый номер выполнения запроса на экране
- * @property properties Список свойств запроса с конкретными значениями
- */
-@Parcelize
-data class ScreenQuery(
-    val code: String,
-    val screenCode: String,
-    val queryCode: String,
-    val order: Int,
-    val mockFile: String? = null,
-    val properties: Map<String, String>,
 ): Parcelable
 
 /**

@@ -31,16 +31,8 @@ class DirMicroappFileProvider @Inject constructor(
     override fun readStyles(): String =
         File(getRootDir(), "resources/allStyles.xml").readText()
 
-    override fun readQueries(): String =
-        File(getRootDir(), "queries/allQueries.xml").readText()
-
     override fun readMicroappOrEmpty(): String {
         val file = File(getRootDir(), "microapp.xml")
-        return if (file.exists()) file.readText() else ""
-    }
-
-    override fun readQueriesOrEmpty(): String {
-        val file = File(getRootDir(), "queries/allQueries.xml")
         return if (file.exists()) file.readText() else ""
     }
 

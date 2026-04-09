@@ -1,14 +1,12 @@
 package com.example.drivenui.engine.cache
 
 import com.example.drivenui.engine.generative_screen.models.UiAction
-import com.example.drivenui.engine.parser.models.ScreenQuery
 
 /**
  * Сериализуемое представление экрана с замапленным деревом компонентов.
  *
  * @property id Идентификатор экрана
  * @property deeplink Deeplink экрана
- * @property requests Список запросов экрана
  * @property onCreateActions Действия до первой отрисовки
  * @property onDestroyActions Действия при уходе с экрана назад
  * @property rootComponent Корневой компонент экрана
@@ -16,7 +14,6 @@ import com.example.drivenui.engine.parser.models.ScreenQuery
 data class CachedScreenModel(
     val id: String,
     val deeplink: String = "",
-    val requests: List<ScreenQuery>,
     val onCreateActions: List<UiAction>? = null,
     val onDestroyActions: List<UiAction>? = null,
     val rootComponent: CachedComponentModel?,

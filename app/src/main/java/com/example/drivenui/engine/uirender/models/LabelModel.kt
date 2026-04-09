@@ -10,7 +10,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property modifier Modifier для Compose
  * @property modifierParams параметры модификатора
  * @property text шаблон текста из XML (может содержать `${}`, `@{...}`, `@@{...}`); не перезаписывается биндером
- * @property displayText результат полного резолва для отрисовки; null до первого [com.example.drivenui.engine.generative_screen.styles.resolveScreen]
+ * @property displayText результат полного резолва для отрисовки; null до первого `resolveScreen`
  * @property widgetCode уникальный код виджета
  * @property textStyle стиль текста
  * @property textStyleCode код стиля текста

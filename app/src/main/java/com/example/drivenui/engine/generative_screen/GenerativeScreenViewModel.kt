@@ -404,7 +404,7 @@ class GenerativeScreenViewModel @Inject constructor(
         for (action in preComposeActions.take(leadingQueryCount)) {
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
-                queryCode = (action as UiAction.ExecuteQuery).queryCode,
+                action = action as UiAction.ExecuteQuery,
             )
         }
         val resolvedScreen = resolveScreen(
@@ -434,7 +434,7 @@ class GenerativeScreenViewModel @Inject constructor(
         for (action in preComposeActions.take(leadingQueryCount)) {
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
-                queryCode = (action as UiAction.ExecuteQuery).queryCode,
+                action = action as UiAction.ExecuteQuery,
             )
         }
         val resolvedScreen = resolveScreen(

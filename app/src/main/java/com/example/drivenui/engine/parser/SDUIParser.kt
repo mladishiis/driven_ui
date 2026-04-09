@@ -4,32 +4,28 @@ import android.util.Log
 import com.example.drivenui.engine.parser.models.*
 import com.example.drivenui.engine.parser.parsers.ComponentParser
 import com.example.drivenui.engine.parser.parsers.MicroappParser
-import com.example.drivenui.engine.parser.parsers.QueryParser
 import com.example.drivenui.engine.parser.parsers.StyleParser
 
 /**
  * Главный парсер SDUI-конфигурации микроаппов.
  *
- * Принимает сырые XML-строки (microapp, styles, queries, screens) и возвращает
+ * Принимает сырые XML-строки (microapp, styles, screens) и возвращает
  * структурированный [ParsedMicroappResult]. Не работает с файлами напрямую.
- */
+*/
 class SDUIParser {
 
     private val styleParser = StyleParser()
-    private val queryParser = QueryParser()
     private val microappParser = MicroappParser()
     private val componentParser = ComponentParser()
 
     /**
-     * Результат парсинга микроаппа. Содержит распарсенные экраны, стили, запросы и метаданные.
+     * Результат парсинга микроаппа. Содержит распарсенные экраны, стили и метаданные.
      *
      * @property microapp метаданные микроаппа (deeplink, code, persistents)
      * @property styles текстовые, цветовые и прочие стили
      * @property events события микроаппа
      * @property eventActions действия событий
      * @property screens список экранов с деревом компонентов
-     * @property queries реестр запросов к API
-     * @property screenQueries привязки запросов к экранам
      * @property widgets реестр виджетов
      * @property layouts реестр лейаутов
      * @property dataContext контекст данных для биндингов
@@ -40,8 +36,6 @@ class SDUIParser {
         val events: AllEvents? = null,
         val eventActions: AllEventActions? = null,
         val screens: List<ParsedScreen> = emptyList(),
-        val queries: List<Query> = emptyList(),
-        val screenQueries: List<ScreenQuery> = emptyList(),
         val widgets: List<Widget> = emptyList(),
         val layouts: List<Layout> = emptyList(),
         val dataContext: DataContext? = null,
@@ -50,14 +44,12 @@ class SDUIParser {
         /**
          * Проверяет, содержит ли результат какие-либо данные.
          *
-         * @return true, если есть микроапп, экраны, стили, запросы или иные данные
+         * @return true, если есть микроапп, экраны, стили или иные данные
          */
         fun hasData(): Boolean =
             microapp != null ||
                     screens.isNotEmpty() ||
                     styles != null ||
-                    queries.isNotEmpty() ||
-                    screenQueries.isNotEmpty() ||
                     widgets.isNotEmpty() ||
                     layouts.isNotEmpty()
 
@@ -109,8 +101,6 @@ class SDUIParser {
             "roundStyles" to (styles?.roundStyles?.size ?: 0),
             "paddingStyles" to (styles?.paddingStyles?.size ?: 0),
             "alignmentStyles" to (styles?.alignmentStyles?.size ?: 0),
-            "queries" to queries.size,
-            "screenQueries" to screenQueries.size,
             "widgets" to widgets.size,
             "layouts" to layouts.size,
             "componentsCount" to countAllComponents(),
@@ -127,14 +117,12 @@ class SDUIParser {
                     "SDUIParser",
                     "Screen ${screen.screenCode}: ${screen.title}, components=${screen.rootComponent?.let {
                         countComponentsRecursive(it)
-                    } ?: 0}, requests=${screen.requests.size}"
+                    } ?: 0}",
                 )
             }
 
             Log.d("SDUIParser", "Text styles: ${getTextStyles().size}")
             Log.d("SDUIParser", "Color styles: ${getColorStyles().size}")
-            Log.d("SDUIParser", "Queries: ${queries.size}")
-            Log.d("SDUIParser", "ScreenQueries: ${screenQueries.size}")
             Log.d("SDUIParser", "Total components: ${countAllComponents()}")
             Log.d("SDUIParser", "==============================")
         }
@@ -168,15 +156,13 @@ class SDUIParser {
      *
      * @param microappXml XML метаданных микроаппа
      * @param stylesXml XML стилей (текст, цвета, отступы)
-     * @param queriesXml XML реестра запросов
      * @param screens список пар (имя файла, xml-содержимое экрана)
      * @return результат парсинга или пустой [ParsedMicroappResult] при ошибке
      */
     fun parse(
         microappXml: String,
         stylesXml: String,
-        queriesXml: String,
-        screens: List<Pair<String, String>>
+        screens: List<Pair<String, String>>,
     ): ParsedMicroappResult {
 
         return try {
@@ -184,25 +170,12 @@ class SDUIParser {
 
             val microapp = parseMicroapp(microappXml)
             val styles = parseStyles(stylesXml)
-            val queries = parseQueries(queriesXml)
-
             val parsedScreens = parseScreens(screens)
-            val screenQueries = parseScreenQueries(screens)
-
-            val queriesByScreen = screenQueries.groupBy { it.screenCode }
-
-            val screensWithQueries = parsedScreens.map { screen ->
-                screen.copy(
-                    requests = queriesByScreen[screen.screenCode].orEmpty(),
-                )
-            }
 
             ParsedMicroappResult(
                 microapp = microapp,
                 styles = styles,
-                screens = screensWithQueries,
-                queries = queries,
-                screenQueries = screenQueries,
+                screens = parsedScreens,
             ).also { it.logSummary() }
 
         } catch (e: Exception) {
@@ -212,7 +185,7 @@ class SDUIParser {
     }
 
     private fun parseScreens(
-        screens: List<Pair<String, String>>
+        screens: List<Pair<String, String>>,
     ): List<ParsedScreen> =
         screens.mapNotNull { (name, xml) ->
             try {
@@ -223,26 +196,6 @@ class SDUIParser {
                 Log.e("SDUIParser", "Ошибка парсинга экрана $name", e)
                 null
             }
-        }
-
-    private fun parseScreenQueries(
-        screens: List<Pair<String, String>>
-    ): List<ScreenQuery> =
-        screens.flatMap { (name, xml) ->
-            try {
-                queryParser.parseScreenQueries(xml)
-            } catch (e: Exception) {
-                Log.e("SDUIParser", "Ошибка парсинга screenQueries в $name", e)
-                emptyList()
-            }
-        }
-
-    private fun parseQueries(xml: String): List<Query> =
-        try {
-            queryParser.parseAllQueries(xml)
-        } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга queries", e)
-            emptyList()
         }
 
     private fun parseMicroapp(xml: String): Microapp? =

@@ -117,11 +117,22 @@ fun EventAction.mapToUiAction(): UiAction {
             }
         }
         "query" -> {
-            val queryCode = properties["screenQueryCode"]
-            if (!queryCode.isNullOrEmpty()) {
-                UiAction.ExecuteQuery(queryCode)
-            } else {
+            val queryCode = properties["queryCode"]?.trim().orEmpty()
+            if (queryCode.isEmpty()) {
                 UiAction.Empty
+            } else {
+                val type = properties["type"]?.trim()?.takeIf { it.isNotEmpty() } ?: "GET"
+                val endpoint = properties["endpoint"]?.trim().orEmpty()
+                val mockEnabled = properties["mockEnabled"]?.trim()?.takeIf { it.isNotEmpty() }?.toBoolean()
+                    ?: true
+                val mockFile = properties["mockFile"]?.trim()?.takeIf { it.isNotEmpty() }
+                UiAction.ExecuteQuery(
+                    queryCode = queryCode,
+                    type = type,
+                    endpoint = endpoint,
+                    mockEnabled = mockEnabled,
+                    mockFile = mockFile,
+                )
             }
         }
         "datatransform" -> {

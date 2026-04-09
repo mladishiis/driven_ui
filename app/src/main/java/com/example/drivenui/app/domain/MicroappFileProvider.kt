@@ -21,13 +21,6 @@ interface MicroappFileProvider {
     fun readStyles(): String
 
     /**
-     * Читает allQueries.xml.
-     *
-     * @return содержимое allQueries.xml
-     */
-    fun readQueries(): String
-
-    /**
      * Читает XML экранов.
      *
      * @return список пар (имя файла, xml-содержимое)
@@ -40,11 +33,4 @@ interface MicroappFileProvider {
      * @return содержимое microapp.xml или пустая строка
      */
     fun readMicroappOrEmpty(): String
-
-    /**
-     * Читает allQueries.xml. При отсутствии файла возвращает пустую строку (для шаблона).
-     *
-     * @return содержимое allQueries.xml или пустая строка
-     */
-    fun readQueriesOrEmpty(): String
 }

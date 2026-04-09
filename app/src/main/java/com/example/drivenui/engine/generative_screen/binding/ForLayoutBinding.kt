@@ -11,12 +11,10 @@ private const val TAG = "ForLayoutBinding"
 
 /**
  * Обход дерева компонентов: для `verticalFor` / `horizontalFor` вычисляет
- * [com.example.drivenui.engine.uirender.models.LayoutForParams.resolvedMaxForIndex] из шаблона
- * [com.example.drivenui.engine.uirender.models.LayoutForParams.maxForIndex] и [DataContext].
+ * `LayoutForParams.resolvedMaxForIndex` из шаблона `LayoutForParams.maxForIndex` и `DataContext`.
  *
  * Подстановки `${...}`, `@{...}`, `@@{...}` в полях виджетов выполняются в
- * [com.example.drivenui.engine.generative_screen.styles.resolveScreen] ([resolveTemplateString]);
- * шаблоны в модели не затираются.
+ * `resolveScreen` / `resolveTemplateString`; шаблоны в модели не затираются.
  */
 object ForLayoutBinding {
 
@@ -39,7 +37,7 @@ object ForLayoutBinding {
     }
 
     /**
-     * То же для одного поддерева (например перед [com.example.drivenui.engine.generative_screen.styles.resolveComponent]).
+     * То же для одного поддерева (например перед `resolveComponent`).
      *
      * @param component корень поддерева
      * @param dataContext контекст данных

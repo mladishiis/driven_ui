@@ -28,7 +28,6 @@ internal sealed interface OpenFileEffect : VtbEffect {
         val screensCount: Int,
         val textStylesCount: Int,
         val colorStylesCount: Int,
-        val queriesCount: Int,
         val componentsCount: Int,
         val hasBindings: Boolean,
         val jsonFilesCount: Int,

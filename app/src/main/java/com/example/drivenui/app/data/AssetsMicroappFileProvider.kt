@@ -13,14 +13,8 @@ class AssetsMicroappFileProvider(
     override fun readStyles() =
         read("resources/allStyles.xml")
 
-    override fun readQueries() =
-        read("resources/queries/allQueries.xml")
-
     override fun readMicroappOrEmpty(): String =
         readOrEmpty("microapp.xml")
-
-    override fun readQueriesOrEmpty(): String =
-        readOrEmpty("resources/queries/allQueries.xml")
 
     override fun readScreens(): List<Pair<String, String>> {
         return context.assets.list("screens")

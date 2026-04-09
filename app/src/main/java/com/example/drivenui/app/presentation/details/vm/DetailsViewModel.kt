@@ -16,10 +16,8 @@ import com.example.drivenui.app.presentation.details.model.EventActionItem
 import com.example.drivenui.app.presentation.details.model.EventItem
 import com.example.drivenui.app.presentation.details.model.LayoutItem
 import com.example.drivenui.app.presentation.details.model.PaddingStyleItem
-import com.example.drivenui.app.presentation.details.model.QueryItem
 import com.example.drivenui.app.presentation.details.model.RoundStyleItem
 import com.example.drivenui.app.presentation.details.model.ScreenItem
-import com.example.drivenui.app.presentation.details.model.ScreenQueryItem
 import com.example.drivenui.app.presentation.details.model.TextStyleItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
@@ -94,15 +92,6 @@ internal class DetailsViewModel @Inject constructor(
                 darkOpacity = style.darkTheme.opacity
             )
         } ?: emptyList()
-        val queries = result.queries.map { query ->
-            QueryItem(
-                title = query.title,
-                code = query.code,
-                type = query.type,
-                endpoint = query.endpoint,
-                propertiesCount = query.properties.size
-            )
-        }
         val events = result.events?.events?.map { event ->
             EventItem(
                 title = event.title,
@@ -129,15 +118,6 @@ internal class DetailsViewModel @Inject constructor(
                 propertiesCount = layout.properties.size
             )
         }
-        val screenQueries = result.screenQueries.map { query ->
-            ScreenQueryItem(
-                id = query.code,
-                code = query.code,
-                screenCode = query.screenCode,
-                queryCode = query.queryCode,
-                order = query.order
-            )
-        }
         val eventActions = result.eventActions?.eventActions?.map { action ->
             EventActionItem(
                 id = action.code,
@@ -153,11 +133,9 @@ internal class DetailsViewModel @Inject constructor(
             screens = screens,
             textStyles = textStyles,
             colorStyles = colorStyles,
-            queries = queries,
             events = events,
             widgets = widgets,
             layouts = layouts,
-            screenQueries = screenQueries,
             eventActions = eventActions,
             componentModelForRender = componentModelForRender,
         )
@@ -346,8 +324,6 @@ internal class DetailsViewModel @Inject constructor(
             appendLine("    \"roundStyles\": ${result.styles?.roundStyles?.size ?: 0},")
             appendLine("    \"paddingStyles\": ${result.styles?.paddingStyles?.size ?: 0},")
             appendLine("    \"alignmentStyles\": ${result.styles?.alignmentStyles?.size ?: 0},")
-            appendLine("    \"queries\": ${result.queries.size},")
-            appendLine("    \"screenQueries\": ${result.screenQueries.size},")
             appendLine("    \"events\": ${result.events?.events?.size ?: 0},")
             appendLine("    \"eventActions\": ${result.eventActions?.eventActions?.size ?: 0},")
             appendLine("    \"widgets\": ${result.widgets.size},")
@@ -369,22 +345,6 @@ internal class DetailsViewModel @Inject constructor(
                     }
                     append("    }")
                     if (index < result.screens.size - 1) append(",")
-                    appendLine()
-                }
-                appendLine("  ],")
-            }
-
-            if (result.queries.isNotEmpty()) {
-                appendLine("  \"sampleQueries\": [")
-                result.queries.take(5).forEachIndexed { index, query ->
-                    appendLine("    {")
-                    appendLine("      \"title\": \"${escapeJson(query.title)}\",")
-                    appendLine("      \"code\": \"${escapeJson(query.code)}\",")
-                    appendLine("      \"type\": \"${escapeJson(query.type)}\",")
-                    appendLine("      \"endpoint\": \"${escapeJson(query.endpoint)}\",")
-                    appendLine("      \"propertiesCount\": ${query.properties.size}")
-                    append("    }")
-                    if (index < minOf(5, result.queries.size) - 1) append(",")
                     appendLine()
                 }
                 appendLine("  ],")
@@ -420,8 +380,6 @@ internal class DetailsViewModel @Inject constructor(
         total += result.styles?.roundStyles?.size ?: 0
         total += result.styles?.paddingStyles?.size ?: 0
         total += result.styles?.alignmentStyles?.size ?: 0
-        total += result.queries.size
-        total += result.screenQueries.size
         total += result.events?.events?.size ?: 0
         total += result.eventActions?.eventActions?.size ?: 0
         total += result.widgets.size
@@ -453,7 +411,6 @@ internal class DetailsViewModel @Inject constructor(
         Log.d("DetailsViewModel", "Экранов: ${result.screens.size}")
         Log.d("DetailsViewModel", "Стилей текста: ${result.styles?.textStyles?.size ?: 0}")
         Log.d("DetailsViewModel", "Стилей цвета: ${result.styles?.colorStyles?.size ?: 0}")
-        Log.d("DetailsViewModel", "Запросов: ${result.queries.size}")
         Log.d("DetailsViewModel", "Событий: ${result.events?.events?.size ?: 0}")
         Log.d("DetailsViewModel", "Виджетов: ${result.widgets.size}")
         Log.d("DetailsViewModel", "Лэйаутов: ${result.layouts.size}")
@@ -664,23 +621,6 @@ internal class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * Получает список запросов.
-     *
-     * @return список запросов
-     */
-    fun getQueries(): List<QueryItem> {
-        return uiState.value.parsedResult?.queries?.map { query ->
-            QueryItem(
-                title = query.title,
-                code = query.code,
-                type = query.type,
-                endpoint = query.endpoint,
-                propertiesCount = query.properties.size
-            )
-        } ?: emptyList()
-    }
-
-    /**
      * Получает список событий.
      *
      * @return список событий
@@ -726,23 +666,6 @@ internal class DetailsViewModel @Inject constructor(
                 title = layout.title,
                 code = layout.code,
                 propertiesCount = layout.properties.size
-            )
-        } ?: emptyList()
-    }
-
-    /**
-     * Получает список экранных запросов.
-     *
-     * @return список экранных запросов
-     */
-    fun getScreenQueries(): List<ScreenQueryItem> {
-        return uiState.value.parsedResult?.screenQueries?.map { query ->
-            ScreenQueryItem(
-                id = query.code,
-                code = query.code,
-                screenCode = query.screenCode,
-                queryCode = query.queryCode,
-                order = query.order
             )
         } ?: emptyList()
     }

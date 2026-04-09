@@ -18,7 +18,7 @@ interface FileInteractor {
     /**
      * Запускает парсинг microapp, маппинг и сохранение в кэш.
      *
-     * Выполняет чтение всех необходимых файлов (microapp, styles, queries, screens),
+     * Выполняет чтение необходимых файлов (microapp, styles, screens),
      * парсинг, маппинг в ScreenModel и сохранение CachedMicroappData.
      *
      * @return результат парсинга microapp (для обратной совместимости с деталями парсинга)
@@ -28,7 +28,7 @@ interface FileInteractor {
 
     /**
      * Запускает парсинг шаблона (урезанный микроапп для теста визуала), маппинг и сохранение.
-     * Обязательны: экран(ы) и allStyles.xml. microapp.xml и allQueries.xml могут отсутствовать.
+     * Обязательны: экран(ы) и allStyles.xml. microapp.xml может отсутствовать. Реестр allQueries не используется.
      *
      * @return результат парсинга
      * @throws Exception если отсутствуют экраны или allStyles.xml
