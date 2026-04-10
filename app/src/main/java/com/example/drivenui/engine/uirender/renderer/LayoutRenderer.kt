@@ -4,13 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
@@ -18,6 +17,15 @@ import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.uirender.parseBoxAlignment
 import com.example.drivenui.engine.uirender.parseColumnAlignment
 import com.example.drivenui.engine.uirender.parseRowAlignment
+
+/**
+ * Сколько строк FOR и выше используем виртуализацию ([RecyclerView] + [androidx.compose.ui.platform.ComposeView]
+ * в ячейке). Ниже порога — [Column]/[Row] + scroll: все ячейки в одной композиции, проще и без
+ * пересоздания слотов при скролле.
+ *
+ * При необходимости подстройте значение (например 150–400) под UX и железо.
+ */
+private const val FOR_USE_LAZY_LIST_FROM_COUNT = 250
 
 @Composable
 fun LayoutRenderer(
@@ -132,27 +140,29 @@ private fun LazyColumnRenderer(
         ?: model.forParams.maxForIndex?.toIntOrNull()
         ?: return
 
-    LazyColumn(modifier = model.modifier) {
-        items(
-            count = maxForIndex,
-            key = { index -> index },
-        ) { index ->
-            val indexStr = index.toString()
-            Column(modifier = Modifier.fillMaxWidth()) {
-                model.children.forEachIndexed { childIndex, templateChild ->
-                    key(index, childIndex) {
-                        val expandedChild =
-                            expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                        val childWithBindings =
-                            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                        ComponentRenderer(
-                            model = childWithBindings,
-                            onActions = onActions,
-                            onWidgetValueChange = onWidgetValueChange,
-                            applyBindingsForComponent = applyBindingsForComponent,
-                        )
-                    }
-                }
+    val useLazyList = maxForIndex >= FOR_USE_LAZY_LIST_FROM_COUNT
+    if (useLazyList) {
+        VerticalForRecyclerList(
+            modifier = model.modifier.clipToBounds(),
+            forIndexName = forIndexName,
+            maxForIndex = maxForIndex,
+            model = model,
+            onActions = onActions,
+            onWidgetValueChange = onWidgetValueChange,
+            applyBindingsForComponent = applyBindingsForComponent,
+        )
+    } else {
+        val scroll = rememberScrollState()
+        Column(modifier = model.modifier.verticalScroll(scroll).clipToBounds()) {
+            repeat(maxForIndex) { index ->
+                VerticalForRowContent(
+                    index = index,
+                    forIndexName = forIndexName,
+                    model = model,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
             }
         }
     }
@@ -170,27 +180,29 @@ private fun LazyRowRenderer(
         ?: model.forParams.maxForIndex?.toIntOrNull()
         ?: return
 
-    LazyRow(modifier = model.modifier) {
-        items(
-            count = maxForIndex,
-            key = { index -> index },
-        ) { index ->
-            val indexStr = index.toString()
-            Row {
-                model.children.forEachIndexed { childIndex, templateChild ->
-                    key(index, childIndex) {
-                        val expandedChild =
-                            expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                        val childWithBindings =
-                            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                        ComponentRenderer(
-                            model = childWithBindings,
-                            onActions = onActions,
-                            onWidgetValueChange = onWidgetValueChange,
-                            applyBindingsForComponent = applyBindingsForComponent,
-                        )
-                    }
-                }
+    val useLazyList = maxForIndex >= FOR_USE_LAZY_LIST_FROM_COUNT
+    if (useLazyList) {
+        HorizontalForRecyclerList(
+            modifier = model.modifier.clipToBounds(),
+            forIndexName = forIndexName,
+            maxForIndex = maxForIndex,
+            model = model,
+            onActions = onActions,
+            onWidgetValueChange = onWidgetValueChange,
+            applyBindingsForComponent = applyBindingsForComponent,
+        )
+    } else {
+        val scroll = rememberScrollState()
+        Row(modifier = model.modifier.horizontalScroll(scroll).clipToBounds()) {
+            repeat(maxForIndex) { index ->
+                HorizontalForRowContent(
+                    index = index,
+                    forIndexName = forIndexName,
+                    model = model,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
             }
         }
     }
