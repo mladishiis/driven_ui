@@ -4,10 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -131,18 +133,26 @@ private fun LazyColumnRenderer(
         ?: return
 
     LazyColumn(modifier = model.modifier) {
-        items(maxForIndex) { index ->
+        items(
+            count = maxForIndex,
+            key = { index -> index },
+        ) { index ->
             val indexStr = index.toString()
-            model.children.forEach { templateChild ->
-                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings =
-                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                ComponentRenderer(
-                    model = childWithBindings,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                model.children.forEachIndexed { childIndex, templateChild ->
+                    key(index, childIndex) {
+                        val expandedChild =
+                            expandComponentWithIndex(templateChild, forIndexName, indexStr)
+                        val childWithBindings =
+                            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                        ComponentRenderer(
+                            model = childWithBindings,
+                            onActions = onActions,
+                            onWidgetValueChange = onWidgetValueChange,
+                            applyBindingsForComponent = applyBindingsForComponent,
+                        )
+                    }
+                }
             }
         }
     }
@@ -161,18 +171,26 @@ private fun LazyRowRenderer(
         ?: return
 
     LazyRow(modifier = model.modifier) {
-        items(maxForIndex) { index ->
+        items(
+            count = maxForIndex,
+            key = { index -> index },
+        ) { index ->
             val indexStr = index.toString()
-            model.children.forEach { templateChild ->
-                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings =
-                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                ComponentRenderer(
-                    model = childWithBindings,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
+            Row {
+                model.children.forEachIndexed { childIndex, templateChild ->
+                    key(index, childIndex) {
+                        val expandedChild =
+                            expandComponentWithIndex(templateChild, forIndexName, indexStr)
+                        val childWithBindings =
+                            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                        ComponentRenderer(
+                            model = childWithBindings,
+                            onActions = onActions,
+                            onWidgetValueChange = onWidgetValueChange,
+                            applyBindingsForComponent = applyBindingsForComponent,
+                        )
+                    }
+                }
             }
         }
     }
