@@ -5,7 +5,6 @@ import android.util.Log
 import com.example.drivenui.app.data.FileRepository
 import com.example.drivenui.engine.cache.CachedMicroappData
 import com.example.drivenui.engine.cache.toCachedScreenModel
-import com.example.drivenui.app.domain.MicroappStorage
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.parser.SDUIParser
@@ -38,8 +37,6 @@ internal class FileInteractorImpl @Inject constructor(
     override suspend fun parseMicroapp(): SDUIParser.ParsedMicroappResult =
         withContext(Dispatchers.IO) {
             try {
-                Log.d("FileInteractor", "Start parsing, source=$source")
-
                 val result = parser.parse(
                     microappXml = fileProvider.readMicroapp(),
                     stylesXml = fileProvider.readStyles(),
@@ -51,7 +48,7 @@ internal class FileInteractorImpl @Inject constructor(
                 result
 
             } catch (e: Exception) {
-                Log.e("FileInteractor", "Parsing error", e)
+                Log.e("FileInteractor", "Ошибка парсинга", e)
                 throw e
             }
         }
@@ -59,8 +56,6 @@ internal class FileInteractorImpl @Inject constructor(
     override suspend fun parseTemplate(): SDUIParser.ParsedMicroappResult =
         withContext(Dispatchers.IO) {
             try {
-                Log.d("FileInteractor", "Start template parsing, source=$source")
-
                 val stylesXml = fileProvider.readStyles()
                 val screens = fileProvider.readScreens()
 
@@ -75,12 +70,11 @@ internal class FileInteractorImpl @Inject constructor(
                 )
 
                 lastParsedResult = result
-                Log.d("FileInteractor", "Template parsed: ${result.screens.size} screen(s)")
                 saveMappedAfterParse(result)
                 result
 
             } catch (e: Exception) {
-                Log.e("FileInteractor", "Template parsing error", e)
+                Log.e("FileInteractor", "Ошибка парсинга шаблона", e)
                 throw e
             }
         }
@@ -101,13 +95,10 @@ internal class FileInteractorImpl @Inject constructor(
     }
 
     override suspend fun loadCachedMicroapp(microappCode: String): CachedMicroappData? =
-        microappStorage.loadMapped(microappCode)?.also {
-            Log.d("FileInteractor", "Loaded cached microapp: $microappCode")
-        }
+        microappStorage.loadMapped(microappCode)
 
     override fun saveParsedResult(parsedMicroapp: SDUIParser.ParsedMicroappResult) {
         lastParsedResult = parsedMicroapp
-        Log.d("FileInteractor", "Parsed result saved")
     }
 
     override fun getLastParsedResult(): SDUIParser.ParsedMicroappResult? =
@@ -115,7 +106,6 @@ internal class FileInteractorImpl @Inject constructor(
 
     override fun clearParsedData() {
         lastParsedResult = null
-        Log.d("FileInteractor", "Parsed data cleared")
     }
 
     override suspend fun validateParsingResult(
@@ -123,7 +113,7 @@ internal class FileInteractorImpl @Inject constructor(
     ): Boolean = withContext(Dispatchers.IO) {
 
         if (result.microapp == null && result.screens.isEmpty()) {
-            Log.w("FileInteractor", "Empty parsing result")
+            Log.w("FileInteractor", "Пустой результат парсинга")
             return@withContext false
         }
 

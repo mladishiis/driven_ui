@@ -22,16 +22,14 @@ class ExampleNativeActionExecutor(
         return try {
             when (actionCode) {
                 "black" -> {
-                    Log.d("ExampleNativeActionExecutor",
-                        "black action executed successfully")
                     NativeActionResult.Success()
                 }
                 else -> {
-                    NativeActionResult.Error("Unknown action: $actionCode")
+                    NativeActionResult.Error("Неизвестное действие: $actionCode")
                 }
             }
         } catch (e: Exception) {
-            Log.e("ExampleNativeActionExecutor", "Error executing action: $actionCode", e)
+            Log.e("ExampleNativeActionExecutor", "пакет=${context.packageName} действие=$actionCode", e)
             NativeActionResult.Error("${e.message}", e)
         }
     }

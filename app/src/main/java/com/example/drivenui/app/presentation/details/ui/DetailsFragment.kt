@@ -1,7 +1,6 @@
 package com.example.drivenui.app.presentation.details.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -100,13 +99,16 @@ internal class DetailsFragment : Fragment() {
 
     private fun showComponentStructureDialog(title: String, structureInfo: String) {
         val context = requireContext()
+        val preview = if (structureInfo.length > 1500) {
+            structureInfo.take(1500) + "\n…"
+        } else {
+            structureInfo
+        }
         Toast.makeText(
             context,
-            "$title\n(см. логи для деталей)",
+            "$title\n$preview",
             Toast.LENGTH_LONG
         ).show()
-
-        Log.d("DetailsFragment", structureInfo)
     }
 
     private fun showScreenComponentsDialog(screenTitle: String, components: List<ComponentTreeItem>) {

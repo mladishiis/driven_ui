@@ -11,13 +11,13 @@ import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
 import com.example.drivenui.engine.generative_screen.action.ExternalDeeplinkHandler
 import com.example.drivenui.engine.generative_screen.action.ScreenProvider
+import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
-import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
 import com.example.drivenui.engine.generative_screen.styles.resolveComponent
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
@@ -71,14 +71,12 @@ class GenerativeScreenViewModel @Inject constructor(
 
     /**
      * Состояние нижней шторки (root component или null, если закрыта).
-     * Отдельный стейт, чтобы изменение шторки не вызывало перерисовку основного экрана.
      */
     private val _bottomSheetState = MutableStateFlow<ComponentModel?>(null)
     val bottomSheetState = _bottomSheetState.asStateFlow()
 
     /**
      * Событие «выйти из микроаппа» (например [UiAction.Back] на корневом экране стека).
-     * Хост (фрагмент) подписывается и вызывает popBackStack.
      */
     private val _exitMicroappEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val exitMicroappEvents = _exitMicroappEvents.asSharedFlow()
@@ -214,7 +212,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private suspend fun runActionsSequentially(actions: List<UiAction>) {
         val handler = actionHandler
         if (handler == null) {
-            Log.w("GenerativeScreenViewModel", "ActionHandler not initialized")
+            Log.w("GenerativeScreenViewModel", "Обработчик действий не инициализирован")
             return
         }
 
@@ -271,8 +269,7 @@ class GenerativeScreenViewModel @Inject constructor(
     /**
      * Выполняет переход назад (сначала закрывает шторку, затем стек навигации).
      *
-     * @return true, если событие обработано внутри микроаппа (не закрывать хост);
-     * false — на корне стека или без обработчика: хост должен выйти из микроаппа (например popBackStack).
+     * @return false если обработчик действий не инициализирован, иначе true
      */
     fun navigateBack(): Boolean {
         val handler = actionHandler ?: return false
@@ -298,7 +295,7 @@ class GenerativeScreenViewModel @Inject constructor(
                 is ActionResult.ExitMicroapp -> Unit
                 is ActionResult.BottomSheetChanged -> Unit
                 is ActionResult.Error -> {
-                    Log.w("GenerativeScreenViewModel", "Navigate back error: ${result.message}")
+                    Log.w("GenerativeScreenViewModel", "Ошибка при переходе назад: ${result.message}")
                 }
             }
         }
@@ -321,7 +318,7 @@ class GenerativeScreenViewModel @Inject constructor(
      * Возвращает радиус скругления (в dp) для корневого layout шторки.
      *
      * @param sheetRoot корневой компонент шторки
-     * @return радиус в dp или null, если корень не layout или стиль не задан
+     * @return радиус в dp или null
      */
     fun getSheetCornerRadiusDp(sheetRoot: ComponentModel): Int? {
         if (sheetRoot !is LayoutModel) return null

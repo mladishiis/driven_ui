@@ -35,7 +35,6 @@ class MicroappCollectionApi @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val url = "$BASE_URL/microapps"
-                Log.d(TAG, "Fetching microapp codes from: $url (X-MDM-ID: $collectionId)")
                 val request = Request.Builder()
                     .url(url)
                     .header(HEADER_MDM_ID, collectionId)
@@ -53,11 +52,10 @@ class MicroappCollectionApi @Inject constructor(
                     val response = gson.fromJson(body, MicroappsResponse::class.java)
                         ?: return@withContext Result.failure(Exception("Invalid JSON"))
                     val codes = response.microapps.map { it.microappCode }.filter { it.isNotBlank() }
-                    Log.d(TAG, "Fetched ${codes.size} microapp codes: $codes")
                     Result.success(codes)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Fetch failed", e)
+                Log.e(TAG, "Ошибка запроса списка микроаппов", e)
                 Result.failure(e)
             }
         }

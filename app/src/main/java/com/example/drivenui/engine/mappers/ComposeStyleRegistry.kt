@@ -5,11 +5,10 @@ import androidx.core.graphics.toColorInt
 import com.example.drivenui.engine.parser.models.AllStyles
 import com.example.drivenui.engine.parser.models.ColorStyle
 import com.example.drivenui.engine.parser.models.ColorTheme
-import com.example.drivenui.engine.parser.models.RoundStyle
 import com.example.drivenui.engine.parser.models.TextStyle
 
 /**
- * Реестр стилей для Compose, предоставляет доступ к TextStyle, ColorStyle и RoundStyle по коду.
+ * Реестр стилей для Compose: текст и цвет по коду стиля.
  *
  * @property allStyles Все стили микроаппа
  */
@@ -35,16 +34,7 @@ class ComposeStyleRegistry(
         allStyles?.colorStyles?.firstOrNull { it.code == code }
 
     /**
-     * Возвращает стиль скругления по коду.
-     *
-     * @param code Код стиля
-     * @return RoundStyle или null если не найден
-     */
-    fun getRoundStyle(code: String): RoundStyle? =
-        allStyles?.roundStyles?.firstOrNull { it.code == code }
-
-    /**
-     * Возвращает Compose-цвет по коду стиля с учётом opacity и темы (пока всегда lightTheme).
+     * Возвращает Compose-цвет по коду стиля с учётом opacity и lightTheme.
      *
      * @param code Код стиля цвета
      * @return Compose Color или null если стиль не найден

@@ -96,6 +96,6 @@ sealed interface UiAction {
     /** Навигация назад в стеке экранов микроаппа. */
     data object Back : UiAction
 
-    /** Пустое действие (не выполнять ничего). */
+    /** Пустое действие. */
     data object Empty : UiAction
 }

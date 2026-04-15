@@ -7,9 +7,7 @@ import java.io.File
 /**
  * Утилита для определения и кеширования корневой папки микроаппа в `microapps`.
  *
- * На демо-этапе в `microapps` может лежать только один микроапп, поэтому:
- * - по умолчанию корнем считаем первую найденную подпапку;
- * - один раз сохраняем её имя и дальше используем кеш, не сканируя файловую систему каждый раз.
+ * Имя корня хранится в SharedPreferences; при отсутствии папки берётся первая подпапка в `microapps`.
  */
 object MicroappRootFinder {
     private const val TAG = "MicroappRootFinder"
@@ -27,7 +25,6 @@ object MicroappRootFinder {
      * @param dirName имя папки микроаппа
      */
     fun saveMicroappRootName(context: Context, dirName: String) {
-        Log.d(TAG, "Saving microapp root name: $dirName")
         prefs(context).edit().putString(KEY_CURRENT_ROOT, dirName).apply()
     }
 
@@ -37,26 +34,18 @@ object MicroappRootFinder {
      * @param context контекст приложения для доступа к SharedPreferences
      */
     fun clearSavedMicroappRoot(context: Context) {
-        Log.d(TAG, "Clearing saved microapp root name")
         prefs(context).edit().remove(KEY_CURRENT_ROOT).apply()
     }
 
     /**
      * Находит корневую папку микроаппа в `microapps`.
      *
-     * Алгоритм:
-     * 1. Пробуем взять имя из сохранённого значения (SharedPreferences).
-     * 2. Если не найдено или папка отсутствует — берём первую подпапку в `microapps`,
-     *    считаем её корнем микроаппа и сохраняем её имя.
-     *
      * @param context контекст приложения для доступа к файловой системе и SharedPreferences
-     * 
      * @return корневая папка микроаппа или null, если не найдена
      */
     fun findMicroappRoot(context: Context): File? {
         val microappsDir = File(context.filesDir, MICROAPPS_DIR)
         if (!microappsDir.exists() || !microappsDir.isDirectory) {
-            Log.d(TAG, "Microapps directory does not exist")
             return null
         }
 
@@ -64,21 +53,19 @@ object MicroappRootFinder {
         if (!savedName.isNullOrBlank()) {
             val savedDir = File(microappsDir, savedName)
             if (savedDir.exists() && savedDir.isDirectory) {
-                Log.d(TAG, "Using saved microapp root: $savedName")
                 return savedDir
             } else {
-                Log.w(TAG, "Saved microapp root '$savedName' not found, will rescan")
+                Log.w(TAG, "Сохранённый корень микроаппа '$savedName' не найден, повторный поиск")
             }
         }
 
         val firstDir = microappsDir.listFiles()?.firstOrNull { it.isDirectory }
         if (firstDir != null) {
-            Log.d(TAG, "Using first directory as microapp root: ${firstDir.name}")
             saveMicroappRootName(context, firstDir.name)
             return firstDir
         }
 
-        Log.w(TAG, "Could not determine microapp root directory")
+        Log.w(TAG, "Не удалось определить корневой каталог микроаппа")
         return null
     }
 

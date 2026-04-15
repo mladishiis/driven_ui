@@ -8,8 +8,6 @@ import com.example.drivenui.engine.value.resolveValueExpression
  * Полная подстановка для строки из модели: сначала `${...}` из [DataContext], затем выражения контекста
  * (`@{microapp.*}`, `@@{*}`, условные `*if*then*else*`).
  *
- * Шаблоны в полях модели не перезаписываются — результат кладётся в `display*` в `StyleResolver` (`resolveScreen`).
- *
  * @param template Исходная строка из XML/маппера
  * @param dataContext JSON и результаты запросов
  * @param contextManager Переменные микроаппа и движка

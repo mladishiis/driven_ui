@@ -35,8 +35,6 @@ class FileDownloadInteractorImpl @Inject constructor(
     ): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Downloading from: $url, format=$format")
-
                 val acceptHeader = when (format) {
                     ArchiveDownloadFormat.OCTET_STREAM -> "application/octet-stream"
                     ArchiveDownloadFormat.JSON -> "application/json"
@@ -83,14 +81,13 @@ class FileDownloadInteractorImpl @Inject constructor(
                     if (rootName != null) {
                         MicroappRootFinder.saveMicroappRootName(context, rootName)
                     } else {
-                        Log.w(TAG, "No subdirectories found in microapps after unzip")
+                        Log.w(TAG, "После распаковки в microapps нет подпапок")
                     }
 
-                    Log.d(TAG, "Zip extracted successfully")
                     true
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Download/extract failed", e)
+                Log.e(TAG, "Ошибка загрузки или распаковки архива", e)
                 false
             }
         }
@@ -104,8 +101,6 @@ class FileDownloadInteractorImpl @Inject constructor(
     private fun unzipSafely(zip: ZipInputStream) {
         val targetDir = getMicroappsDir().canonicalFile
         var entry = zip.nextEntry
-        var extractedCount = 0
-        var errorCount = 0
 
         while (entry != null) {
             try {
@@ -122,21 +117,14 @@ class FileDownloadInteractorImpl @Inject constructor(
                     FileOutputStream(canonicalFile).use { output ->
                         zip.copyTo(output)
                     }
-                    extractedCount++
-                    if (extractedCount % 10 == 0) {
-                        Log.d(TAG, "Extracted $extractedCount files...")
-                    }
                 }
             } catch (e: Exception) {
-                errorCount++
-                Log.e(TAG, "Failed to extract entry: ${entry.name}", e)
+                Log.e(TAG, "Не удалось распаковать запись: ${entry.name}", e)
             }
 
             zip.closeEntry()
             entry = zip.nextEntry
         }
-
-        Log.d(TAG, "Extraction completed: $extractedCount files extracted, $errorCount errors")
     }
 
     override suspend fun clearAssetsFolder(): Boolean =
@@ -149,10 +137,9 @@ class FileDownloadInteractorImpl @Inject constructor(
                 dir.mkdirs()
                 MicroappRootFinder.clearSavedMicroappRoot(context)
 
-                Log.d(TAG, "Microapps directory cleared")
                 true
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear microapps directory", e)
+                Log.e(TAG, "Не удалось очистить каталог microapps", e)
                 false
             }
         }
@@ -167,7 +154,7 @@ class FileDownloadInteractorImpl @Inject constructor(
 
             (realAssets + microapps).distinct().sorted()
         } catch (e: Exception) {
-            Log.e(TAG, "Error listing assets", e)
+            Log.e(TAG, "Ошибка при перечислении assets", e)
             emptyList()
         }
 

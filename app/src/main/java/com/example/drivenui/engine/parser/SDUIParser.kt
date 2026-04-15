@@ -1,7 +1,17 @@
 package com.example.drivenui.engine.parser
 
 import android.util.Log
-import com.example.drivenui.engine.parser.models.*
+import com.example.drivenui.engine.parser.models.AllEventActions
+import com.example.drivenui.engine.parser.models.AllEvents
+import com.example.drivenui.engine.parser.models.AllStyles
+import com.example.drivenui.engine.parser.models.ColorStyle
+import com.example.drivenui.engine.parser.models.Component
+import com.example.drivenui.engine.parser.models.DataContext
+import com.example.drivenui.engine.parser.models.Layout
+import com.example.drivenui.engine.parser.models.Microapp
+import com.example.drivenui.engine.parser.models.ParsedScreen
+import com.example.drivenui.engine.parser.models.TextStyle
+import com.example.drivenui.engine.parser.models.Widget
 import com.example.drivenui.engine.parser.parsers.ComponentParser
 import com.example.drivenui.engine.parser.parsers.MicroappParser
 import com.example.drivenui.engine.parser.parsers.StyleParser
@@ -106,27 +116,6 @@ class SDUIParser {
             "componentsCount" to countAllComponents(),
         )
 
-        /** Выводит сводку парсинга в лог. */
-        fun logSummary() {
-            Log.d("SDUIParser", "====== SDUI PARSE RESULT ======")
-            Log.d("SDUIParser", "Microapp: ${microapp?.title ?: "нет"}")
-            Log.d("SDUIParser", "Screens: ${screens.size}")
-
-            screens.forEach { screen ->
-                Log.d(
-                    "SDUIParser",
-                    "Screen ${screen.screenCode}: ${screen.title}, components=${screen.rootComponent?.let {
-                        countComponentsRecursive(it)
-                    } ?: 0}",
-                )
-            }
-
-            Log.d("SDUIParser", "Text styles: ${getTextStyles().size}")
-            Log.d("SDUIParser", "Color styles: ${getColorStyles().size}")
-            Log.d("SDUIParser", "Total components: ${countAllComponents()}")
-            Log.d("SDUIParser", "==============================")
-        }
-
         /**
          * Собирает разрешённые значения биндингов из компонентов.
          *
@@ -166,8 +155,6 @@ class SDUIParser {
     ): ParsedMicroappResult {
 
         return try {
-            Log.d("SDUIParser", "=== Start SDUI parsing ===")
-
             val microapp = parseMicroapp(microappXml)
             val styles = parseStyles(stylesXml)
             val parsedScreens = parseScreens(screens)
@@ -176,10 +163,10 @@ class SDUIParser {
                 microapp = microapp,
                 styles = styles,
                 screens = parsedScreens,
-            ).also { it.logSummary() }
+            )
 
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга SDUI", e)
+            Log.e("SDUIParser", "Ошибка разбора SDUI", e)
             ParsedMicroappResult()
         }
     }
@@ -189,9 +176,7 @@ class SDUIParser {
     ): List<ParsedScreen> =
         screens.mapNotNull { (name, xml) ->
             try {
-                componentParser.parseSingleScreenXml(xml)?.also {
-                    Log.d("SDUIParser", "Screen parsed: ${it.screenCode} ($name)")
-                }
+                componentParser.parseSingleScreenXml(xml)
             } catch (e: Exception) {
                 Log.e("SDUIParser", "Ошибка парсинга экрана $name", e)
                 null
@@ -202,7 +187,7 @@ class SDUIParser {
         try {
             microappParser.parseMicroapp(xml)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга microapp", e)
+            Log.e("SDUIParser", "Ошибка парсинга микроаппа", e)
             null
         }
 
@@ -210,7 +195,7 @@ class SDUIParser {
         try {
             styleParser.parseStyles(xml)
         } catch (e: Exception) {
-            Log.e("SDUIParser", "Ошибка парсинга styles", e)
+            Log.e("SDUIParser", "Ошибка парсинга стилей", e)
             null
         }
 }

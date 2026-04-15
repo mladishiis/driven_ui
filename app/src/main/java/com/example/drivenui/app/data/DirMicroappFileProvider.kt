@@ -14,11 +14,7 @@ class DirMicroappFileProvider @Inject constructor(
     private val context: Context
 ) : MicroappFileProvider {
 
-    /**
-     * Динамически определяет корневую папку микроаппа при каждом обращении.
-     * Если микроапп не найден, выбрасывает исключение —
-     * это означает, что архив ещё не был загружен/распакован.
-     */
+    /** Корневая папка микроаппа в файловой системе. */
     private fun getRootDir(): File {
         val foundRoot = MicroappRootFinder.findMicroappRoot(context)
         return foundRoot

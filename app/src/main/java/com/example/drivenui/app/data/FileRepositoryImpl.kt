@@ -17,11 +17,7 @@ internal class FileRepositoryImpl @Inject constructor(
     private val context: Context
 ) : FileRepository {
 
-    /**
-     * Динамически определяет корневую папку микроаппа при каждом обращении.
-     * Если микроапп не найден, выбрасывает исключение —
-     * это означает, что архив ещё не был загружен/распакован.
-     */
+    /** Корневая папка микроаппа в файловой системе. */
     private fun getRootDir(): File {
         val foundRoot = MicroappRootFinder.findMicroappRoot(context)
         return foundRoot
@@ -72,15 +68,10 @@ internal class FileRepositoryImpl @Inject constructor(
 
                 val file = File(rootDir, fileName)
                 file.writeText(jsonResult)
-
-                Log.d(
-                    "FileRepository",
-                    "Saved file: ${file.absolutePath}"
-                )
             } catch (e: Exception) {
                 Log.e(
                     "FileRepository",
-                    "Error saving file $fileName",
+                    "Ошибка сохранения файла $fileName",
                     e
                 )
                 throw e

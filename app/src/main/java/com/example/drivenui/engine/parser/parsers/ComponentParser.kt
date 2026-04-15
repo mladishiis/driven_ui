@@ -52,7 +52,6 @@ class ComponentParser {
         var rootComponent: Component? = null
         val screenEvents = mutableListOf<WidgetEvent>()
 
-        Log.d("ComponentParser", "Парсинг экрана: $title")
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "screen")) {
@@ -61,7 +60,6 @@ class ComponentParser {
                     when (parser.name) {
                         "screenCode" -> {
                             screenCode = parser.nextText().trim()
-                            Log.d("ComponentParser", "screenCode: $screenCode")
                         }
                         "screenShortCode" -> {
                             screenShortCode = parser.nextText().trim()
@@ -74,9 +72,6 @@ class ComponentParser {
                         }
                         "screenLayout" -> {
                             rootComponent = parseScreenLayout(parser, 0)
-                            if (rootComponent != null) {
-                                Log.d("ComponentParser", "Корневой компонент создан: ${rootComponent.title}")
-                            }
                         }
                         else -> {
                             skipCurrentTag(parser)
@@ -121,7 +116,6 @@ class ComponentParser {
         val children = mutableListOf<Component>()
         val bindingProperties = mutableListOf<String>()
 
-        Log.d("ComponentParser", "${"  ".repeat(depth)}Парсинг screenLayout: $title (глубина: $depth)")
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenLayout")) {
@@ -208,7 +202,6 @@ class ComponentParser {
         val events = mutableListOf<WidgetEvent>()
         val bindingProperties = mutableListOf<String>()
 
-        Log.d("ComponentParser", "${"  ".repeat(depth)}Парсинг widget: $title")
 
         var eventType = parser.next()
         while (!(eventType == XmlPullParser.END_TAG && parser.name == "screenLayoutWidget")) {
@@ -425,7 +418,6 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        Log.d("ComponentParser", "Всего событий распарсено: ${events.size}")
         return events
     }
 
@@ -447,7 +439,6 @@ class ComponentParser {
                     when (parser.name) {
                         "eventСode" -> {
                             eventCode = parser.nextText().trim()
-                            Log.d("ComponentParser", "Найден eventСode: $eventCode")
                         }
                         "order" -> {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
@@ -455,13 +446,11 @@ class ComponentParser {
                         "eventActions" -> {
                             val actions = parseEventActionsBlock(parser)
                             eventActions.addAll(actions)
-                            Log.d("ComponentParser", "Добавлено действий: ${actions.size}")
                         }
                         else -> {
                             if (eventCode.isEmpty()) {
                                 try {
                                     eventCode = parser.nextText().trim()
-                                    Log.d("ComponentParser", "Найден текст события: $eventCode")
                                 } catch (e: Exception) {
                                     Log.e("ComponentParser", "Ошибка чтения текста события", e)
                                 }
@@ -476,7 +465,6 @@ class ComponentParser {
                     if (text?.isNotEmpty() == true && !text.matches(Regex("\\s+"))) {
                         if (eventCode.isEmpty()) {
                             eventCode = text
-                            Log.d("ComponentParser", "Найден текст события из TEXT: $eventCode")
                         }
                     }
                 }
@@ -518,7 +506,6 @@ class ComponentParser {
             eventType = parser.next()
         }
 
-        Log.d("ComponentParser", "Всего eventActions в блоке: ${eventActions.size}")
         return eventActions
     }
 
@@ -540,7 +527,6 @@ class ComponentParser {
                     when (parser.name) {
                         "eventActionCode" -> {
                             code = parser.nextText().trim()
-                            Log.d("ComponentParser", "Найден код действия: $code")
                         }
                         "order" -> {
                             order = parser.nextText().trim().toIntOrNull() ?: 0
@@ -582,7 +568,6 @@ class ComponentParser {
                     if (parser.name == "property") {
                         parseEventActionProperty(parser)?.let { (key, value) ->
                             properties[key] = value
-                            Log.d("ComponentParser", "        Добавлено свойство действия: $key = $value")
                         }
                     } else {
                         skipCurrentTag(parser)
@@ -591,7 +576,6 @@ class ComponentParser {
             }
             eventType = parser.next()
         }
-        Log.d("ComponentParser", "        Всего свойств действия: ${properties.size}")
     }
 
     /**
@@ -633,70 +617,6 @@ class ComponentParser {
                 XmlPullParser.START_TAG -> depth++
                 XmlPullParser.END_TAG -> depth--
                 XmlPullParser.END_DOCUMENT -> return
-            }
-        }
-    }
-
-    /**
-     * Вспомогательная функция для отладки.
-     *
-     * @param component Компонент для вывода в лог
-     * @param indent Отступ для вложенных элементов
-     */
-    fun logComponentTree(component: Component?, indent: String = "") {
-        if (component == null) return
-
-        when (component) {
-            is LayoutComponent -> {
-                Log.d("ComponentTree", "$indent[LAYOUT] ${component.title} (${component.code})")
-                Log.d("ComponentTree", "$indent  layoutCode: ${component.layoutCode}")
-                Log.d("ComponentTree", "$indent  children: ${component.children.size}")
-                Log.d("ComponentTree", "$indent  событий: ${component.events.size}")
-
-                component.events.forEach { event ->
-                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}, order: ${event.order}")
-                    if (event.eventActions.isNotEmpty()) {
-                        Log.d("ComponentTree", "$indent      Действий: ${event.eventActions.size}")
-                        event.eventActions.forEach { action ->
-                            Log.d("ComponentTree", "$indent        Действие: ${action.code}, order: ${action.order}")
-                            if (action.properties.isNotEmpty()) {
-                                Log.d("ComponentTree", "$indent          Свойства: ${action.properties.size}")
-                                action.properties.forEach { (key, value) ->
-                                    Log.d("ComponentTree", "$indent            $key = $value")
-                                }
-                            } else {
-                                Log.d("ComponentTree", "$indent          Свойства: нет")
-                            }
-                        }
-                    }
-                }
-
-                component.children.forEach { child ->
-                    logComponentTree(child, "$indent  ")
-                }
-            }
-            is WidgetComponent -> {
-                Log.d("ComponentTree", "$indent[WIDGET] ${component.title} (${component.code})")
-                Log.d("ComponentTree", "$indent  widgetCode: ${component.widgetCode}")
-                Log.d("ComponentTree", "$indent  событий: ${component.events.size}")
-
-                component.events.forEach { event ->
-                    Log.d("ComponentTree", "$indent    Событие: ${event.eventCode}, order: ${event.order}")
-                    if (event.eventActions.isNotEmpty()) {
-                        Log.d("ComponentTree", "$indent      Действий: ${event.eventActions.size}")
-                        event.eventActions.forEach { action ->
-                            Log.d("ComponentTree", "$indent        Действие: ${action.code}, order: ${action.order}")
-                            if (action.properties.isNotEmpty()) {
-                                Log.d("ComponentTree", "$indent          Свойства: ${action.properties.size}")
-                                action.properties.forEach { (key, value) ->
-                                    Log.d("ComponentTree", "$indent            $key = $value")
-                                }
-                            } else {
-                                Log.d("ComponentTree", "$indent          Свойства: нет")
-                            }
-                        }
-                    }
-                }
             }
         }
     }

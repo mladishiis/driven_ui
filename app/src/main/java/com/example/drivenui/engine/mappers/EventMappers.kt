@@ -7,8 +7,8 @@ import com.example.drivenui.engine.parser.models.WidgetEvent
 /**
  * Соответствие кодов событий (`eventCode`) целям в дереве UI:
  * - **Экран** — `onCreate`, `onDestroy` ([getOnCreateEvents], [getOnDestroyEvents])
- * - **Layout, button, label, image, appBar** — `onTap` ([getOnTapEvents]); у прочих виджетов onTap не маппится
- * - **Input** — задуманы `onTyping`, `onFinishTyping`, `onFocus`, `onFinishFocus`; в рендере пока обрабатывается только [getOnFinishTypingEvents]
+ * - **Layout, button, label, image, appBar** — `onTap` ([getOnTapEvents])
+ * - **Input** — `onFinishTyping` ([getOnFinishTypingEvents])
  */
 
 /**

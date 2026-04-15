@@ -57,7 +57,7 @@ fun GenerativeScreen(
     )
 }
 
-/** Радиус скругления шторки по умолчанию (dp), если у корневого layout не задан radius. */
+/** Радиус скругления шторки по умолчанию (dp). */
 private const val DEFAULT_SHEET_CORNER_RADIUS_DP = 0
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -57,21 +57,21 @@ class ActionHandler(
                 is UiAction.Empty -> ActionResult.Success
             }
         } catch (e: Exception) {
-            Log.e("ActionHandler", "Error handling action: ${action::class.simpleName}", e)
-            ActionResult.Error("Error handling action: ${e.message}", e)
+            Log.e("ActionHandler", "Ошибка обработки действия: ${action::class.simpleName}", e)
+            ActionResult.Error("Ошибка обработки действия: ${e.message}", e)
         }
     }
 
     private suspend fun handleOpenScreen(screenCode: String): ActionResult {
         val screenModel = screenProvider.findScreen(screenCode)
-            ?: return ActionResult.Error("Screen not found: $screenCode")
+            ?: return ActionResult.Error("Экран не найден: $screenCode")
 
         return openResolvedScreen(screenModel)
     }
 
     private suspend fun handleOpenBottomSheet(screenCode: String): ActionResult {
         val screenModel = screenProvider.findScreen(screenCode)
-            ?: return ActionResult.Error("Bottom sheet screen not found: $screenCode")
+            ?: return ActionResult.Error("Экран для нижней шторки не найден: $screenCode")
 
         val resolvedScreen = resolveScreen(
             screenModel,
@@ -101,7 +101,7 @@ class ActionHandler(
         return if (handled) {
             ActionResult.Success
         } else {
-            ActionResult.Error("Deeplink not found: $deeplink")
+            ActionResult.Error("Deeplink не найден: $deeplink")
         }
     }
 
@@ -125,7 +125,7 @@ class ActionHandler(
     private suspend fun handleRefreshScreen(@Suppress("UNUSED_PARAMETER") screenCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
-            ?: return ActionResult.Error("No current screen to refresh")
+            ?: return ActionResult.Error("Нет текущего экрана для обновления")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
         val resolvedScreen = resolveScreen(
@@ -145,7 +145,7 @@ class ActionHandler(
     private suspend fun handleRefreshWidget(@Suppress("UNUSED_PARAMETER") widgetCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
-            ?: return ActionResult.Error("No current screen to refresh widget on")
+            ?: return ActionResult.Error("Нет текущего экрана для обновления виджета")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
         val resolvedScreen = resolveScreen(
@@ -165,7 +165,7 @@ class ActionHandler(
     private suspend fun handleRefreshLayout(@Suppress("UNUSED_PARAMETER") layoutCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         val definition = currentScreen?.definition
-            ?: return ActionResult.Error("No current screen to refresh layout on")
+            ?: return ActionResult.Error("Нет текущего экрана для обновления лейаута")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
         val resolvedScreen = resolveScreen(
@@ -181,7 +181,7 @@ class ActionHandler(
     private suspend fun handleExecuteQuery(action: UiAction.ExecuteQuery): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
         if (currentScreen?.definition == null) {
-            return ActionResult.Error("No current screen to execute query on")
+            return ActionResult.Error("Нет текущего экрана для выполнения запроса")
         }
 
         val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
@@ -203,7 +203,7 @@ class ActionHandler(
     private fun handleSaveToContext(action: UiAction.SaveToContext): ActionResult {
         val sourceValue = resolveValueFrom(action.valueFrom)
         if (sourceValue == null) {
-            return ActionResult.Error("Failed to resolve value from: ${action.valueFrom}")
+            return ActionResult.Error("Не удалось получить значение из: ${action.valueFrom}")
         }
 
         parseMicroappContextTarget(action.valueTo)?.let { (microappCode, variableName) ->
@@ -224,7 +224,7 @@ class ActionHandler(
         }
 
         return ActionResult.Error(
-            "Invalid target format for saveToContext: ${action.valueTo}. Expected @{microappCode.variableName} or @@{variableName}",
+            "Неверный формат цели для saveToContext: ${action.valueTo}. Ожидается @{кодМикроаппа.имяПеременной} или @@{имяПеременной}",
         )
     }
 
@@ -233,7 +233,7 @@ class ActionHandler(
             return widgetValueProvider.getWidgetValue(
                 widgetCode = widgetCode,
                 parameter = parameter,
-            )
+            ) ?: ""
         }
 
         return expression
@@ -274,8 +274,8 @@ class ActionHandler(
     private suspend fun handleNativeCode(action: UiAction.NativeCode): ActionResult {
         val executor = NativeActionRegistry.getExecutor()
         if (executor == null) {
-            Log.w("ActionHandler", "HostActionExecutor not registered. Cannot execute action: ${action.actionCode}")
-            return ActionResult.Error("Host action executor not registered")
+            Log.w("ActionHandler", "Исполнитель действий хоста не зарегистрирован, код: ${action.actionCode}")
+            return ActionResult.Error("Исполнитель действий хоста не зарегистрирован")
         }
 
         return try {
@@ -290,7 +290,7 @@ class ActionHandler(
                             )
                         }
                     } else {
-                        Log.w("ActionHandler", "Microapp code is null, cannot save NativeCode result to microapp context")
+                        Log.w("ActionHandler", "Код микроаппа null, результат NativeCode не сохранён в контекст")
                     }
                     ActionResult.Success
                 }
@@ -299,8 +299,8 @@ class ActionHandler(
                 }
             }
         } catch (e: Exception) {
-            Log.e("ActionHandler", "Error executing host action: ${action.actionCode}", e)
-            ActionResult.Error("Error executing host action: ${e.message}", e)
+            Log.e("ActionHandler", "Ошибка выполнения действия хоста: ${action.actionCode}", e)
+            ActionResult.Error("Ошибка выполнения действия хоста: ${e.message}", e)
         }
     }
 }

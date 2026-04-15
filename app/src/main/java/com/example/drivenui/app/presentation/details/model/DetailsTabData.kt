@@ -4,7 +4,6 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 
 /**
  * Данные для вкладок экрана деталей (вычисляются из parsedResult).
- * Хранятся в state, чтобы не передавать ViewModel в composable.
  *
  * @property screens список экранов
  * @property textStyles стили текста

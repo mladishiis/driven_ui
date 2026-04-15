@@ -16,7 +16,6 @@ import com.example.drivenui.app.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
 import com.example.drivenui.engine.context.IContextManager
-import com.example.drivenui.engine.parser.SDUIParser
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -138,8 +137,6 @@ internal class OpenFileViewModel @Inject constructor(
                     loadSavedMicroapps()
                 }
 
-                logParsingResult(parsedResult)
-
             } catch (e: Exception) {
                 Log.e("OpenFileViewModel", "Ошибка при загрузке или парсинге", e)
                 withContext(Dispatchers.Main) {
@@ -206,7 +203,6 @@ internal class OpenFileViewModel @Inject constructor(
                 val selectedFiles = jsonFiles.take(2)
                 if (selectedFiles.isNotEmpty()) {
                     updateState { copy(selectedJsonFiles = selectedFiles) }
-                    Log.d("OpenFileViewModel", "Автовыбор JSON файлов: ${selectedFiles.joinToString(", ")}")
                 }
 
             } catch (e: Exception) {
@@ -384,7 +380,6 @@ internal class OpenFileViewModel @Inject constructor(
             oldCollectionCodes.filter { it !in serverCodesSet && it !in singleListCodes }.forEach { code ->
                 microappStorage.delete(code)
                 contextManager.clearMicroappContext(code)
-                Log.d("OpenFileViewModel", "Удалён микроапп, отсутствующий в коллекции: $code")
             }
             for (microappCode in allCodes) {
                 val url = collectionApi.getMicroappZipUrl(microappCode)
@@ -437,34 +432,5 @@ internal class OpenFileViewModel @Inject constructor(
     private fun countComponents(component: com.example.drivenui.engine.parser.models.Component?): Int {
         if (component == null) return 0
         return 1 + component.children.sumOf { countComponents(it) }
-    }
-
-    private fun logParsingResult(result: SDUIParser.ParsedMicroappResult) {
-        Log.d("OpenFileViewModel", "=== Результат парсинга ===")
-        Log.d("OpenFileViewModel", "Микроапп: ${result.microapp?.title ?: "Не найден"}")
-        Log.d("OpenFileViewModel", "Экранов: ${result.screens.size}")
-
-        result.screens.forEachIndexed { index, screen ->
-            Log.d("OpenFileViewModel", "Экран ${index + 1}: ${screen.title} (${screen.screenCode})")
-            screen.rootComponent?.let { root ->
-                Log.d("OpenFileViewModel", "  Компонентов в дереве: ${countComponents(root)}")
-                logComponentStructure(root, "    ")
-            }
-        }
-
-        val resolvedValues = fileInteractor.getResolvedValues()
-        Log.d("OpenFileViewModel", "Разрешено биндингов: ${resolvedValues.size}")
-        resolvedValues.entries.take(5).forEach { (k, v) ->
-            Log.d("OpenFileViewModel", "  $k = $v")
-        }
-        Log.d("OpenFileViewModel", "=== Конец лога ===")
-    }
-
-    private fun logComponentStructure(
-        component: com.example.drivenui.engine.parser.models.Component,
-        indent: String
-    ) {
-        Log.d("OpenFileViewModel", "$indent${component.type}: ${component.title} (${component.code})")
-        component.children.forEach { logComponentStructure(it, "$indent  ") }
     }
 }

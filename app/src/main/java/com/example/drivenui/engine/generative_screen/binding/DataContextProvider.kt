@@ -38,7 +38,7 @@ class DataContextProvider(private val appContext: Context) {
                 .bufferedReader()
                 .use { JsonParser.parseString(it.readText()) }
         } catch (e: Exception) {
-            Log.e(TAG, "JSON not found in runtime or assets: $fileName", e)
+            Log.e(TAG, "JSON не найден ни в каталоге микроаппа, ни в assets: $fileName", e)
             null
         }
     }
@@ -53,7 +53,6 @@ class DataContextProvider(private val appContext: Context) {
         val currentSources = dataContext.jsonSources.toMutableMap()
         currentSources[name] = jsonData
         dataContext = dataContext.copy(jsonSources = currentSources)
-        Log.d(TAG, "Added JSON source: $name")
     }
 
     /**
@@ -66,7 +65,6 @@ class DataContextProvider(private val appContext: Context) {
         val currentResults = dataContext.screenQueryResults.toMutableMap()
         currentResults[name] = jsonData
         dataContext = dataContext.copy(screenQueryResults = currentResults)
-        Log.d(TAG, "Added screen query result: $name")
     }
 
 
@@ -81,14 +79,13 @@ class DataContextProvider(private val appContext: Context) {
             val jsonData = JsonParser.parseString(jsonString)
             addScreenQueryResult(name, jsonData)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to parse screen query result as JSON: $jsonString", e)
+            Log.e(TAG, "Не удалось разобрать результат запроса экрана как JSON: $jsonString", e)
         }
     }
 
     /** Очищает контекст данных. */
     fun clear() {
         dataContext = DataContext()
-        Log.d(TAG, "Data context cleared")
     }
 
     /**
@@ -97,31 +94,6 @@ class DataContextProvider(private val appContext: Context) {
      * @return Текущий [DataContext]
      */
     fun getDataContext(): DataContext = dataContext
-
-    /** Выводит отладочную информацию о контексте в Log. */
-    fun debugInfo() {
-        Log.d(TAG, "=== Data Context Debug ===")
-        Log.d(TAG, "JSON Sources (${dataContext.jsonSources.size}): ${dataContext.jsonSources.keys}")
-        Log.d(TAG, "Screen Query Results (${dataContext.screenQueryResults.size}): ${dataContext.screenQueryResults.keys}")
-
-        dataContext.screenQueryResults.forEach { (key, value) ->
-            Log.d(TAG, "  Screen Query '$key': ${value::class.simpleName}")
-            if (value is JsonElement) {
-                val preview = value.toString().take(100)
-                Log.d(TAG, "    Value preview: $preview...")
-            }
-        }
-
-        dataContext.jsonSources.forEach { (key, value) ->
-            Log.d(TAG, "  JSON Source '$key': ${value::class.simpleName}")
-            if (value is JsonElement) {
-                val preview = value.toString().take(100)
-                Log.d(TAG, "    Value preview: $preview...")
-            }
-        }
-
-        Log.d(TAG, "=== End Debug Info ===")
-    }
 
     companion object {
         private const val TAG = "DataContextProvider"

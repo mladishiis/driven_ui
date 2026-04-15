@@ -22,8 +22,7 @@ import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 
 /**
- * Резолвит экран: полная подстановка `${...}` + `@{...}` / `@@{...}` в отдельные `display*` поля,
- * шаблоны в исходных полях не затираются. Стили и радиусы вычисляются по шаблонам кодов.
+ * Резолвит экран: подстановка `${...}` и `@{...}` / `@@{...}` в поля `display*`, стили и радиусы по кодам.
  *
  * @param screenModel Модель экрана
  * @param contextManager Менеджер контекста

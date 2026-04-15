@@ -2,7 +2,6 @@ package com.example.drivenui.app.domain
 
 /**
  * Источник файлов микроаппа.
- * Domain слой знает ЧТО нужно читать, но не КАК (реализация в data).
  */
 interface MicroappFileProvider {
 

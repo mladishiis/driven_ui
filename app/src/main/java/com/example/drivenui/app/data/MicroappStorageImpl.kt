@@ -56,7 +56,7 @@ internal class MicroappStorageImpl @Inject constructor(
     override suspend fun saveMapped(data: CachedMicroappData): String? =
         withContext(Dispatchers.IO) {
             if (!data.hasData()) {
-                Log.w(TAG, "Skip save: data has no content")
+                Log.w(TAG, "Пропуск сохранения: в данных нет содержимого")
                 return@withContext null
             }
 
@@ -67,10 +67,9 @@ internal class MicroappStorageImpl @Inject constructor(
                 storageDir.mkdirs()
                 val json = gson.toJson(data)
                 File(storageDir, safeFileName).writeText(json)
-                Log.d(TAG, "Saved microapp: $code")
                 code
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save microapp", e)
+                Log.e(TAG, "Не удалось сохранить микроапп", e)
                 null
             }
         }
@@ -80,7 +79,6 @@ internal class MicroappStorageImpl @Inject constructor(
             val safeFileName = sanitizeFileName(microappCode) + ".json"
             val file = File(storageDir, safeFileName)
             if (!file.exists()) {
-                Log.d(TAG, "Microapp not found: $microappCode")
                 return@withContext null
             }
 
@@ -89,7 +87,7 @@ internal class MicroappStorageImpl @Inject constructor(
                 gson.fromJson(json, CachedMicroappData::class.java)
                     ?.takeIf { it.hasData() }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load microapp: $microappCode", e)
+                Log.e(TAG, "Не удалось загрузить микроапп: $microappCode", e)
                 null
             }
         }
@@ -206,7 +204,6 @@ internal class MicroappStorageImpl @Inject constructor(
             }
         if (migrated) {
             prefs.edit { clear() }
-            Log.d(TAG, "Migrated collection metadata from SharedPreferences")
         }
     }
 
@@ -216,7 +213,7 @@ internal class MicroappStorageImpl @Inject constructor(
             val type = object : TypeToken<List<String>>() {}.type
             gson.fromJson<List<String>>(file.readText(), type) ?: emptyList()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to read ${file.name}", e)
+            Log.e(TAG, "Не удалось прочитать ${file.name}", e)
             emptyList()
         }
     }

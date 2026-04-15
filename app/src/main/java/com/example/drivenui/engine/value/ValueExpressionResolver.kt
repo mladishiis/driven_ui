@@ -2,7 +2,7 @@ package com.example.drivenui.engine.value
 
 import com.example.drivenui.engine.context.IContextManager
 
-/** Сначала `@@{…}` (движок), чтобы не перехватывать вложенный `@{` внутри `@@{`. */
+/** Порядок разбора: сначала `@@{…}` (движок), затем `@{…}`. */
 private val ENGINE_CONTEXT_VAR_PATTERN = Regex("@@\\{([^}]+)\\}")
 
 /** `@{microappCode.variableName}` в любой позиции строки. */

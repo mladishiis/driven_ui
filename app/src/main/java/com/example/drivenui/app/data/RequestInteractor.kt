@@ -2,28 +2,16 @@ package com.example.drivenui.app.data
 
 import android.content.Context
 import android.util.Log
-import com.example.drivenui.engine.generative_screen.binding.ForLayoutBinding
-import com.example.drivenui.engine.generative_screen.binding.DataBindingParser
 import com.example.drivenui.engine.generative_screen.binding.DataContextProvider
+import com.example.drivenui.engine.generative_screen.binding.ForLayoutBinding
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.UiAction
-import com.example.drivenui.engine.uirender.models.AppBarModel
-import com.example.drivenui.engine.uirender.models.ButtonModel
-import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.engine.uirender.models.ImageModel
-import com.example.drivenui.engine.uirender.models.InputModel
-import com.example.drivenui.engine.uirender.models.LabelModel
-import com.example.drivenui.engine.uirender.models.LayoutModel
-import com.example.drivenui.engine.parser.models.BindingSourceType
 import com.example.drivenui.engine.parser.models.DataContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Интерактор для выполнения запросов и применения биндингов к экранам.
- *
- * Загружает mock JSON по `ExecuteQuery`, обеспечивает `DataContext` и `ForLayoutBinding`
- * для рендереров.
  *
  * @property appContext контекст приложения для доступа к assets и файловой системе
  */
@@ -35,9 +23,8 @@ class RequestInteractor @Inject constructor(
     private val dataContextProvider = DataContextProvider(appContext)
 
     /**
-     * Выполняет описание запроса из экшена: при `ExecuteQuery.mockEnabled` и непустом `ExecuteQuery.mockFile`
-     * подгружает JSON в `DataContext.screenQueryResults` под ключом `ExecuteQuery.queryCode`,
-     * затем применяет FOR-биндинги к экрану.
+     * При `ExecuteQuery.mockEnabled` и непустом `mockFile` загружает JSON в `DataContext.screenQueryResults`
+     * под ключом `queryCode` (как в экшене).
      *
      * @param screenModel экран для обновления
      * @param action параметры запроса из разметки события
@@ -47,28 +34,20 @@ class RequestInteractor @Inject constructor(
         screenModel: ScreenModel,
         action: UiAction.ExecuteQuery,
     ): ScreenModel {
-        Log.d(
-            TAG,
-            "ExecuteQuery: queryCode=${action.queryCode}, type=${action.type}, endpoint=${action.endpoint}, mockEnabled=${action.mockEnabled}, mockFile=${action.mockFile}",
-        )
-
         if (action.mockEnabled && !action.mockFile.isNullOrBlank()) {
             val fileName = action.mockFile.trim()
             try {
                 val jsonData = dataContextProvider.loadJsonSmart(fileName)
                 if (jsonData != null) {
                     dataContextProvider.addScreenQueryResult(action.queryCode, jsonData)
-                    Log.d(TAG, "Mock loaded for queryCode=${action.queryCode} from $fileName")
                 } else {
-                    Log.e(TAG, "Failed to load mock file: $fileName for queryCode=${action.queryCode}")
+                    Log.e(TAG, "Не удалось загрузить mock-файл: $fileName, queryCode=${action.queryCode}")
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading mock file: $fileName", e)
+                Log.e(TAG, "Ошибка загрузки mock-файла: $fileName", e)
             }
         }
 
-        loadComponentBindingsJsonFiles(screenModel)
-        dataContextProvider.debugInfo()
         return ForLayoutBinding.applyBindings(
             screenModel,
             dataContextProvider.getDataContext(),
@@ -83,7 +62,6 @@ class RequestInteractor @Inject constructor(
      * @return экран с применёнными биндингами
      */
     fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
-        Log.d(TAG, "Applying bindings to screen: ${screenModel.id} (without executing queries)")
         return ForLayoutBinding.applyBindings(screenModel, dataContextProvider.getDataContext())
     }
 
@@ -100,78 +78,6 @@ class RequestInteractor @Inject constructor(
      * @return текущий контекст данных (JSON-источники, результаты запросов)
      */
     fun getDataContext(): DataContext = dataContextProvider.getDataContext()
-
-    /**
-     * Загружает JSON файлы из биндингов компонентов
-     */
-    private fun loadComponentBindingsJsonFiles(screenModel: ScreenModel) {
-        val jsonSources = extractJsonSourceNamesFromBindings(screenModel.rootComponent)
-        Log.d(TAG, "Found JSON sources from bindings: $jsonSources")
-
-        jsonSources.forEach { sourceName ->
-            val dataContext = dataContextProvider.getDataContext()
-            val alreadyLoaded = dataContext.jsonSources.containsKey(sourceName) ||
-                    dataContext.screenQueryResults.containsKey(sourceName)
-
-            if (!alreadyLoaded) {
-                val fileName = "$sourceName.json"
-                Log.d(TAG, "Looking for binding JSON file: $fileName")
-
-                val jsonData = dataContextProvider.loadJsonSmart(fileName)
-                if (jsonData != null) {
-                    dataContextProvider.addJsonSource(sourceName, jsonData)
-                    Log.d(TAG, "Successfully loaded JSON data for: $sourceName")
-                } else {
-                    Log.w(TAG, "Failed to load JSON file for binding: $fileName")
-                }
-            } else {
-                Log.d(TAG, "Source $sourceName already loaded from query result or other source")
-            }
-        }
-    }
-
-    /**
-     * Извлекает имена JSON источников из биндингов компонентов
-     */
-    private fun extractJsonSourceNamesFromBindings(component: ComponentModel?): Set<String> {
-        val sources = mutableSetOf<String>()
-
-        fun extractFromText(text: String) {
-            val bindings = DataBindingParser.parseBindings(text)
-            bindings.forEach { binding ->
-                when (binding.sourceType) {
-                    BindingSourceType.JSON_FILE -> {
-                        sources.add(binding.sourceName)
-                        Log.d(TAG, "Found JSON_FILE binding: ${binding.sourceName}")
-                    }
-                    BindingSourceType.SCREEN_QUERY_RESULT -> {
-                        Log.d(TAG, "Found SCREEN_QUERY_RESULT binding: ${binding.sourceName}")
-                    }
-                    else -> {
-                        Log.d(TAG, "Found binding type: ${binding.sourceType} for source: ${binding.sourceName}")
-                    }
-                }
-            }
-        }
-
-        fun processComponent(comp: ComponentModel?) {
-            when (comp) {
-                is LabelModel -> extractFromText(comp.text)
-                is ButtonModel -> extractFromText(comp.text)
-                is AppBarModel -> comp.title?.let { extractFromText(it) }
-                is InputModel -> {
-                    comp.text?.let { extractFromText(it) }
-                    comp.hint?.let { extractFromText(it) }
-                }
-                is ImageModel -> comp.url?.let { extractFromText(it) }
-                is LayoutModel -> comp.children.forEach { child -> processComponent(child) }
-                else -> Unit
-            }
-        }
-
-        processComponent(component)
-        return sources
-    }
 
     companion object {
         private const val TAG = "RequestInteractor"

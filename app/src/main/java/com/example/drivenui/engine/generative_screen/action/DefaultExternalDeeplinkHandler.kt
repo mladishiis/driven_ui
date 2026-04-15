@@ -26,10 +26,10 @@ class DefaultExternalDeeplinkHandler @Inject constructor(
             appContext.startActivity(intent)
             true
         } catch (e: ActivityNotFoundException) {
-            Log.w("ExternalDeeplinkHandler", "No activity found for deeplink: $deeplink", e)
+            Log.w("ExternalDeeplinkHandler", "Нет приложения для открытия deeplink: $deeplink", e)
             false
         } catch (t: Throwable) {
-            Log.e("ExternalDeeplinkHandler", "Error while handling deeplink: $deeplink", t)
+            Log.e("ExternalDeeplinkHandler", "Ошибка обработки deeplink: $deeplink", t)
             false
         }
     }

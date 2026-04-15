@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.drivenui.R
 import com.example.drivenui.app.presentation.details.model.AlignmentStyleItem
 import com.example.drivenui.app.presentation.details.model.ColorStyleItem
 import com.example.drivenui.app.presentation.details.model.ComponentTreeItem
@@ -27,7 +28,6 @@ import com.example.drivenui.engine.parser.models.Component
 import com.example.drivenui.engine.parser.models.ComponentType
 import com.example.drivenui.engine.parser.models.Microapp
 import com.example.drivenui.engine.uirender.models.ComponentModel
-import com.example.drivenui.R
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -58,7 +58,6 @@ internal class DetailsViewModel @Inject constructor(
                 tabData = tabData,
             )
         }
-        logParsingData(parsedResult)
     }
 
     private fun computeTabData(result: SDUIParser.ParsedMicroappResult): DetailsTabData {
@@ -279,7 +278,7 @@ internal class DetailsViewModel @Inject constructor(
                         }
 
                         appendLine("  Дерево компонентов:")
-                        logComponentTree(root, 0, 3, this)
+                        appendComponentTree(root, 0, 3, this)
                     } ?: appendLine("  Корневой компонент: отсутствует")
                     appendLine()
                 }
@@ -400,66 +399,23 @@ internal class DetailsViewModel @Inject constructor(
             .replace("\t", "\\t")
     }
 
-    /**
-     * Логирует данные парсинга
-     */
-    private fun logParsingData(result: SDUIParser.ParsedMicroappResult?) {
-        if (result == null) return
-
-        Log.d("DetailsViewModel", "=== Данные парсинга (новая структура) ===")
-        Log.d("DetailsViewModel", "Микроапп: ${result.microapp?.title}")
-        Log.d("DetailsViewModel", "Экранов: ${result.screens.size}")
-        Log.d("DetailsViewModel", "Стилей текста: ${result.styles?.textStyles?.size ?: 0}")
-        Log.d("DetailsViewModel", "Стилей цвета: ${result.styles?.colorStyles?.size ?: 0}")
-        Log.d("DetailsViewModel", "Событий: ${result.events?.events?.size ?: 0}")
-        Log.d("DetailsViewModel", "Виджетов: ${result.widgets.size}")
-        Log.d("DetailsViewModel", "Лэйаутов: ${result.layouts.size}")
-        Log.d("DetailsViewModel", "Компонентов всего: ${result.countAllComponents()}")
-
-        result.screens.take(3).forEachIndexed { index, screen ->
-            Log.d("DetailsViewModel", "Экран ${index + 1}: ${screen.title}")
-            screen.rootComponent?.let { root ->
-                Log.d("DetailsViewModel", "  Компонентов: ${countComponents(root)}")
-            }
-        }
-
-        result.screens.firstOrNull()?.rootComponent?.let { root ->
-            Log.d("DetailsViewModel", "Структура компонентов первого экрана:")
-            logComponentTree(root, 0, 2)
-        }
-    }
-
-    /**
-     * Рекурсивно логирует дерево компонентов
-     */
-    private fun logComponentTree(
+    private fun appendComponentTree(
         component: Component,
         depth: Int,
-        maxDepth: Int = Int.MAX_VALUE,
-        builder: StringBuilder? = null
+        maxDepth: Int,
+        builder: StringBuilder,
     ) {
         if (depth > maxDepth) return
 
         val indent = "  ".repeat(depth)
-        val message = "$indent${component.type}: ${component.title} (${component.code})"
-
-        if (builder != null) {
-            builder.appendLine(message)
-        } else {
-            Log.d("DetailsViewModel", message)
-        }
+        builder.appendLine("$indent${component.type}: ${component.title} (${component.code})")
 
         if (depth < maxDepth) {
             component.children.forEach { child ->
-                logComponentTree(child, depth + 1, maxDepth, builder)
+                appendComponentTree(child, depth + 1, maxDepth, builder)
             }
         } else if (component.children.isNotEmpty()) {
-            val skipMessage = "$indent  ... ещё ${component.children.size} компонентов"
-            if (builder != null) {
-                builder.appendLine(skipMessage)
-            } else {
-                Log.d("DetailsViewModel", skipMessage)
-            }
+            builder.appendLine("$indent  ... ещё ${component.children.size} компонентов")
         }
     }
 

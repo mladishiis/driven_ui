@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Сериализуемые параметры для восстановления Modifier при загрузке из кэша.
- * Применяются на этапе отрисовки через [applyParams], а не при создании модели.
+ * Применяются на этапе отрисовки через [applyParams].
  *
  * @property paddingLeft Отступ слева (dp)
  * @property paddingTop Отступ сверху (dp)

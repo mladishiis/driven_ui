@@ -23,20 +23,13 @@ object DataBindingParser {
         val pattern = "\\\$\\{([^}]+)\\}".toRegex()
         val bindings = mutableListOf<DataBinding>()
 
-        Log.d(TAG, "Parsing bindings from: '$text'")
-
         pattern.findAll(text).forEach { matchResult ->
             val expression = matchResult.value
             val content = matchResult.groupValues[1]
 
-            Log.d(TAG, "Found expression: '$expression', content: '$content'")
-
             parseBinding(content)?.let { binding ->
                 val fullBinding = binding.copy(expression = expression)
-                Log.d(TAG, "Parsed binding: $fullBinding")
                 bindings.add(fullBinding)
-            } ?: run {
-                Log.d(TAG, "Failed to parse binding: '$content'")
             }
         }
 
@@ -51,8 +44,6 @@ object DataBindingParser {
      * - source (только имя источника)
      */
     private fun parseBinding(content: String): DataBinding? {
-        Log.d(TAG, "Parsing binding content: '$content'")
-
         if (content.contains(".[")) {
             val dotBracketIndex = content.indexOf(".[")
             val sourceName = content.substring(0, dotBracketIndex)
@@ -125,14 +116,10 @@ object DataBindingParser {
     fun extractValue(data: JsonElement?, path: String): Any? {
         if (data == null || path.isEmpty()) return data?.toString()
 
-        Log.d(TAG, "Extracting value: path='$path', data type: ${data::class.simpleName}")
-
         var current: JsonElement? = data
         var remainingPath = path
 
         while (remainingPath.isNotEmpty() && current != null) {
-            Log.d(TAG, "Current: $current, remaining: '$remainingPath'")
-
             if (remainingPath.startsWith('[') && remainingPath.contains(']')) {
                 val endIndex = remainingPath.indexOf(']')
                 val indexStr = remainingPath.substring(1, endIndex)
@@ -140,9 +127,7 @@ object DataBindingParser {
 
                 if (current is JsonArray && index != null) {
                     current = if (index < current.size()) current[index] else null
-                    Log.d(TAG, "Accessed array at index $index: $current")
                 } else if (current is JsonObject) {
-                    Log.d(TAG, "Trying to find array in JsonObject")
                     val entrySet = current.entrySet()
                     var found = false
 
@@ -150,17 +135,16 @@ object DataBindingParser {
                         if (value is JsonArray && index != null) {
                             current = if (index < value.size()) value[index] else null
                             found = true
-                            Log.d(TAG, "Found array in property '$key' at index $index")
                             break
                         }
                     }
 
                     if (!found) {
-                        Log.w(TAG, "No array found in object for index $index")
+                        Log.w(TAG, "В объекте не найден массив для индекса $index")
                         return null
                     }
                 } else {
-                    Log.w(TAG, "Cannot access index $indexStr on $current")
+                    Log.w(TAG, "Нет доступа к индексу $indexStr у $current")
                     return null
                 }
 
@@ -180,9 +164,8 @@ object DataBindingParser {
 
                 if (current is JsonObject) {
                     current = current.get(property)
-                    Log.d(TAG, "Accessed property '$property': $current")
                 } else {
-                    Log.w(TAG, "Cannot get property '$property' from $current")
+                    Log.w(TAG, "Нет свойства '$property' у $current")
                     return null
                 }
 
@@ -192,13 +175,11 @@ object DataBindingParser {
                 val property = remainingPath
                 if (current is JsonObject) {
                     current = current.get(property)
-                    Log.d(TAG, "Accessed final property '$property': $current")
                 } else if (current is JsonArray && property.toIntOrNull() != null) {
                     val index = property.toInt()
                     current = if (index < current.size()) current[index] else null
-                    Log.d(TAG, "Accessed array at final index $index: $current")
                 } else {
-                    Log.w(TAG, "Cannot get property '$property' from $current")
+                    Log.w(TAG, "Нет свойства '$property' у $current")
                     return null
                 }
                 remainingPath = ""
@@ -212,7 +193,6 @@ object DataBindingParser {
             else -> null
         }
 
-        Log.d(TAG, "Extracted value: $result")
         return result
     }
 
@@ -224,11 +204,9 @@ object DataBindingParser {
 
         bindings.forEach { binding ->
             val value = resolveBinding(binding, dataContext)?.toString() ?: binding.defaultValue
-            Log.d(TAG, "Replacing '${binding.expression}' with '$value'")
             result = result.replace(binding.expression, value)
         }
 
-        Log.d(TAG, "Original: '$text', Result: '$result'")
         return result
     }
 
@@ -236,44 +214,35 @@ object DataBindingParser {
      * Разрешает биндинг в значение
      */
     private fun resolveBinding(binding: DataBinding, context: DataContext): Any? {
-        Log.d(TAG, "Resolving binding: $binding")
-
         val sourceData: JsonElement? = when (binding.sourceType) {
             BindingSourceType.SCREEN_QUERY_RESULT -> {
-                Log.d(TAG, "Looking for screen query: ${binding.sourceName}")
                 val result = context.screenQueryResults[binding.sourceName]
                 when (result) {
                     is JsonElement -> {
-                        Log.d(TAG, "Found JsonElement: ${result::class.simpleName}")
                         result
                     }
                     is String -> {
                         try {
                             JsonParser.parseString(result)
                         } catch (e: Exception) {
-                            Log.e(TAG, "Failed to parse string as JSON: $result")
+                            Log.e(TAG, "Не удалось разобрать строку как JSON: $result")
                             null
                         }
                     }
                     else -> {
-                        Log.w(TAG, "Unknown data type for screen query: ${result?.javaClass?.simpleName}")
+                        Log.w(TAG, "Неизвестный тип данных результата запроса экрана: ${result?.javaClass?.simpleName}")
                         null
                     }
                 }
             }
             BindingSourceType.JSON_FILE -> {
-                Log.d(TAG, "Looking for JSON source: ${binding.sourceName}")
-                val jsonElement = context.jsonSources[binding.sourceName]
-                Log.d(TAG, "Found JSON source: ${jsonElement != null}")
-                jsonElement
+                context.jsonSources[binding.sourceName]
             }
             else -> null
         }
 
         if (sourceData == null) {
-            Log.w(TAG, "No source data found for: ${binding.sourceName}")
-            Log.d(TAG, "Available screen queries: ${context.screenQueryResults.keys}")
-            Log.d(TAG, "Available JSON sources: ${context.jsonSources.keys}")
+            Log.w(TAG, "Нет данных источника для: ${binding.sourceName}")
             return null
         }
 
@@ -290,7 +259,6 @@ object DataBindingParser {
             }
         }
 
-        Log.d(TAG, "Final resolved result: $result")
         return result
     }
 }

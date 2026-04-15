@@ -6,26 +6,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.InputModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 
 private val InputOutlineShape = RoundedCornerShape(4.dp)
 private val InputOutlineWidth = 1.dp
 private val InputOutlinePaddingHorizontal = 12.dp
 private val InputOutlinePaddingVertical = 10.dp
+
+private const val FINISH_TYPING_DEBOUNCE_MS = 800L
 
 @Composable
 fun InputRenderer(
@@ -39,18 +46,19 @@ fun InputRenderer(
 
     var text by remember(model.widgetCode) { mutableStateOf(resolvedText) }
 
-    var isFirstValue by remember(model.widgetCode) { mutableStateOf(true) }
-
-    var suppressSyncFromModel by remember(model.widgetCode) { mutableStateOf(false) }
-
-    val finishTypingActions = remember(model) { model.finishTypingActions }
+    val scope = rememberCoroutineScope()
+    val finishTypingDebounce = remember(model.widgetCode) { FinishTypingDebounce() }
 
     LaunchedEffect(resolvedText) {
-        suppressSyncFromModel = true
         if (text != resolvedText) {
+            finishTypingDebounce.cancel()
             text = resolvedText
-        } else {
-            suppressSyncFromModel = false
+        }
+    }
+
+    DisposableEffect(model.widgetCode) {
+        onDispose {
+            finishTypingDebounce.cancel()
         }
     }
 
@@ -61,40 +69,28 @@ fun InputRenderer(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
-    LaunchedEffect(text) {
-        if (suppressSyncFromModel) {
-            suppressSyncFromModel = false
-            return@LaunchedEffect
-        }
-        if (isFirstValue) {
-            isFirstValue = false
-            return@LaunchedEffect
-        }
-        if (finishTypingActions.isNotEmpty()) {
-            kotlinx.coroutines.delay(800)
-            onWidgetValueChange(model.widgetCode, "text", text)
-            onActions(finishTypingActions)
-        }
-    }
-
     BasicTextField(
         modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
         value = text,
         onValueChange = { newText ->
             text = newText
+            onWidgetValueChange(model.widgetCode, "text", newText)
+
+            val actions = model.finishTypingActions
+            if (actions.isEmpty()) return@BasicTextField
+
+            finishTypingDebounce.cancel()
+            finishTypingDebounce.job = scope.launch {
+                delay(FINISH_TYPING_DEBOUNCE_MS)
+                ensureActive()
+                finishTypingDebounce.job = null
+                onActions(actions)
+            }
         },
         readOnly = model.readOnly,
         textStyle = fieldTextStyle,
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                if (finishTypingActions.isNotEmpty()) {
-                    onWidgetValueChange(model.widgetCode, "text", text)
-                    onActions(finishTypingActions)
-                }
-            }
         ),
         decorationBox = { innerTextField ->
             Box(
@@ -120,4 +116,13 @@ fun InputRenderer(
             }
         },
     )
+}
+
+private class FinishTypingDebounce {
+    var job: Job? = null
+
+    fun cancel() {
+        job?.cancel()
+        job = null
+    }
 }
