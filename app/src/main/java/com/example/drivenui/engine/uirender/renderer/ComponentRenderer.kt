@@ -12,6 +12,7 @@ import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.SwitcherModel
+import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
 
 @Composable
 fun ComponentRenderer(

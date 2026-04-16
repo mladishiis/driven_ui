@@ -6,16 +6,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
-import com.example.drivenui.engine.uirender.parseBoxAlignment
-import com.example.drivenui.engine.uirender.parseColumnAlignment
-import com.example.drivenui.engine.uirender.parseRowAlignment
+import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
+import com.example.drivenui.engine.uirender.utils.expandComponentWithIndex
+import com.example.drivenui.engine.uirender.utils.parseBoxAlignment
+import com.example.drivenui.engine.uirender.utils.parseColumnAlignment
+import com.example.drivenui.engine.uirender.utils.parseRowAlignment
 
 @Composable
 fun LayoutRenderer(

@@ -21,7 +21,7 @@ import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
-import com.example.drivenui.engine.uirender.renderer.WidgetValueSetter
+import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
 import kotlinx.coroutines.flow.StateFlow
 
 

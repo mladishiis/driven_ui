@@ -1,8 +1,8 @@
 package com.example.drivenui.engine.generative_screen.binding
 
 import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.expression.resolveValueExpression
 import com.example.drivenui.engine.parser.models.DataContext
-import com.example.drivenui.engine.value.resolveValueExpression
 
 /**
  * Полная подстановка для строки из модели: сначала `${...}` из [DataContext], затем выражения контекста
