@@ -57,9 +57,6 @@ fun GenerativeScreen(
     )
 }
 
-/** Радиус скругления шторки по умолчанию (dp). */
-private const val DEFAULT_SHEET_CORNER_RADIUS_DP = 0
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerativeScreenUi(
@@ -142,10 +139,9 @@ private fun BottomSheetHost(
         val configuration = LocalConfiguration.current
         val maxSheetHeight = (configuration.screenHeightDp * 0.99f).dp
 
-        val cornerRadiusDp = getSheetCornerRadiusDp(sheetModel) ?: DEFAULT_SHEET_CORNER_RADIUS_DP
         val sheetShape = RoundedCornerShape(
-            topStart = cornerRadiusDp.dp,
-            topEnd = cornerRadiusDp.dp,
+            topStart = 24.dp,
+            topEnd = 24.dp,
             bottomStart = 0.dp,
             bottomEnd = 0.dp
         )
