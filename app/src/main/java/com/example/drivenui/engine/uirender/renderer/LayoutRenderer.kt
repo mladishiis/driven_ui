@@ -6,7 +6,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -17,6 +21,8 @@ import com.example.drivenui.engine.uirender.utils.expandComponentWithIndex
 import com.example.drivenui.engine.uirender.utils.parseBoxAlignment
 import com.example.drivenui.engine.uirender.utils.parseColumnAlignment
 import com.example.drivenui.engine.uirender.utils.parseRowAlignment
+
+private val LocalInsideVerticalScroll = compositionLocalOf { false }
 
 @Composable
 fun LayoutRenderer(
@@ -86,15 +92,25 @@ private fun ColumnRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    Column(modifier = model.modifier) {
-        model.children.forEach { child ->
-            ComponentRenderer(
-                modifier = Modifier.align(parseColumnAlignment(child.alignment)),
-                model = applyBindingsForComponent?.invoke(child) ?: child,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
+    val parentIsScrollable = LocalInsideVerticalScroll.current
+    val applyScroll = model.modifierParams.scrollable && !parentIsScrollable
+    val columnModifier = if (applyScroll) {
+        model.modifierParams.applyParamsExcludingHeight(Modifier)
+            .verticalScroll(rememberScrollState())
+    } else {
+        model.modifier
+    }
+    CompositionLocalProvider(LocalInsideVerticalScroll provides (parentIsScrollable || applyScroll)) {
+        Column(modifier = columnModifier) {
+            model.children.forEach { child ->
+                ComponentRenderer(
+                    modifier = Modifier.align(parseColumnAlignment(child.alignment)),
+                    model = applyBindingsForComponent?.invoke(child) ?: child,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
+            }
         }
     }
 }
@@ -198,4 +214,3 @@ private fun BoxRenderer(
         }
     }
 }
-

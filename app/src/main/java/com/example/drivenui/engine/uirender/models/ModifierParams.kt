@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
  * @property paddingBottom Отступ снизу (dp)
  * @property height Высота: "fillmax", "wrapcontent" или число
  * @property width Ширина: "fillmax", "wrapcontent" или число
+ * @property scrollable Скроллируемость (вычисляется автоматически для vertical+fillMax)
  */
 data class ModifierParams(
     val paddingLeft: Int = 0,
@@ -28,14 +29,8 @@ data class ModifierParams(
     val paddingBottom: Int = 0,
     val height: String = "",
     val width: String = "",
+    val scrollable: Boolean = false,
 ) {
-    /**
-     * Применяет параметры (padding, height, width) к переданному Modifier.
-     * Вызывается на этапе отрисовки в рендерерах.
-     *
-     * @param modifier Базовый Modifier
-     * @return Modifier с применёнными параметрами
-     */
     fun applyParams(modifier: Modifier): Modifier {
         var result: Modifier = modifier
         if (paddingLeft != 0 || paddingTop != 0 || paddingRight != 0 || paddingBottom != 0) {
@@ -50,6 +45,28 @@ data class ModifierParams(
             "fillmax" -> result.fillMaxHeight()
             "wrapcontent" -> result.wrapContentHeight()
             else -> height.toIntOrNull()?.let { result.height(it.dp) } ?: result.fillMaxHeight()
+        }
+        result = when (width.lowercase()) {
+            "fillmax" -> result.fillMaxWidth()
+            "wrapcontent" -> result.wrapContentWidth()
+            else -> width.toIntOrNull()?.let { result.width(it.dp) } ?: result.fillMaxWidth()
+        }
+        return result
+    }
+
+    /**
+     * Применяет padding и width без height.
+     * Используется в ColumnRenderer — fillMaxHeight конфликтует с verticalScroll.
+     */
+    fun applyParamsExcludingHeight(modifier: Modifier): Modifier {
+        var result: Modifier = modifier
+        if (paddingLeft != 0 || paddingTop != 0 || paddingRight != 0 || paddingBottom != 0) {
+            result = result.padding(
+                start = paddingLeft.dp,
+                top = paddingTop.dp,
+                end = paddingRight.dp,
+                bottom = paddingBottom.dp,
+            )
         }
         result = when (width.lowercase()) {
             "fillmax" -> result.fillMaxWidth()

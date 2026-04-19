@@ -15,6 +15,7 @@ import com.example.drivenui.engine.uirender.models.LayoutForParams
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.RadiusValues
+import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
 
 /**
@@ -75,10 +76,18 @@ fun LayoutComponent.mapLayoutToUIModel(
 ): LayoutModel {
     val visibilityRaw = properties["visibility"]
     val visibility = parseVisibility(visibilityRaw)
+    val layoutType = getLayoutTypeFromString(layoutCode)
+    val scrollExplicit = properties["scroll"]?.trim()?.lowercase()
+    val isScrollable = when (scrollExplicit) {
+        "true" -> true
+        "false" -> false
+        else -> layoutType == LayoutType.VERTICAL_LAYOUT
+    }
+    val finalModifierParams = modifierParams.copy(scrollable = isScrollable)
     return LayoutModel(
         modifier = modifier,
-        modifierParams = modifierParams,
-        type = getLayoutTypeFromString(layoutCode),
+        modifierParams = finalModifierParams,
+        type = layoutType,
         children = children.mapToUiModelList(styleRegistry),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value,
