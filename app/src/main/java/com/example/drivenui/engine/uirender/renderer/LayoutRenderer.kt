@@ -8,10 +8,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
@@ -32,6 +35,15 @@ fun LayoutRenderer(
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
+    val currentIsDark = LocalIsDarkTheme.current
+    val styleRegistry = LocalStyleRegistry.current
+    val resolvedBgColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, currentIsDark) }
+    val effectiveIsDark = when {
+        resolvedBgColor != null && resolvedBgColor.luminance() > 0.5f -> false
+        resolvedBgColor != null && resolvedBgColor.luminance() <= 0.5f -> true
+        else -> currentIsDark
+    }
+
     val baseModifier = modifier
         .then(model.modifierParams.applyParams(Modifier))
         .then(model.modifier)
@@ -47,12 +59,21 @@ fun LayoutRenderer(
 
     val modelWithClickable = model.copy(modifier = layoutModifier)
 
+    val contentColor = resolvedBgColor?.let {
+        if (it.luminance() > 0.5f) Color(0xFF1C1B1F) else Color.White
+    }
+    CompositionLocalProvider(
+        LocalIsDarkTheme provides effectiveIsDark,
+        LocalContentColor provides (contentColor ?: LocalContentColor.current),
+    ) {
     when (model.type) {
         LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
-            modelWithClickable,
-            onActions,
-            onWidgetValueChange,
-            applyBindingsForComponent,
+            model = modelWithClickable,
+            originalModelModifier = model.modifier,
+            outerModifier = modifier,
+            onActions = onActions,
+            onWidgetValueChange = onWidgetValueChange,
+            applyBindingsForComponent = applyBindingsForComponent,
         )
 
         LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
@@ -83,6 +104,7 @@ fun LayoutRenderer(
             applyBindingsForComponent,
         )
     }
+    }
 }
 
 @Composable
@@ -91,11 +113,15 @@ private fun ColumnRenderer(
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
+    originalModelModifier: Modifier = Modifier,
+    outerModifier: Modifier = Modifier,
 ) {
     val parentIsScrollable = LocalInsideVerticalScroll.current
     val applyScroll = model.modifierParams.scrollable && !parentIsScrollable
     val columnModifier = if (applyScroll) {
-        model.modifierParams.applyParamsExcludingHeight(Modifier)
+        outerModifier
+            .then(model.modifierParams.applyParamsExcludingHeight(Modifier))
+            .then(originalModelModifier)
             .verticalScroll(rememberScrollState())
     } else {
         model.modifier

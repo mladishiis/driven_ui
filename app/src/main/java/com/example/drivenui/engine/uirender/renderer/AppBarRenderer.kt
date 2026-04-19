@@ -44,16 +44,25 @@ fun AppBarRenderer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val isDarkTheme = LocalIsDarkTheme.current
+    val styleRegistry = LocalStyleRegistry.current
+    val resolvedTitleColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedIconTint = model.leftIconColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedContainerColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val effectiveTitleStyle = if (resolvedTitleColor != null) model.textStyle.copy(color = resolvedTitleColor) else model.textStyle
+    val effectiveIconTint = resolvedIconTint ?: model.leftIconTint
+    val effectiveContainerColor = resolvedContainerColor ?: model.containerColor
+
     val defaultColors = TopAppBarDefaults.topAppBarColors()
     val barColors = TopAppBarDefaults.topAppBarColors(
-        containerColor = if (model.containerColor != Color.Unspecified) {
-            model.containerColor
+        containerColor = if (effectiveContainerColor != Color.Unspecified) {
+            effectiveContainerColor
         } else {
             defaultColors.containerColor
         },
         scrolledContainerColor = defaultColors.scrolledContainerColor,
-        navigationIconContentColor = if (model.leftIconTint != Color.Unspecified) {
-            model.leftIconTint
+        navigationIconContentColor = if (effectiveIconTint != Color.Unspecified) {
+            effectiveIconTint
         } else {
             defaultColors.navigationIconContentColor
         },
@@ -68,7 +77,7 @@ fun AppBarRenderer(
             if (titleText != null) {
                 Text(
                     text = titleText,
-                    style = model.textStyle,
+                    style = effectiveTitleStyle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -80,7 +89,7 @@ fun AppBarRenderer(
                 AppBarIcon(
                     context = context,
                     iconUrl = iconUrl,
-                    iconTint = model.leftIconTint,
+                    iconTint = effectiveIconTint,
                     onTap = { if (model.tapActions.isNotEmpty()) onActions(model.tapActions) },
                 )
             }

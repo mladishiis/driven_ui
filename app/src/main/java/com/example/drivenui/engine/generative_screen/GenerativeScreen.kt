@@ -11,7 +11,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -20,11 +22,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.drivenui.app.theme.DrivenUITheme
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import com.example.drivenui.engine.generative_screen.models.UiAction
+import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.renderer.ComponentRenderer
+import com.example.drivenui.engine.uirender.renderer.LocalIsDarkTheme
+import com.example.drivenui.engine.uirender.renderer.LocalStyleRegistry
 import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
 import kotlinx.coroutines.flow.StateFlow
-
 
 /**
  * Главный экран генеративного UI с поддержкой нижней шторки.
@@ -36,6 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
  * @param onWidgetValueChange Callback при изменении значения виджета
  * @param applyBindingsForComponent Функция применения биндингов
  * @param getSheetCornerRadiusDp Функция получения радиуса скругления шторки
+ * @param styleRegistry Реестр стилей для Compose: текст и цвет по коду стиля
  */
 @Composable
 fun GenerativeScreen(
@@ -46,6 +51,7 @@ fun GenerativeScreen(
     onWidgetValueChange: WidgetValueSetter,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)?,
     getSheetCornerRadiusDp: (ComponentModel) -> Int?,
+    styleRegistry: ComposeStyleRegistry? = null,
 ) {
     GenerativeScreenUi(
         state = state,
@@ -55,6 +61,7 @@ fun GenerativeScreen(
         onWidgetValueChange = onWidgetValueChange,
         applyBindingsForComponent = applyBindingsForComponent,
         getSheetCornerRadiusDp = getSheetCornerRadiusDp,
+        styleRegistry = styleRegistry,
     )
 }
 
@@ -67,29 +74,36 @@ fun GenerativeScreenUi(
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null }
+    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null },
+    styleRegistry: ComposeStyleRegistry? = null,
 ) {
     DrivenUITheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize()
-        ) { innerPadding ->
-            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                ScreenContent(
-                    state = state,
+        val systemIsDark = isSystemInDarkTheme()
+        CompositionLocalProvider(
+            LocalStyleRegistry provides styleRegistry,
+            LocalIsDarkTheme provides systemIsDark,
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize()
+            ) { innerPadding ->
+                Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                    ScreenContent(
+                        state = state,
+                        onActions = onActions,
+                        onWidgetValueChange = onWidgetValueChange,
+                        applyBindingsForComponent = applyBindingsForComponent,
+                    )
+                }
+
+                BottomSheetHost(
+                    bottomSheetState = bottomSheetState,
                     onActions = onActions,
+                    onBack = onBack,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
+                    getSheetCornerRadiusDp = getSheetCornerRadiusDp,
                 )
             }
-
-            BottomSheetHost(
-                bottomSheetState = bottomSheetState,
-                onActions = onActions,
-                onBack = onBack,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-                getSheetCornerRadiusDp = getSheetCornerRadiusDp,
-            )
         }
     }
 }

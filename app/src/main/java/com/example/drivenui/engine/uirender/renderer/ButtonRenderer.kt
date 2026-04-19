@@ -27,6 +27,13 @@ fun ButtonRenderer(
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isDarkTheme = LocalIsDarkTheme.current
+    val styleRegistry = LocalStyleRegistry.current
+    val resolvedTextColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedBgColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val effectiveTextStyle = if (resolvedTextColor != null) model.textStyle.copy(color = resolvedTextColor) else model.textStyle
+    val effectiveBgColor = resolvedBgColor ?: model.backgroundColor
+
     val shape = model.cornerRadius.toRoundedCornerShape() ?: ButtonDefaults.shape
     Button(
         modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
@@ -38,7 +45,7 @@ fun ButtonRenderer(
             end = 13.dp,
         ),
         colors = ButtonDefaults.buttonColors(
-            containerColor = model.backgroundColor
+            containerColor = effectiveBgColor
         ),
         onClick = {
             if (model.tapActions.isNotEmpty()) {
@@ -49,7 +56,7 @@ fun ButtonRenderer(
         Text(
             modifier = Modifier.fillMaxWidth(),
             text = model.displayText ?: model.text,
-            style = model.textStyle,
+            style = effectiveTextStyle,
             textAlign = parseTextAlign(model.textAlignment),
         )
     }

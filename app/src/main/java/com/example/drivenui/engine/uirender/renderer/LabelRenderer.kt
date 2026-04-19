@@ -35,10 +35,15 @@ fun LabelRenderer(
         baseModifier
     }
 
+    val isDarkTheme = LocalIsDarkTheme.current
+    val styleRegistry = LocalStyleRegistry.current
+    val resolvedColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val effectiveStyle = if (resolvedColor != null) model.textStyle.copy(color = resolvedColor) else model.textStyle
+
     Text(
         text = model.displayText ?: model.text,
         modifier = labelModifier,
-        style = model.textStyle,
+        style = effectiveStyle,
         textAlign = parseTextAlign(model.textAlignment),
     )
 }

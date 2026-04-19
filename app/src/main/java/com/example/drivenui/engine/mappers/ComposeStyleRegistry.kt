@@ -39,8 +39,17 @@ class ComposeStyleRegistry(
      * @param code Код стиля цвета
      * @return Compose Color или null если стиль не найден
      */
-    fun getComposeColor(code: String): Color? =
-        getColorStyle(code)?.lightTheme?.toComposeColor()
+    fun getComposeColor(code: String, isDarkTheme: Boolean = false): Color? {
+        val style = getColorStyle(code)
+        if (style != null) {
+            return (if (isDarkTheme) style.darkTheme else style.lightTheme).toComposeColor()
+        }
+        val hexIndex = code.indexOf('#')
+        if (hexIndex >= 0) {
+            return runCatching { Color(code.substring(hexIndex).toColorInt()) }.getOrNull()
+        }
+        return null
+    }
 }
 
 /**

@@ -69,6 +69,9 @@ class GenerativeScreenViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<GenerativeUiState>(GenerativeUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    private val _styleRegistryState = MutableStateFlow<ComposeStyleRegistry?>(null)
+    val styleRegistryState = _styleRegistryState.asStateFlow()
+
     /**
      * Состояние нижней шторки (root component или null, если закрыта).
      */
@@ -103,6 +106,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
         val localStyleRegistry = ComposeStyleRegistry(allStyles)
         styleRegistry = localStyleRegistry
+        _styleRegistryState.value = localStyleRegistry
 
         val mapper = ScreenMapper(localStyleRegistry)
         screenMapper = mapper
@@ -137,6 +141,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
         val localStyleRegistry = ComposeStyleRegistry(mappedData.allStyles)
         styleRegistry = localStyleRegistry
+        _styleRegistryState.value = localStyleRegistry
 
         screenMapper = null
         val provider = MappedScreenProviderImpl(screens)

@@ -42,6 +42,7 @@ internal class TestRenderFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
+                val styleRegistry by viewModel.styleRegistryState.collectAsStateWithLifecycle()
                 GenerativeScreen(
                     state = state,
                     bottomSheetState = viewModel.bottomSheetState,
@@ -50,6 +51,7 @@ internal class TestRenderFragment : Fragment() {
                     onWidgetValueChange = viewModel::onWidgetValueChange,
                     applyBindingsForComponent = viewModel::applyBindingsToComponent,
                     getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
+                    styleRegistry = styleRegistry,
                 )
             }
         }
