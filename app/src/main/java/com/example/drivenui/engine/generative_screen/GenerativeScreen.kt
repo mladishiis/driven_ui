@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,12 +73,14 @@ fun GenerativeScreenUi(
         Scaffold(
             modifier = Modifier.fillMaxSize()
         ) { innerPadding ->
-            ScreenContent(
-                state = state,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
+            Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                ScreenContent(
+                    state = state,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
+            }
 
             BottomSheetHost(
                 bottomSheetState = bottomSheetState,
