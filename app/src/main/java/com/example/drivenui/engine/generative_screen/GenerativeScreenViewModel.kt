@@ -465,7 +465,7 @@ class GenerativeScreenViewModel @Inject constructor(
     ) : ScreenProvider {
 
         override suspend fun findScreen(screenCode: String): ScreenModel? {
-            return parsedScreens.find { it.screenCode == screenCode }
+            return parsedScreens.find { it.screenCode.equals(screenCode, ignoreCase = true) }
                 ?.let { mapper.mapToScreenModel(it) }
         }
 
@@ -480,7 +480,7 @@ class GenerativeScreenViewModel @Inject constructor(
     ) : ScreenProvider {
 
         override suspend fun findScreen(screenCode: String): ScreenModel? {
-            return screens.find { it.id == screenCode }
+            return screens.find { it.id.equals(screenCode, ignoreCase = true) }
         }
 
         override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {

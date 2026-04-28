@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -84,7 +85,8 @@ fun GenerativeScreenUi(
             LocalIsDarkTheme provides systemIsDark,
         ) {
             Scaffold(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                containerColor = Color.Transparent,
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                     ScreenContent(
@@ -135,7 +137,7 @@ private fun ScreenContent(
             }
         }
         is GenerativeUiState.Error -> {
-            TODO("Добавить отображение ошибки")
+            Box(modifier = Modifier.fillMaxSize())
         }
     }
 }
