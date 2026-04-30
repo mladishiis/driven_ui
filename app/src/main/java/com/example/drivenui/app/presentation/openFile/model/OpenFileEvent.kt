@@ -38,6 +38,9 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** QR успешно отсканирован */
     data class OnQrScanned(val url: String) : OpenFileEvent
 
+    /** Загрузить шаблон в режиме скриншотов */
+    data object OnUploadTemplate : OpenFileEvent
+
     /** Добавить коллекцию прототипов (открыть сканер QR с ID коллекции) */
     data object OnAddCollection : OpenFileEvent
 

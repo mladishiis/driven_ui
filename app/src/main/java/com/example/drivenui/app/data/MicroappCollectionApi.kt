@@ -51,7 +51,7 @@ class MicroappCollectionApi @Inject constructor(
                     )
                     val response = gson.fromJson(body, MicroappsResponse::class.java)
                         ?: return@withContext Result.failure(Exception("Invalid JSON"))
-                    val codes = response.microapps.map { it.microappCode }.filter { it.isNotBlank() }
+                    val codes = response.microapps.orEmpty().map { it.microappCode }.filter { it.isNotBlank() }
                     Result.success(codes)
                 }
             } catch (e: Exception) {

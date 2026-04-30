@@ -227,6 +227,7 @@ private fun EmptyStateContent(
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
             onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
+            onUploadTemplate = { onEvent(OpenFileEvent.OnUploadTemplate) },
         )
     }
 }
@@ -323,6 +324,7 @@ private fun ContentWithMicroapps(
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
             onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
+            onUploadTemplate = { onEvent(OpenFileEvent.OnUploadTemplate) },
         )
     }
 }
@@ -508,6 +510,7 @@ private fun BottomActionsBar(
     buttonsEnabled: Boolean,
     onUpload: () -> Unit,
     onAddCollection: () -> Unit,
+    onUploadTemplate: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -519,6 +522,13 @@ private fun BottomActionsBar(
             enabled = buttonsEnabled,
         ) {
             Text(text = uploadButtonText)
+        }
+        Button(
+            onClick = onUploadTemplate,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = buttonsEnabled,
+        ) {
+            Text(text = "Загрузить шаблон (скриншоты)")
         }
         Button(
             onClick = onAddCollection,

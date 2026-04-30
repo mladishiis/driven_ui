@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.R
 import com.example.drivenui.app.data.MicroappCollectionApi
+import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
@@ -46,6 +47,9 @@ internal class OpenFileViewModel @Inject constructor(
     private val contextManager: IContextManager,
 ) : CoreMviViewModel<OpenFileEvent, OpenFileState, OpenFileEffect>() {
 
+    private var isTemplateMode = false
+    private var pendingTemplateUrl: String? = null
+
     init {
         loadJsonFilesOnInit()
         loadSavedMicroapps()
@@ -60,6 +64,12 @@ internal class OpenFileViewModel @Inject constructor(
         when (event) {
             OpenFileEvent.OnBackClick -> setEffect { OpenFileEffect.GoBack }
             OpenFileEvent.OnUpload -> {
+                isTemplateMode = false
+                NavigationManager.clearTemplateInfo()
+                handleUpload()
+            }
+            OpenFileEvent.OnUploadTemplate -> {
+                isTemplateMode = true
                 handleUpload()
             }
             OpenFileEvent.OnClearCollection -> handleClearCollection()
@@ -123,16 +133,30 @@ internal class OpenFileViewModel @Inject constructor(
                             errorMessage = null,
                         )
                     }
-                    setEffect {
-                        OpenFileEffect.ShowParsingSuccessDialog(
-                            microappTitle = parsedResult.microapp?.title ?: context.getString(R.string.unknown_microapp),
-                            screensCount = parsedResult.screens.size,
-                            textStylesCount = parsedResult.styles?.textStyles?.size ?: 0,
-                            colorStylesCount = parsedResult.styles?.colorStyles?.size ?: 0,
-                            componentsCount = parsedResult.screens.sumOf { countComponents(it.rootComponent) },
-                            hasBindings = state.selectedJsonFiles.isNotEmpty(),
-                            jsonFilesCount = state.selectedJsonFiles.size,
-                        )
+                    if (isTemplateMode) {
+                        val type = NavigationManager.getTemplateInfo()?.first
+                            ?: parseTemplateInfoFromUrl(pendingTemplateUrl ?: "")?.first
+                            ?: "template"
+                        NavigationManager.setTemplateInfo(type, microappCode)
+                        val mappedData = fileInteractor.loadCachedMicroapp(microappCode)
+                            ?: microappStorage.loadMapped(microappCode)
+                        if (mappedData != null) {
+                            setEffect { OpenFileEffect.NavigateToTestScreen(mappedData) }
+                        } else {
+                            setEffect { OpenFileEffect.ShowParsingErrorDialog("Не удалось загрузить шаблон") }
+                        }
+                    } else {
+                        setEffect {
+                            OpenFileEffect.ShowParsingSuccessDialog(
+                                microappTitle = parsedResult.microapp?.title ?: context.getString(R.string.unknown_microapp),
+                                screensCount = parsedResult.screens.size,
+                                textStylesCount = parsedResult.styles?.textStyles?.size ?: 0,
+                                colorStylesCount = parsedResult.styles?.colorStyles?.size ?: 0,
+                                componentsCount = parsedResult.screens.sumOf { countComponents(it.rootComponent) },
+                                hasBindings = state.selectedJsonFiles.isNotEmpty(),
+                                jsonFilesCount = state.selectedJsonFiles.size,
+                            )
+                        }
                     }
                     loadSavedMicroapps()
                 }
@@ -159,10 +183,24 @@ internal class OpenFileViewModel @Inject constructor(
             return
         }
 
-        val format = microappSource.toArchiveDownloadFormat()
+        val format = if (isTemplateMode) {
+            ArchiveDownloadFormat.JSON
+        } else {
+            microappSource.toArchiveDownloadFormat()
+        }
         if (format == null) {
             setEffect { OpenFileEffect.ShowError(context.getString(R.string.qr_mode_unavailable)) }
             return
+        }
+
+        if (isTemplateMode) {
+            pendingTemplateUrl = url
+            val templateInfo = parseTemplateInfoFromUrl(url)
+            if (templateInfo != null) {
+                NavigationManager.setTemplateInfo(templateInfo.first, templateInfo.second)
+            }
+            // Если URL не содержит /template/zip/{type}/{code},
+            // templateInfo будет установлен после парсинга с кодом микроаппа
         }
 
         viewModelScope.launch {
@@ -432,5 +470,32 @@ internal class OpenFileViewModel @Inject constructor(
     private fun countComponents(component: com.example.drivenui.engine.parser.models.Component?): Int {
         if (component == null) return 0
         return 1 + component.children.sumOf { countComponents(it) }
+    }
+
+    /**
+     * Достаёт параметры шаблона из URL скачивания архива.
+     *
+     * Тип нужен только для совместимости с режимом шаблонов. Код после парсинга заменяется
+     * на реальный `microappCode`, чтобы отправлять PNG-скриншоты экранов обратно в метод
+     * `POST /microapp/image/{microappCode}/{screenCode}`.
+     *
+     * Например, для URL `http://host/template/zip/newgroup/celldoctor` вернёт:
+     * - `templateType = newgroup`
+     * - `templateCode = celldoctor`
+     *
+     * Для старых ссылок `/microapp/zip/{code}` возвращает тип `microapp`.
+     * Для остальных URL использует последний сегмент пути как код шаблона.
+     */
+    private fun parseTemplateInfoFromUrl(url: String): Pair<String, String>? {
+        Regex("""/template/zip/([^/?#]+)/([^/?#]+)""").find(url)?.let {
+            val (type, code) = it.destructured
+            return type to code
+        }
+        Regex("""/microapp/zip/([^/?#]+)""").find(url)?.let {
+            return "microapp" to it.groupValues[1]
+        }
+        val lastSegment = url.trimEnd('/').substringAfterLast('/').takeIf { it.isNotBlank() }
+            ?: return null
+        return "template" to lastSegment
     }
 }

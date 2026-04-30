@@ -85,6 +85,12 @@ class GenerativeScreenViewModel @Inject constructor(
     val exitMicroappEvents = _exitMicroappEvents.asSharedFlow()
 
     /**
+     * Код текущего экрана (обновляется при каждом переходе).
+     */
+    private val _currentScreenId = MutableStateFlow<String?>(null)
+    val currentScreenId = _currentScreenId.asStateFlow()
+
+    /**
      * Устанавливает результат парсинга и загружает начальный экран.
      *
      * @param parsedScreens список распарсенных экранов
@@ -378,6 +384,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private fun updateUiStateFromNavigation() {
         val currentScreen = navigationManager.getCurrentScreen()
         if (currentScreen != null) {
+            _currentScreenId.value = currentScreen.definition?.id
             val resolvedRoot = currentScreen.definition?.rootComponent
             _uiState.value = GenerativeUiState.Screen(resolvedRoot)
         }

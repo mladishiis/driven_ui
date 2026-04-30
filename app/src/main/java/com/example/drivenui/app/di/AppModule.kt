@@ -2,6 +2,7 @@ package com.example.drivenui.app.di
 
 import android.content.Context
 import com.example.drivenui.app.data.AssetsMicroappFileProvider
+import com.example.drivenui.app.data.AuthInterceptor
 import com.example.drivenui.app.data.DirMicroappFileProvider
 import com.example.drivenui.app.data.FileRepository
 import com.example.drivenui.app.data.FileRepositoryImpl
@@ -47,24 +48,47 @@ object AppModule {
         return context
     }
 
+    /**
+     * Предоставляет парсер SDUI-разметки.
+     *
+     * @return экземпляр [SDUIParser]
+     */
     @Provides
     @Singleton
     fun provideSDUIParser(): SDUIParser {
         return SDUIParser()
     }
 
+    /**
+     * Предоставляет обработчик внешних deeplink'ов.
+     *
+     * @param defaultHandler стандартная реализация обработчика
+     * @return обработчик внешних deeplink'ов
+     */
     @Provides
     @Singleton
     fun provideExternalDeeplinkHandler(
         defaultHandler: DefaultExternalDeeplinkHandler
     ): ExternalDeeplinkHandler = defaultHandler
 
+    /**
+     * Предоставляет менеджер контекста микроаппов.
+     *
+     * @param contextManager реализация менеджера контекста
+     * @return интерфейс менеджера контекста
+     */
     @Provides
     @Singleton
     fun provideContextManager(contextManager: ContextManager): IContextManager {
         return contextManager
     }
 
+    /**
+     * Предоставляет источник значений виджетов.
+     *
+     * @param widgetValueProvider реализация провайдера значений
+     * @return интерфейс провайдера значений виджетов
+     */
     @Provides
     @Singleton
     fun provideWidgetValueProvider(widgetValueProvider: WidgetValueProvider): IWidgetValueProvider {
@@ -146,6 +170,11 @@ object AppModule {
             microappStorage = microappStorage,
         )
 
+    /**
+     * Предоставляет JSON-парсер.
+     *
+     * @return экземпляр [Gson]
+     */
     @Provides
     @Singleton
     fun provideGson(): Gson = Gson()
@@ -165,6 +194,11 @@ object AppModule {
     ): FileDownloadInteractor =
         FileDownloadInteractorImpl(context, client, gson)
 
+    /**
+     * Предоставляет текущий источник микроаппов.
+     *
+     * @return источник микроаппов для режима загрузки из файловой системы с JSON-архивом
+     */
     @Provides
     @Singleton
     fun provideMicroappSource(): MicroappSource {
@@ -174,12 +208,14 @@ object AppModule {
     /**
      * Предоставляет OkHttpClient для загрузки файлов.
      *
+     * @param authInterceptor interceptor, добавляющий заголовок авторизации
      * @return OkHttpClient с настроенными таймаутами
      */
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
