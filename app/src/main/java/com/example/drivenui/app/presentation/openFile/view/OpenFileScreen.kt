@@ -528,7 +528,7 @@ private fun BottomActionsBar(
             modifier = Modifier.fillMaxWidth(),
             enabled = buttonsEnabled,
         ) {
-            Text(text = "Загрузить шаблон (скриншоты)")
+            Text(text = "Режим (скриншоты)")
         }
         Button(
             onClick = onAddCollection,

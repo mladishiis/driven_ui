@@ -2,6 +2,7 @@ package com.example.drivenui.app.presentation.render
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.media.MediaActionSound
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -13,7 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -25,9 +32,9 @@ import com.example.drivenui.app.data.TemplateApi
 import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.engine.generative_screen.GenerativeScreen
 import com.example.drivenui.engine.generative_screen.GenerativeScreenViewModel
-import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -35,6 +42,7 @@ import javax.inject.Inject
 
 private const val TAG = "TestRenderFragment"
 private const val SCREENSHOT_DELAY_MS = 500L
+private const val SCREENSHOT_MESSAGE_DURATION_MS = 1400L
 
 /**
  * Фрагмент тестового рендеринга микроаппа.
@@ -54,6 +62,13 @@ internal class TestRenderFragment : Fragment() {
     private var composeView: ComposeView? = null
     private var templateInfo: Pair<String, String>? = null
     private val uploadedScreenIds = mutableSetOf<String>()
+    private val screenshotSound = MediaActionSound()
+    private var screenshotMessage by mutableStateOf<String?>(null)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        screenshotSound.load(MediaActionSound.SHUTTER_CLICK)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,16 +88,22 @@ internal class TestRenderFragment : Fragment() {
             view.setContent {
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 val styleRegistry by viewModel.styleRegistryState.collectAsStateWithLifecycle()
-                GenerativeScreen(
-                    state = state,
-                    bottomSheetState = viewModel.bottomSheetState,
-                    onActions = viewModel::handleActions,
-                    onBack = { handleMicroappBackPress() },
-                    onWidgetValueChange = viewModel::onWidgetValueChange,
-                    applyBindingsForComponent = viewModel::applyBindingsToComponent,
-                    getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
-                    styleRegistry = styleRegistry,
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    GenerativeScreen(
+                        state = state,
+                        bottomSheetState = viewModel.bottomSheetState,
+                        onActions = viewModel::handleActions,
+                        onBack = { handleMicroappBackPress() },
+                        onWidgetValueChange = viewModel::onWidgetValueChange,
+                        applyBindingsForComponent = viewModel::applyBindingsToComponent,
+                        getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
+                        styleRegistry = styleRegistry,
+                    )
+                    ScreenshotStatusOverlay(
+                        message = screenshotMessage,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
+                }
             }
         }
     }
@@ -116,6 +137,11 @@ internal class TestRenderFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         composeView = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        screenshotSound.release()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -157,6 +183,8 @@ internal class TestRenderFragment : Fragment() {
             bitmap,
             { result ->
                 if (result == PixelCopy.SUCCESS) {
+                    screenshotSound.play(MediaActionSound.SHUTTER_CLICK)
+                    showScreenshotMessage("Скриншот снят: $screenId")
                     uploadBitmap(bitmap, microappCode, screenId)
                 } else {
                     bitmap.recycle()
@@ -179,11 +207,31 @@ internal class TestRenderFragment : Fragment() {
                 bitmap.recycle()
                 val bytes = stream.toByteArray()
                 templateApi.uploadScreenshot(microappCode, screenId, bytes)
-                    .onSuccess { Log.d(TAG, "Скриншот загружен: $screenId") }
-                    .onFailure { Log.w(TAG, "Ошибка загрузки скриншота: $screenId", it) }
+                    .onSuccess {
+                        Log.d(TAG, "Скриншот загружен: $screenId")
+                        withContext(Dispatchers.Main) {
+                            showScreenshotMessage("Скриншот отправлен: $screenId")
+                        }
+                    }
+                    .onFailure {
+                        Log.w(TAG, "Ошибка загрузки скриншота: $screenId", it)
+                        withContext(Dispatchers.Main) {
+                            showScreenshotMessage("Ошибка отправки: $screenId")
+                        }
+                    }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { bitmap.recycle() }
                 Log.e(TAG, "Ошибка создания скриншота", e)
+            }
+        }
+    }
+
+    private fun showScreenshotMessage(message: String) {
+        screenshotMessage = message
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(SCREENSHOT_MESSAGE_DURATION_MS)
+            if (screenshotMessage == message) {
+                screenshotMessage = null
             }
         }
     }
