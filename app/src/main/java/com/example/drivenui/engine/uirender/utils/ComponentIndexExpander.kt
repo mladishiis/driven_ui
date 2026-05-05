@@ -42,6 +42,8 @@ internal fun expandComponentWithIndex(
                     expandComponentWithIndex(child, forIndexName, index)
                 },
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
+                strokeWidth = component.strokeWidth.replaceIndex(),
+                strokeColorStyleCode = component.strokeColorStyleCode.replaceIndex(),
                 radiusValues = component.radiusValues.let { rv ->
                     RadiusValues(
                         radius = rv.radius.replaceIndex(),
@@ -85,6 +87,12 @@ internal fun expandComponentWithIndex(
                 textStyleCode = component.textStyleCode.replaceIndex(),
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
+                stroke = component.stroke.copy(
+                    width = component.stroke.width.replaceIndex(),
+                    colorStyleCode = component.stroke.colorStyleCode.replaceIndex(),
+                    resolvedWidthDp = null,
+                    resolvedColor = null,
+                ),
                 textAlignment = component.textAlignment.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )

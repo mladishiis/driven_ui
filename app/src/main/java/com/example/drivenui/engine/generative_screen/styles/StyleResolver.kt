@@ -1,9 +1,13 @@
 package com.example.drivenui.engine.generative_screen.styles
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
@@ -101,12 +105,16 @@ private fun resolveLayout(
         bottom = cornerRadiusBottom,
     )
 
-    layout.backgroundColorStyleCode?.let { rawCode ->
-        val shouldDeferBackground =
-            (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) &&
-                    (rawCode.contains("\${") || rawCode.contains("{#"))
+    val deferLayoutChrome =
+        (layout.type == LayoutType.VERTICAL_FOR || layout.type == LayoutType.HORIZONTAL_FOR) &&
+            sequenceOf(
+                layout.backgroundColorStyleCode,
+                layout.strokeWidth,
+                layout.strokeColorStyleCode,
+            ).any { raw -> raw != null && ("\${" in raw || "{#" in raw) }
 
-        if (!shouldDeferBackground) {
+    if (!deferLayoutChrome) {
+        layout.backgroundColorStyleCode?.let { rawCode ->
             val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
             val color = styleRegistry.getComposeColor(resolvedCode)
             if (color != null) {
@@ -118,6 +126,14 @@ private fun resolveLayout(
                 }
             }
         }
+        modifier = modifier.withResolvedStroke(
+            strokeWidth = layout.strokeWidth,
+            strokeColorStyleCode = layout.strokeColorStyleCode,
+            cornerRadius = resolvedCornerRadius,
+            styleRegistry = styleRegistry,
+            dataContext = dataContext,
+            contextManager = contextManager,
+        )
     }
 
     val resolvedVisibilityCode =
@@ -209,12 +225,25 @@ private fun resolveButton(
         button.visibilityCode?.let { resolveTemplateString(it, dataContext, contextManager) }
     val visibility = parseVisibility(resolvedVisibilityCode ?: button.visibilityCode)
 
+    val strokeAppearance = resolveStrokeAppearance(
+        strokeWidth = button.stroke.width,
+        strokeColorStyleCode = button.stroke.colorStyleCode,
+        styleRegistry = styleRegistry,
+        dataContext = dataContext,
+        contextManager = contextManager,
+    )
+
     return button.copy(
         text = button.text,
         displayText = displayText,
         cornerRadius = cornerRadius,
         textStyle = textStyle,
         backgroundColor = backgroundColor,
+        modifier = button.modifier,
+        stroke = button.stroke.copy(
+            resolvedWidthDp = strokeAppearance?.first,
+            resolvedColor = strokeAppearance?.second,
+        ),
         visibility = visibility,
         visibilityCode = button.visibilityCode,
     )
@@ -377,4 +406,44 @@ private fun resolveImage(
         visibility = visibility,
         visibilityCode = image.visibilityCode
     )
+}
+
+/** Резолвит толщину (dp) и цвет обводки; общая основа для layout и кнопки. */
+private fun resolveStrokeAppearance(
+    strokeWidth: String?,
+    strokeColorStyleCode: String?,
+    styleRegistry: ComposeStyleRegistry,
+    dataContext: DataContext,
+    contextManager: IContextManager,
+): Pair<Int, Color>? {
+    val rawWidth = strokeWidth ?: return null
+    val resolvedWidth =
+        resolveTemplateString(rawWidth, dataContext, contextManager) ?: rawWidth
+    val strokeDp = resolvedWidth.toIntOrNull()?.takeIf { it > 0 } ?: return null
+    val rawStrokeStyle = strokeColorStyleCode ?: return null
+    val resolvedStrokeStyle =
+        resolveTemplateString(rawStrokeStyle, dataContext, contextManager) ?: rawStrokeStyle
+    val strokeColor = styleRegistry.getComposeColor(resolvedStrokeStyle) ?: return null
+    return strokeDp to strokeColor
+}
+
+private fun Modifier.withResolvedStroke(
+    strokeWidth: String?,
+    strokeColorStyleCode: String?,
+    cornerRadius: CornerRadius,
+    styleRegistry: ComposeStyleRegistry,
+    dataContext: DataContext,
+    contextManager: IContextManager,
+): Modifier {
+    val stroke = resolveStrokeAppearance(
+        strokeWidth = strokeWidth,
+        strokeColorStyleCode = strokeColorStyleCode,
+        styleRegistry = styleRegistry,
+        dataContext = dataContext,
+        contextManager = contextManager,
+    ) ?: return this
+    val strokeDp = stroke.first
+    val strokeColor = stroke.second
+    val shape = cornerRadius.toRoundedCornerShape() ?: RoundedCornerShape(0.dp)
+    return border(width = strokeDp.dp, color = strokeColor, shape = shape)
 }

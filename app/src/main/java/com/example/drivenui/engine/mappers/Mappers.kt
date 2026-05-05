@@ -7,15 +7,16 @@ import com.example.drivenui.engine.parser.models.ParsedScreen
 import com.example.drivenui.engine.parser.models.WidgetComponent
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
+import com.example.drivenui.engine.uirender.models.ButtonStrokeStyle
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.ImageModel
 import com.example.drivenui.engine.uirender.models.InputModel
 import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutForParams
 import com.example.drivenui.engine.uirender.models.LayoutModel
+import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.RadiusValues
-import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.uirender.models.getLayoutTypeFromString
 
 /**
@@ -91,6 +92,8 @@ fun LayoutComponent.mapLayoutToUIModel(
         children = children.mapToUiModelList(styleRegistry),
         onTapActions = getOnTapEvents(events),
         backgroundColorStyleCode = styles.find { it.code == "backgroundColorStyle" }?.value,
+        strokeWidth = properties["strokeWidth"],
+        strokeColorStyleCode = styles.find { it.code == "strokeColorStyle" }?.value,
         radiusValues = RadiusValues(
             radius = properties["radius"],
             radiusTop = properties["radiusTop"],
@@ -243,6 +246,10 @@ fun WidgetComponent.mapWidgetToButtonModel(
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
+        stroke = ButtonStrokeStyle(
+            width = properties["strokeWidth"],
+            colorStyleCode = styles.find { it.code == "strokeColorStyle" }?.value,
+        ),
         tapActions = getOnTapEvents(events),
         widgetCode = code,
         alignment = getAlignment(),

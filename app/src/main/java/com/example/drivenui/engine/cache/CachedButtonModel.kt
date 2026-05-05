@@ -16,6 +16,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property textStyleCode код стиля текста
  * @property colorStyleCode код стиля цвета
  * @property backgroundColorStyleCode код стиля фона
+ * @property strokeWidth толщина обводки (property)
+ * @property strokeColorStyleCode код стиля обводки
  * @property tapActions действия при нажатии
  * @property widgetCode код виджета
  * @property alignment выравнивание виджета
@@ -34,6 +36,8 @@ data class CachedButtonModel(
     val textStyleCode: String?,
     val colorStyleCode: String?,
     val backgroundColorStyleCode: String?,
+    val strokeWidth: String? = null,
+    val strokeColorStyleCode: String? = null,
     val tapActions: List<UiAction>,
     val widgetCode: String,
     override val alignment: String,

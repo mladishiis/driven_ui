@@ -1,5 +1,6 @@
 package com.example.drivenui.engine.uirender.renderer
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
@@ -7,6 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.drivenui.engine.generative_screen.models.UiAction
@@ -34,9 +36,16 @@ fun ButtonRenderer(
     val effectiveTextStyle = if (resolvedTextColor != null) model.textStyle.copy(color = resolvedTextColor) else model.textStyle
     val effectiveBgColor = resolvedBgColor ?: model.backgroundColor
 
-    val shape = model.cornerRadius.toRoundedCornerShape() ?: ButtonDefaults.shape
+    val shape: Shape = model.cornerRadius.toRoundedCornerShape() ?: ButtonDefaults.shape
+    var buttonModifier = modifier.then(model.modifier).then(model.modifierParams.applyParams(Modifier))
+    val strokeW = model.stroke.resolvedWidthDp
+    val strokeCol = model.stroke.resolvedColor
+    if (strokeW != null && strokeW > 0 && strokeCol != null) {
+        buttonModifier = buttonModifier.border(width = strokeW.dp, color = strokeCol, shape = shape)
+    }
+
     Button(
-        modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
+        modifier = buttonModifier,
         shape = shape,
         contentPadding = PaddingValues(
             top = ButtonDefaults.ContentPadding.calculateTopPadding(),

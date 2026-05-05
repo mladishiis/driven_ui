@@ -16,6 +16,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property cornerRadius резолвенные значения радиуса (заполняет StyleResolver)
  * @property forParams параметры цикла FOR (для verticalFor/horizontalFor)
  * @property alignment выравнивание
+ * @property strokeWidth толщина обводки в dp из property (может содержать шаблоны)
+ * @property strokeColorStyleCode код стиля цвета обводки (styles strokeColorStyle)
  * @property visibility видимость
  * @property visibilityCode код условной видимости
  */
@@ -26,6 +28,8 @@ data class LayoutModel(
     val children: List<ComponentModel>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String? = null,
+    val strokeWidth: String? = null,
+    val strokeColorStyleCode: String? = null,
     val radiusValues: RadiusValues = RadiusValues(),
     val cornerRadius: CornerRadius = CornerRadius(),
     val forParams: LayoutForParams = LayoutForParams(),

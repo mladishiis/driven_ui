@@ -12,6 +12,8 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property children дочерние компоненты
  * @property onTapActions действия при нажатии (onTap)
  * @property backgroundColorStyleCode код стиля фона
+ * @property strokeWidth толщина обводки (property)
+ * @property strokeColorStyleCode код стиля обводки
  * @property radius радиус всех углов в dp (приоритет над top/bottom)
  * @property radiusTop радиус верхних углов в dp
  * @property radiusBottom радиус нижних углов в dp
@@ -28,6 +30,8 @@ data class CachedLayoutModel(
     val children: List<CachedComponentModel>,
     val onTapActions: List<UiAction>,
     val backgroundColorStyleCode: String?,
+    val strokeWidth: String? = null,
+    val strokeColorStyleCode: String? = null,
     val radius: String?,
     val radiusTop: String? = null,
     val radiusBottom: String? = null,

@@ -4,9 +4,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.uirender.models.AppBarModel
+import com.example.drivenui.engine.uirender.models.ButtonModel
+import com.example.drivenui.engine.uirender.models.ButtonStrokeStyle
+import com.example.drivenui.engine.uirender.models.ComponentModel
+import com.example.drivenui.engine.uirender.models.ImageModel
+import com.example.drivenui.engine.uirender.models.InputModel
+import com.example.drivenui.engine.uirender.models.LabelModel
 import com.example.drivenui.engine.uirender.models.LayoutForParams
+import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.RadiusValues
-import com.example.drivenui.engine.uirender.models.*
 
 /**
  * Конвертирует [ComponentModel] в [CachedComponentModel] для сохранения в кэш.
@@ -22,6 +29,8 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         children = children.map { it.toCached() },
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
+        strokeWidth = strokeWidth,
+        strokeColorStyleCode = strokeColorStyleCode,
         radius = radiusValues.radius,
         radiusTop = radiusValues.radiusTop,
         radiusBottom = radiusValues.radiusBottom,
@@ -56,6 +65,8 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
+        strokeWidth = stroke.width,
+        strokeColorStyleCode = stroke.colorStyleCode,
         tapActions = tapActions,
         widgetCode = widgetCode,
         alignment = alignment,
@@ -154,6 +165,8 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         children = children.map { it.toComponentModel() },
         onTapActions = onTapActions,
         backgroundColorStyleCode = backgroundColorStyleCode,
+        strokeWidth = strokeWidth,
+        strokeColorStyleCode = strokeColorStyleCode,
         radiusValues = RadiusValues(
             radius = radius,
             radiusTop = radiusTop,
@@ -199,6 +212,10 @@ fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
         textStyleCode = textStyleCode,
         colorStyleCode = colorStyleCode,
         backgroundColorStyleCode = backgroundColorStyleCode,
+        stroke = ButtonStrokeStyle(
+            width = strokeWidth,
+            colorStyleCode = strokeColorStyleCode,
+        ),
         tapActions = tapActions,
         widgetCode = widgetCode,
         alignment = alignment,

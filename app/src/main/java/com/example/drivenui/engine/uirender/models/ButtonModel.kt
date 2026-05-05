@@ -20,6 +20,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property textStyleCode код стиля текста
  * @property colorStyleCode код стиля цвета текста
  * @property backgroundColorStyleCode код стиля фона
+ * @property stroke данные обводки (XML + результат резолва)
  * @property tapActions экшены при нажатии
  * @property widgetCode уникальный код виджета
  * @property alignment выравнивание виджета
@@ -40,6 +41,7 @@ data class ButtonModel(
     val textStyleCode: String? = null,
     val colorStyleCode: String? = null,
     val backgroundColorStyleCode: String? = null,
+    val stroke: ButtonStrokeStyle = ButtonStrokeStyle(),
     val tapActions: List<UiAction>,
     val widgetCode: String,
     override val alignment: String,
