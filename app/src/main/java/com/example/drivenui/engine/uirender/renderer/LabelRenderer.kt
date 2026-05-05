@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -35,9 +36,10 @@ fun LabelRenderer(
         baseModifier
     }
 
-    val isDarkTheme = LocalIsDarkTheme.current
+    val useDarkColorPalette = isSystemInDarkTheme()
     val styleRegistry = LocalStyleRegistry.current
-    val resolvedColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedColor =
+        model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, useDarkColorPalette) }
     val effectiveStyle = if (resolvedColor != null) model.textStyle.copy(color = resolvedColor) else model.textStyle
 
     Text(

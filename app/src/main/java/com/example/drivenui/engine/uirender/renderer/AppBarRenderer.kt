@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -44,11 +45,16 @@ fun AppBarRenderer(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val isDarkTheme = LocalIsDarkTheme.current
+    val useDarkColorPalette = isSystemInDarkTheme()
     val styleRegistry = LocalStyleRegistry.current
-    val resolvedTitleColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
-    val resolvedIconTint = model.leftIconColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
-    val resolvedContainerColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedTitleColor =
+        model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, useDarkColorPalette) }
+    val resolvedIconTint = model.leftIconColorStyleCode?.let {
+        styleRegistry?.getComposeColor(it, useDarkColorPalette)
+    }
+    val resolvedContainerColor = model.backgroundColorStyleCode?.let {
+        styleRegistry?.getComposeColor(it, useDarkColorPalette)
+    }
     val effectiveTitleStyle = if (resolvedTitleColor != null) model.textStyle.copy(color = resolvedTitleColor) else model.textStyle
     val effectiveIconTint = resolvedIconTint ?: model.leftIconTint
     val effectiveContainerColor = resolvedContainerColor ?: model.containerColor

@@ -32,6 +32,7 @@ import com.example.drivenui.engine.uirender.models.LayoutType
  * @param contextManager Менеджер контекста
  * @param styleRegistry Реестр стилей
  * @param dataContext Контекст данных для `${...}`
+ * @param useDarkColorPalette Брать ветку `darkTheme` цветов вместо `lightTheme` (как системная тёмная тема)
  * @return Обновлённая модель экрана
  */
 fun resolveScreen(
@@ -39,12 +40,14 @@ fun resolveScreen(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): ScreenModel {
     val resolvedRoot = resolveComponent(
         component = screenModel.rootComponent,
         contextManager = contextManager,
         styleRegistry = styleRegistry,
         dataContext = dataContext,
+        useDarkColorPalette = useDarkColorPalette,
     )
     return screenModel.copy(rootComponent = resolvedRoot)
 }
@@ -53,21 +56,53 @@ fun resolveScreen(
  * Резолвит компонент: подстановки и стили.
  *
  * @param dataContext Контекст данных для `${...}`
+ * @param useDarkColorPalette Ветка цветов реестра: тёмная или светлая (как у устройства)
  */
 fun resolveComponent(
     component: ComponentModel?,
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): ComponentModel? {
     return when (component) {
         null -> null
-        is LayoutModel -> resolveLayout(component, contextManager, styleRegistry, dataContext)
-        is ButtonModel -> resolveButton(component, contextManager, styleRegistry, dataContext)
-        is LabelModel -> resolveLabel(component, contextManager, styleRegistry, dataContext)
-        is AppBarModel -> resolveAppBar(component, contextManager, styleRegistry, dataContext)
+        is LayoutModel -> resolveLayout(
+            component,
+            contextManager,
+            styleRegistry,
+            dataContext,
+            useDarkColorPalette,
+        )
+        is ButtonModel -> resolveButton(
+            component,
+            contextManager,
+            styleRegistry,
+            dataContext,
+            useDarkColorPalette,
+        )
+        is LabelModel -> resolveLabel(
+            component,
+            contextManager,
+            styleRegistry,
+            dataContext,
+            useDarkColorPalette,
+        )
+        is AppBarModel -> resolveAppBar(
+            component,
+            contextManager,
+            styleRegistry,
+            dataContext,
+            useDarkColorPalette,
+        )
         is InputModel -> resolveInput(component, contextManager, styleRegistry, dataContext)
-        is ImageModel -> resolveImage(component, contextManager, styleRegistry, dataContext)
+        is ImageModel -> resolveImage(
+            component,
+            contextManager,
+            styleRegistry,
+            dataContext,
+            useDarkColorPalette,
+        )
         else -> component
     }
 }
@@ -77,6 +112,7 @@ private fun resolveLayout(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): LayoutModel {
     var modifier = layout.modifier
 
@@ -116,7 +152,7 @@ private fun resolveLayout(
     if (!deferLayoutChrome) {
         layout.backgroundColorStyleCode?.let { rawCode ->
             val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-            val color = styleRegistry.getComposeColor(resolvedCode)
+            val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
             if (color != null) {
                 val shape = resolvedCornerRadius.toRoundedCornerShape()
                 modifier = if (shape != null) {
@@ -133,6 +169,7 @@ private fun resolveLayout(
             styleRegistry = styleRegistry,
             dataContext = dataContext,
             contextManager = contextManager,
+            useDarkColorPalette = useDarkColorPalette,
         )
     }
 
@@ -150,7 +187,7 @@ private fun resolveLayout(
     }
 
     val resolvedChildren = layout.children.mapNotNull {
-        resolveComponent(it, contextManager, styleRegistry, dataContext)
+        resolveComponent(it, contextManager, styleRegistry, dataContext, useDarkColorPalette)
     }
 
     return layout.copy(
@@ -167,6 +204,7 @@ private fun resolveButton(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): ButtonModel {
     val displayText = resolveTemplateString(button.text, dataContext, contextManager) ?: button.text
     var cornerRadius = button.cornerRadius
@@ -207,7 +245,7 @@ private fun resolveButton(
 
     button.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
@@ -215,7 +253,7 @@ private fun resolveButton(
 
     button.backgroundColorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             backgroundColor = color
         }
@@ -231,6 +269,7 @@ private fun resolveButton(
         styleRegistry = styleRegistry,
         dataContext = dataContext,
         contextManager = contextManager,
+        useDarkColorPalette = useDarkColorPalette,
     )
 
     return button.copy(
@@ -254,6 +293,7 @@ private fun resolveLabel(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): LabelModel {
     val displayText = resolveTemplateString(label.text, dataContext, contextManager) ?: label.text
     var textStyle: TextStyle = label.textStyle
@@ -271,7 +311,7 @@ private fun resolveLabel(
 
     label.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
@@ -295,6 +335,7 @@ private fun resolveAppBar(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): AppBarModel {
     val displayTitle = appBar.title?.let { resolveTemplateString(it, dataContext, contextManager) }
     val displayIconLeftUrl =
@@ -316,7 +357,7 @@ private fun resolveAppBar(
 
     appBar.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             textStyle = textStyle.copy(color = color)
         }
@@ -324,7 +365,7 @@ private fun resolveAppBar(
 
     appBar.leftIconColorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             leftIconTint = color
         }
@@ -332,7 +373,7 @@ private fun resolveAppBar(
 
     appBar.backgroundColorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val color = styleRegistry.getComposeColor(resolvedCode)
+        val color = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (color != null) {
             containerColor = color
         }
@@ -383,13 +424,14 @@ private fun resolveImage(
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
+    useDarkColorPalette: Boolean,
 ): ImageModel {
     val displayUrl = image.url?.let { resolveTemplateString(it, dataContext, contextManager) }
 
     var imageColor: Color = image.color
     image.colorStyleCode?.let { rawCode ->
         val resolvedCode = resolveTemplateString(rawCode, dataContext, contextManager) ?: rawCode
-        val resolvedColor = styleRegistry.getComposeColor(resolvedCode)
+        val resolvedColor = styleRegistry.getComposeColor(resolvedCode, useDarkColorPalette)
         if (resolvedColor != null) {
             imageColor = resolvedColor
         }
@@ -415,6 +457,7 @@ private fun resolveStrokeAppearance(
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
     contextManager: IContextManager,
+    useDarkColorPalette: Boolean,
 ): Pair<Int, Color>? {
     val rawWidth = strokeWidth ?: return null
     val resolvedWidth =
@@ -423,7 +466,7 @@ private fun resolveStrokeAppearance(
     val rawStrokeStyle = strokeColorStyleCode ?: return null
     val resolvedStrokeStyle =
         resolveTemplateString(rawStrokeStyle, dataContext, contextManager) ?: rawStrokeStyle
-    val strokeColor = styleRegistry.getComposeColor(resolvedStrokeStyle) ?: return null
+    val strokeColor = styleRegistry.getComposeColor(resolvedStrokeStyle, useDarkColorPalette) ?: return null
     return strokeDp to strokeColor
 }
 
@@ -434,6 +477,7 @@ private fun Modifier.withResolvedStroke(
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
     contextManager: IContextManager,
+    useDarkColorPalette: Boolean,
 ): Modifier {
     val stroke = resolveStrokeAppearance(
         strokeWidth = strokeWidth,
@@ -441,6 +485,7 @@ private fun Modifier.withResolvedStroke(
         styleRegistry = styleRegistry,
         dataContext = dataContext,
         contextManager = contextManager,
+        useDarkColorPalette = useDarkColorPalette,
     ) ?: return this
     val strokeDp = stroke.first
     val strokeColor = stroke.second

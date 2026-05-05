@@ -1,9 +1,11 @@
 package com.example.drivenui.engine.generative_screen
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.data.RequestInteractor
+import com.example.drivenui.app.theme.isSystemInDarkTheme
 import com.example.drivenui.engine.cache.CachedMicroappData
 import com.example.drivenui.engine.cache.toScreenModel
 import com.example.drivenui.engine.context.IContextManager
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,6 +48,7 @@ import javax.inject.Inject
  * @property requestInteractor выполнение запросов и биндинги
  * @property contextManager хранилище переменных микроаппа
  * @property widgetValueProvider значения виджетов
+ * @property applicationContext контекст приложения для резолва палитры по системной теме
  */
 @HiltViewModel
 class GenerativeScreenViewModel @Inject constructor(
@@ -52,6 +56,7 @@ class GenerativeScreenViewModel @Inject constructor(
     private val requestInteractor: RequestInteractor,
     private val contextManager: IContextManager,
     private val widgetValueProvider: IWidgetValueProvider,
+    @ApplicationContext private val applicationContext: Context,
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
@@ -125,6 +130,7 @@ class GenerativeScreenViewModel @Inject constructor(
             contextManager,
             widgetValueProvider,
             requestInteractor,
+            applicationContext,
             microappCode,
             localStyleRegistry,
         )
@@ -159,6 +165,7 @@ class GenerativeScreenViewModel @Inject constructor(
             contextManager,
             widgetValueProvider,
             requestInteractor,
+            applicationContext,
             microappCode,
             localStyleRegistry,
         )
@@ -360,6 +367,7 @@ class GenerativeScreenViewModel @Inject constructor(
                 contextManager,
                 localStyleRegistry,
                 dataContext,
+                applicationContext.isSystemInDarkTheme(),
             ) ?: withBindings
         } else {
             withBindings
@@ -421,6 +429,7 @@ class GenerativeScreenViewModel @Inject constructor(
             contextManager,
             localStyleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         if (replaceCurrent) {
             navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
@@ -451,6 +460,7 @@ class GenerativeScreenViewModel @Inject constructor(
             contextManager,
             localStyleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         runActionsSequentially(preComposeActions.drop(leadingQueryCount))
         _bottomSheetState.value = resolvedScreen.rootComponent

@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,8 +37,11 @@ fun LayoutRenderer(
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val currentIsDark = LocalIsDarkTheme.current
+    val useDarkColorPalette = isSystemInDarkTheme()
     val styleRegistry = LocalStyleRegistry.current
-    val resolvedBgColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, currentIsDark) }
+    val resolvedBgColor = model.backgroundColorStyleCode?.let {
+        styleRegistry?.getComposeColor(it, useDarkColorPalette)
+    }
     val effectiveIsDark = when {
         resolvedBgColor != null && resolvedBgColor.luminance() > 0.5f -> false
         resolvedBgColor != null && resolvedBgColor.luminance() <= 0.5f -> true

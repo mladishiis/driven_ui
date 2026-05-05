@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
@@ -29,10 +30,13 @@ fun ButtonRenderer(
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isDarkTheme = LocalIsDarkTheme.current
+    val useDarkColorPalette = isSystemInDarkTheme()
     val styleRegistry = LocalStyleRegistry.current
-    val resolvedTextColor = model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
-    val resolvedBgColor = model.backgroundColorStyleCode?.let { styleRegistry?.getComposeColor(it, isDarkTheme) }
+    val resolvedTextColor =
+        model.colorStyleCode?.let { styleRegistry?.getComposeColor(it, useDarkColorPalette) }
+    val resolvedBgColor = model.backgroundColorStyleCode?.let {
+        styleRegistry?.getComposeColor(it, useDarkColorPalette)
+    }
     val effectiveTextStyle = if (resolvedTextColor != null) model.textStyle.copy(color = resolvedTextColor) else model.textStyle
     val effectiveBgColor = resolvedBgColor ?: model.backgroundColor
 

@@ -1,6 +1,8 @@
 package com.example.drivenui.engine.generative_screen.action
 
+import android.content.Context
 import android.util.Log
+import com.example.drivenui.app.theme.isSystemInDarkTheme
 import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
@@ -20,6 +22,7 @@ import com.example.drivenui.engine.mappers.ComposeStyleRegistry
  * @property contextManager хранилище переменных
  * @property widgetValueProvider значения виджетов
  * @property requestInteractor выполнение запросов
+ * @property applicationContext контекст приложения (системная тёмная тема для резолва палитры)
  * @property microappCode код микроаппа для контекста
  * @property styleRegistry реестр стилей
  */
@@ -30,6 +33,7 @@ class ActionHandler(
     private val contextManager: IContextManager,
     private val widgetValueProvider: IWidgetValueProvider,
     private val requestInteractor: RequestInteractor,
+    private val applicationContext: Context,
     private val microappCode: String?,
     private val styleRegistry: ComposeStyleRegistry,
 ) {
@@ -78,6 +82,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         return ActionResult.BottomSheetChanged(resolvedScreen)
     }
@@ -114,6 +119,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.NavigationChanged(isBack = false)
@@ -133,6 +139,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 
@@ -153,6 +160,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.Success
@@ -173,6 +181,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
         return ActionResult.Success
@@ -194,6 +203,7 @@ class ActionHandler(
             contextManager,
             styleRegistry,
             requestInteractor.getDataContext(),
+            applicationContext.isSystemInDarkTheme(),
         )
         navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
 

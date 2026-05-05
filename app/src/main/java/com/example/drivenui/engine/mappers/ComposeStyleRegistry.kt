@@ -34,9 +34,12 @@ class ComposeStyleRegistry(
         allStyles?.colorStyles?.firstOrNull { it.code == code }
 
     /**
-     * Возвращает Compose-цвет по коду стиля с учётом opacity и lightTheme.
+     * Возвращает Compose-цвет по коду стиля с учётом opacity и ветки light/dark из манифеста стилей.
+     *
+     * Второй параметр должен отражать **системную** схему (светлая/тёмная), а не контраст «по фону родителя».
      *
      * @param code Код стиля цвета
+     * @param isDarkTheme `true` — взять [ColorStyle.darkTheme], иначе [ColorStyle.lightTheme]
      * @return Compose Color или null если стиль не найден
      */
     fun getComposeColor(code: String, isDarkTheme: Boolean = false): Color? {
