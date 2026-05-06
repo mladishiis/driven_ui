@@ -70,44 +70,46 @@ fun LayoutRenderer(
         LocalIsDarkTheme provides effectiveIsDark,
         LocalContentColor provides (contentColor ?: LocalContentColor.current),
     ) {
-    when (model.type) {
-        LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
-            model = modelWithClickable,
-            originalModelModifier = model.modifier,
-            outerModifier = modifier,
-            onActions = onActions,
-            onWidgetValueChange = onWidgetValueChange,
-            applyBindingsForComponent = applyBindingsForComponent,
-        )
+        when (model.type) {
+            LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
+                model = modelWithClickable,
+                originalModelModifier = model.modifier,
+                outerModifier = modifier,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
 
-        LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
-            modelWithClickable,
-            onActions,
-            onWidgetValueChange,
-            applyBindingsForComponent,
-        )
+            LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
+                model = modelWithClickable,
+                originalModelModifier = model.modifier,
+                outerModifier = modifier,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
 
-        LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
-            modelWithClickable,
-            onActions,
-            onWidgetValueChange,
-            applyBindingsForComponent,
-        )
+            LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
+                modelWithClickable,
+                onActions,
+                onWidgetValueChange,
+                applyBindingsForComponent,
+            )
 
-        LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
-            modelWithClickable,
-            onActions,
-            onWidgetValueChange,
-            applyBindingsForComponent,
-        )
+            LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
+                modelWithClickable,
+                onActions,
+                onWidgetValueChange,
+                applyBindingsForComponent,
+            )
 
-        LayoutType.LAYER -> BoxRenderer(
-            modelWithClickable,
-            onActions,
-            onWidgetValueChange,
-            applyBindingsForComponent,
-        )
-    }
+            LayoutType.LAYER -> BoxRenderer(
+                modelWithClickable,
+                onActions,
+                onWidgetValueChange,
+                applyBindingsForComponent,
+            )
+        }
     }
 }
 
@@ -171,27 +173,79 @@ private fun LazyColumnRenderer(
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
+    originalModelModifier: Modifier = Modifier,
+    outerModifier: Modifier = Modifier,
 ) {
     val forIndexName = model.forParams.forIndexName ?: return
     val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
         ?: model.forParams.maxForIndex?.toIntOrNull()
         ?: return
 
-    LazyColumn(modifier = model.modifier) {
-        items(maxForIndex) { index ->
-            val indexStr = index.toString()
-            model.children.forEach { templateChild ->
-                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings =
-                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                ComponentRenderer(
-                    model = childWithBindings,
+    val parentIsScrollable = LocalInsideVerticalScroll.current
+    if (parentIsScrollable) {
+        val baseModifier = outerModifier
+            .then(model.modifierParams.applyParamsExcludingHeight(Modifier))
+            .then(originalModelModifier)
+        val columnModifier = if (model.onTapActions.isNotEmpty()) {
+            baseModifier.then(
+                Modifier.clickable {
+                    onActions(model.onTapActions)
+                }
+            )
+        } else {
+            baseModifier
+        }
+        Column(modifier = columnModifier) {
+            repeat(maxForIndex) { index ->
+                RenderForChildren(
+                    index = index,
+                    forIndexName = forIndexName,
+                    model = model,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
+        return
+    }
+
+    CompositionLocalProvider(LocalInsideVerticalScroll provides true) {
+        LazyColumn(modifier = model.modifier) {
+            items(maxForIndex) { index ->
+                RenderForChildren(
+                    index = index,
+                    forIndexName = forIndexName,
+                    model = model,
+                    onActions = onActions,
+                    onWidgetValueChange = onWidgetValueChange,
+                    applyBindingsForComponent = applyBindingsForComponent,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderForChildren(
+    index: Int,
+    forIndexName: String,
+    model: LayoutModel,
+    onActions: (List<UiAction>) -> Unit,
+    onWidgetValueChange: WidgetValueSetter? = null,
+    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
+) {
+    val indexStr = index.toString()
+    model.children.forEach { templateChild ->
+        val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
+        val childWithBindings =
+            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+        ComponentRenderer(
+            model = childWithBindings,
+            onActions = onActions,
+            onWidgetValueChange = onWidgetValueChange,
+            applyBindingsForComponent = applyBindingsForComponent,
+        )
     }
 }
 
