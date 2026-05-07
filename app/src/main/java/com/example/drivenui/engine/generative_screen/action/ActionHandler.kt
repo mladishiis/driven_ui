@@ -121,7 +121,12 @@ class ActionHandler(
             requestInteractor.getDataContext(),
             applicationContext.isSystemInDarkTheme(),
         )
-        navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+        navigationManager.pushScreen(
+            ScreenState.fromDefinition(
+                definition = resolvedScreen,
+                sourceDefinition = screenModel,
+            )
+        )
         return ActionResult.NavigationChanged(isBack = false)
     }
 
@@ -130,7 +135,7 @@ class ActionHandler(
      */
     private suspend fun handleRefreshScreen(@Suppress("UNUSED_PARAMETER") screenCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.definition
+        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
             ?: return ActionResult.Error("Нет текущего экрана для обновления")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
@@ -141,7 +146,12 @@ class ActionHandler(
             requestInteractor.getDataContext(),
             applicationContext.isSystemInDarkTheme(),
         )
-        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        navigationManager.updateCurrentScreen(
+            ScreenState.fromDefinition(
+                definition = resolvedScreen,
+                sourceDefinition = definition,
+            )
+        )
 
         return ActionResult.Success
     }
@@ -151,7 +161,7 @@ class ActionHandler(
      */
     private suspend fun handleRefreshWidget(@Suppress("UNUSED_PARAMETER") widgetCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.definition
+        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
             ?: return ActionResult.Error("Нет текущего экрана для обновления виджета")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
@@ -162,7 +172,12 @@ class ActionHandler(
             requestInteractor.getDataContext(),
             applicationContext.isSystemInDarkTheme(),
         )
-        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        navigationManager.updateCurrentScreen(
+            ScreenState.fromDefinition(
+                definition = resolvedScreen,
+                sourceDefinition = definition,
+            )
+        )
         return ActionResult.Success
     }
 
@@ -172,7 +187,7 @@ class ActionHandler(
      */
     private suspend fun handleRefreshLayout(@Suppress("UNUSED_PARAMETER") layoutCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.definition
+        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
             ?: return ActionResult.Error("Нет текущего экрана для обновления лейаута")
 
         val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
@@ -183,18 +198,24 @@ class ActionHandler(
             requestInteractor.getDataContext(),
             applicationContext.isSystemInDarkTheme(),
         )
-        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        navigationManager.updateCurrentScreen(
+            ScreenState.fromDefinition(
+                definition = resolvedScreen,
+                sourceDefinition = definition,
+            )
+        )
         return ActionResult.Success
     }
 
     private suspend fun handleExecuteQuery(action: UiAction.ExecuteQuery): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        if (currentScreen?.definition == null) {
+        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
+        if (definition == null) {
             return ActionResult.Error("Нет текущего экрана для выполнения запроса")
         }
 
         val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
-            screenModel = currentScreen.definition,
+            screenModel = definition,
             action = action,
         )
 
@@ -205,7 +226,12 @@ class ActionHandler(
             requestInteractor.getDataContext(),
             applicationContext.isSystemInDarkTheme(),
         )
-        navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+        navigationManager.updateCurrentScreen(
+            ScreenState.fromDefinition(
+                definition = resolvedScreen,
+                sourceDefinition = definition,
+            )
+        )
 
         return ActionResult.Success
     }

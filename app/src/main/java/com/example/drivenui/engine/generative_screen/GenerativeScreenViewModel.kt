@@ -376,7 +376,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
     private suspend fun handleNavigationChanged() {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.definition
+        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
 
         if (definition == null) {
             updateUiStateFromNavigation()
@@ -432,9 +432,19 @@ class GenerativeScreenViewModel @Inject constructor(
             applicationContext.isSystemInDarkTheme(),
         )
         if (replaceCurrent) {
-            navigationManager.updateCurrentScreen(ScreenState.fromDefinition(resolvedScreen))
+            navigationManager.updateCurrentScreen(
+                ScreenState.fromDefinition(
+                    definition = resolvedScreen,
+                    sourceDefinition = baseScreen,
+                )
+            )
         } else {
-            navigationManager.pushScreen(ScreenState.fromDefinition(resolvedScreen))
+            navigationManager.pushScreen(
+                ScreenState.fromDefinition(
+                    definition = resolvedScreen,
+                    sourceDefinition = baseScreen,
+                )
+            )
         }
         runActionsSequentially(preComposeActions.drop(leadingQueryCount))
         updateUiStateFromNavigation()
