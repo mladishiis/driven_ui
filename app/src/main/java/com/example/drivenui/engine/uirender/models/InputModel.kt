@@ -15,6 +15,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property readOnly только чтение
  * @property widgetCode уникальный код виджета
  * @property finishTypingActions экшены при завершении ввода
+ * @property tapActions экшены при нажатии
  * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код условной видимости
@@ -29,6 +30,7 @@ data class InputModel(
     val readOnly: Boolean,
     val widgetCode: String,
     val finishTypingActions: List<UiAction>,
+    val tapActions: List<UiAction> = emptyList(),
     override val alignment: String,
     override val visibility: Boolean = true,
     val visibilityCode: String? = null,

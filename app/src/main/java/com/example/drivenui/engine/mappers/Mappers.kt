@@ -298,7 +298,7 @@ fun WidgetComponent.mapWidgetToAppbarModel(
 
 /**
  * Преобразует WidgetComponent в InputModel.
- * Из событий маппится только `onFinishTyping`; `onTyping`, `onFocus`, `onFinishFocus` — позже.
+ * Из событий маппятся `onTap` и `onFinishTyping`; `onTyping`, `onFocus`, `onFinishFocus` — позже.
  *
  * @receiver WidgetComponent
  * @param modifier Базовый Modifier
@@ -322,6 +322,7 @@ fun WidgetComponent.mapWidgetToInputModel(
         readOnly = readOnlyProperty,
         widgetCode = code,
         finishTypingActions = getOnFinishTypingEvents(events),
+        tapActions = getOnTapEvents(events),
         alignment = getAlignment(),
         visibility = visibility,
         visibilityCode = visibilityRaw,

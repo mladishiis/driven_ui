@@ -14,6 +14,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property readOnly только для чтения
  * @property widgetCode код виджета
  * @property finishTypingActions действия при завершении ввода
+ * @property tapActions действия при нажатии
  * @property alignment выравнивание
  * @property visibility видимость
  * @property visibilityCode код видимости
@@ -27,6 +28,7 @@ data class CachedInputModel(
     val readOnly: Boolean,
     val widgetCode: String,
     val finishTypingActions: List<UiAction>,
+    val tapActions: List<UiAction> = emptyList(),
     override val alignment: String,
     override val visibility: Boolean = true,
     override val visibilityCode: String? = null

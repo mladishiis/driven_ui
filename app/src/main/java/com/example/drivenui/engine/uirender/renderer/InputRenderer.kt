@@ -1,6 +1,7 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -69,9 +70,21 @@ fun InputRenderer(
     val hintTextStyle = MaterialTheme.typography.bodyLarge.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    val inputModifier = modifier
+        .then(model.modifier)
+        .then(model.modifierParams.applyParams(Modifier))
+        .let { baseModifier ->
+            if (model.tapActions.isNotEmpty()) {
+                baseModifier.clickable {
+                    onActions(model.tapActions)
+                }
+            } else {
+                baseModifier
+            }
+        }
 
     BasicTextField(
-        modifier = modifier.then(model.modifierParams.applyParams(Modifier)),
+        modifier = inputModifier,
         value = text,
         onValueChange = { newText ->
             text = newText

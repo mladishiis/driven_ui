@@ -118,6 +118,7 @@ internal fun expandComponentWithIndex(
                 displayText = component.displayText.replaceIndex(),
                 displayHint = component.displayHint.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
+                tapActions = component.tapActions,
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
