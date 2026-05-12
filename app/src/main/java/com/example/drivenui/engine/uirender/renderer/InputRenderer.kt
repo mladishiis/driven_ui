@@ -1,7 +1,8 @@
 package com.example.drivenui.engine.uirender.renderer
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,11 +51,21 @@ fun InputRenderer(
 
     val scope = rememberCoroutineScope()
     val finishTypingDebounce = remember(model.widgetCode) { FinishTypingDebounce() }
+    val interactionSource = remember(model.widgetCode) { MutableInteractionSource() }
 
     LaunchedEffect(resolvedText) {
         if (text != resolvedText) {
             finishTypingDebounce.cancel()
             text = resolvedText
+        }
+    }
+
+    LaunchedEffect(interactionSource, model.tapActions) {
+        if (model.tapActions.isEmpty()) return@LaunchedEffect
+        interactionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                onActions(model.tapActions)
+            }
         }
     }
 
@@ -73,15 +84,6 @@ fun InputRenderer(
     val inputModifier = modifier
         .then(model.modifier)
         .then(model.modifierParams.applyParams(Modifier))
-        .let { baseModifier ->
-            if (model.tapActions.isNotEmpty()) {
-                baseModifier.clickable {
-                    onActions(model.tapActions)
-                }
-            } else {
-                baseModifier
-            }
-        }
 
     BasicTextField(
         modifier = inputModifier,
@@ -106,6 +108,7 @@ fun InputRenderer(
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done
         ),
+        interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier
