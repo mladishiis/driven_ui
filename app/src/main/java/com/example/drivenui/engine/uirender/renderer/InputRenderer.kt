@@ -1,5 +1,6 @@
 package com.example.drivenui.engine.uirender.renderer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -81,6 +82,14 @@ fun InputRenderer(
     val hintTextStyle = MaterialTheme.typography.bodyLarge.copy(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+    val readOnlyBackgroundModifier = if (model.readOnly) {
+        Modifier.background(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = InputOutlineShape,
+        )
+    } else {
+        Modifier
+    }
     val inputModifier = modifier
         .then(model.modifier)
         .then(model.modifierParams.applyParams(Modifier))
@@ -113,6 +122,7 @@ fun InputRenderer(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .then(readOnlyBackgroundModifier)
                     .border(
                         width = InputOutlineWidth,
                         color = MaterialTheme.colorScheme.outline,
