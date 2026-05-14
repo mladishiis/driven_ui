@@ -134,10 +134,8 @@ internal class OpenFileViewModel @Inject constructor(
                         )
                     }
                     if (isTemplateMode) {
-                        val type = NavigationManager.getTemplateInfo()?.first
-                            ?: parseTemplateInfoFromUrl(pendingTemplateUrl ?: "")?.first
-                            ?: "template"
-                        NavigationManager.setTemplateInfo(type, microappCode)
+                        val baseUrl = extractBaseUrl(pendingTemplateUrl ?: "")
+                        NavigationManager.setTemplateInfo(baseUrl, microappCode)
                         val mappedData = fileInteractor.loadCachedMicroapp(microappCode)
                             ?: microappStorage.loadMapped(microappCode)
                         if (mappedData != null) {
@@ -195,12 +193,6 @@ internal class OpenFileViewModel @Inject constructor(
 
         if (isTemplateMode) {
             pendingTemplateUrl = url
-            val templateInfo = parseTemplateInfoFromUrl(url)
-            if (templateInfo != null) {
-                NavigationManager.setTemplateInfo(templateInfo.first, templateInfo.second)
-            }
-            // Если URL не содержит /template/zip/{type}/{code},
-            // templateInfo будет установлен после парсинга с кодом микроаппа
         }
 
         viewModelScope.launch {
@@ -473,29 +465,22 @@ internal class OpenFileViewModel @Inject constructor(
     }
 
     /**
-     * Достаёт параметры шаблона из URL скачивания архива.
+     * Извлекает базовый URL (scheme + host + port + первый сегмент пути) из URL скачивания.
      *
-     * Тип нужен только для совместимости с режимом шаблонов. Код после парсинга заменяется
-     * на реальный `microappCode`, чтобы отправлять PNG-скриншоты экранов обратно в метод
-     * `POST /microapp/image/{microappCode}/{screenCode}`.
+     * Первый сегмент (`/microapp` или `/template`) определяет контекст API для загрузки скриншотов.
      *
-     * Например, для URL `http://host/template/zip/newgroup/celldoctor` вернёт:
-     * - `templateType = newgroup`
-     * - `templateCode = celldoctor`
-     *
-     * Для старых ссылок `/microapp/zip/{code}` возвращает тип `microapp`.
-     * Для остальных URL использует последний сегмент пути как код шаблона.
+     * Например, для `http://45.8.229.106:8092/template/zip/newgroup/celldoctor`
+     * вернёт `http://45.8.229.106:8092/template`.
      */
-    private fun parseTemplateInfoFromUrl(url: String): Pair<String, String>? {
-        Regex("""/template/zip/([^/?#]+)/([^/?#]+)""").find(url)?.let {
-            val (type, code) = it.destructured
-            return type to code
-        }
-        Regex("""/microapp/zip/([^/?#]+)""").find(url)?.let {
-            return "microapp" to it.groupValues[1]
-        }
-        val lastSegment = url.trimEnd('/').substringAfterLast('/').takeIf { it.isNotBlank() }
-            ?: return null
-        return "template" to lastSegment
+    private fun extractBaseUrl(url: String): String {
+        val uri = java.net.URI(url)
+        val port = if (uri.port > 0) ":${uri.port}" else ""
+        val firstSegment = uri.path
+            ?.trimStart('/')
+            ?.substringBefore('/')
+            ?.takeIf { it.isNotBlank() }
+            ?.let { "/$it" }
+            .orEmpty()
+        return "${uri.scheme}://${uri.host}$port$firstSegment"
     }
 }

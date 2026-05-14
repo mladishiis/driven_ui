@@ -169,7 +169,7 @@ internal class TestRenderFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun takeAndUploadScreenshot(screenId: String) {
         val view = composeView ?: return
-        val (_, microappCode) = templateInfo ?: return
+        val (baseUrl, microappCode) = templateInfo ?: return
         if (view.width == 0 || view.height == 0) return
 
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
@@ -185,7 +185,7 @@ internal class TestRenderFragment : Fragment() {
                 if (result == PixelCopy.SUCCESS) {
                     screenshotSound.play(MediaActionSound.SHUTTER_CLICK)
                     showScreenshotMessage("Скриншот снят: $screenId")
-                    uploadBitmap(bitmap, microappCode, screenId)
+                    uploadBitmap(bitmap, baseUrl, microappCode, screenId)
                 } else {
                     bitmap.recycle()
                     Log.w(TAG, "PixelCopy failed for screen $screenId, result=$result")
@@ -197,6 +197,7 @@ internal class TestRenderFragment : Fragment() {
 
     private fun uploadBitmap(
         bitmap: Bitmap,
+        baseUrl: String,
         microappCode: String,
         screenId: String,
     ) {
@@ -206,7 +207,7 @@ internal class TestRenderFragment : Fragment() {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 bitmap.recycle()
                 val bytes = stream.toByteArray()
-                templateApi.uploadScreenshot(microappCode, screenId, bytes)
+                templateApi.uploadScreenshot(baseUrl, microappCode, screenId, bytes)
                     .onSuccess {
                         Log.d(TAG, "Скриншот загружен: $screenId")
                         withContext(Dispatchers.Main) {

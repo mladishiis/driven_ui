@@ -11,7 +11,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 /**
- * API для работы с шаблонами на тестовом сервере.
+ * API для работы с шаблонами.
  *
  * @property client общий HTTP-клиент приложения с авторизацией
  */
@@ -20,24 +20,16 @@ class TemplateApi @Inject constructor(
 ) {
 
     /**
-     * Формирует URL для скачивания ZIP-архива, сгенерированного из шаблона.
-     *
-     * @param templateType тип шаблона
-     * @param templateCode код шаблона
-     * @return URL метода `GET /template/zip/{templateType}/{templateCode}`
-     */
-    fun getTemplateZipUrl(templateType: String, templateCode: String): String =
-        "$BASE_URL/template/zip/$templateType/$templateCode"
-
-    /**
      * Загружает PNG-скриншот экрана микроаппа на сервер.
      *
+     * @param baseUrl базовый URL сервера (scheme + host + port), полученный из QR-кода
      * @param microappCode код микроаппа
      * @param screenCode код экрана
      * @param pngBytes содержимое PNG-файла
      * @return [Result.success] при успешной загрузке или [Result.failure] при ошибке
      */
     suspend fun uploadScreenshot(
+        baseUrl: String,
         microappCode: String,
         screenCode: String,
         pngBytes: ByteArray,
@@ -52,7 +44,7 @@ class TemplateApi @Inject constructor(
                 )
                 .build()
             val request = Request.Builder()
-                .url("$BASE_URL/microapp/image/$microappCode/$screenCode")
+                .url("$baseUrl/image/$microappCode/$screenCode")
                 .post(requestBody)
                 .build()
             client.newCall(request).execute().use { response ->
@@ -70,7 +62,6 @@ class TemplateApi @Inject constructor(
     }
 
     companion object {
-        private const val BASE_URL = "http://45.8.229.106:8092"
         private const val TAG = "TemplateApi"
     }
 }

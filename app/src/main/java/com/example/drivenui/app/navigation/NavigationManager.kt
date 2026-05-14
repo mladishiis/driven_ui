@@ -10,8 +10,8 @@ object NavigationManager {
 
     private var sharedData: SDUIParser.ParsedMicroappResult? = null
     private var sharedMappedData: CachedMicroappData? = null
-    private var templateType: String? = null
-    private var templateCode: String? = null
+    private var screenshotBaseUrl: String? = null
+    private var screenshotMicroappCode: String? = null
 
     /**
      * Сохраняет данные для следующего экрана (новая структура)
@@ -46,28 +46,32 @@ object NavigationManager {
     }
 
     /**
-     * Сохраняет информацию о шаблоне для режима скриншотов.
+     * Сохраняет информацию для режима скриншотов.
+     *
+     * @param baseUrl базовый URL сервера, извлечённый из QR-кода (scheme + host + port)
+     * @param microappCode код микроаппа для отправки скриншотов
      */
-    fun setTemplateInfo(type: String, code: String) {
-        templateType = type
-        templateCode = code
+    fun setTemplateInfo(baseUrl: String, microappCode: String) {
+        screenshotBaseUrl = baseUrl
+        screenshotMicroappCode = microappCode
     }
 
     /**
-     * Очищает параметры шаблона, сохранённые для режима загрузки скриншотов.
+     * Очищает параметры, сохранённые для режима загрузки скриншотов.
      */
     fun clearTemplateInfo() {
-        templateType = null
-        templateCode = null
+        screenshotBaseUrl = null
+        screenshotMicroappCode = null
     }
 
     /**
-     * Возвращает тип и код шаблона, или null если не в режиме шаблона.
+     * Возвращает базовый URL и код микроаппа для режима скриншотов,
+     * или null если не в режиме скриншотов.
      */
     fun getTemplateInfo(): Pair<String, String>? {
-        val type = templateType ?: return null
-        val code = templateCode ?: return null
-        return type to code
+        val baseUrl = screenshotBaseUrl ?: return null
+        val code = screenshotMicroappCode ?: return null
+        return baseUrl to code
     }
 
     /**
@@ -76,7 +80,7 @@ object NavigationManager {
     fun clearAllData() {
         sharedData = null
         sharedMappedData = null
-        templateType = null
-        templateCode = null
+        screenshotBaseUrl = null
+        screenshotMicroappCode = null
     }
 }

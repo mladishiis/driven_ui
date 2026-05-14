@@ -209,13 +209,17 @@ object AppModule {
      * Предоставляет OkHttpClient для загрузки файлов.
      *
      * @param authInterceptor interceptor, добавляющий заголовок авторизации
-     * @return OkHttpClient с настроенными таймаутами
+     * @return OkHttpClient с настроенными таймаутами и логированием запросов
      */
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        val loggingInterceptor = okhttp3.logging.HttpLoggingInterceptor().apply {
+            level = okhttp3.logging.HttpLoggingInterceptor.Level.BODY
+        }
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

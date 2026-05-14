@@ -97,6 +97,7 @@ dependencies {
 
     // Network
     implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
     // Testing
     testImplementation(libs.junit)
