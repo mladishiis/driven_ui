@@ -225,7 +225,6 @@ internal data class DetailsState(
         val typeName = when (component.type) {
             com.example.drivenui.engine.parser.models.ComponentType.LAYOUT -> "Layout"
             com.example.drivenui.engine.parser.models.ComponentType.WIDGET -> "Widget"
-            com.example.drivenui.engine.parser.models.ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
             com.example.drivenui.engine.parser.models.ComponentType.SCREEN -> "Screen"
         }
 

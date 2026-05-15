@@ -22,20 +22,20 @@ class DirMicroappFileProvider @Inject constructor(
     }
 
     override fun readMicroapp(): String =
-        File(getRootDir(), "microapp.xml").readText()
+        File(getRootDir(), "microapp.json").readText()
 
     override fun readStyles(): String =
-        File(getRootDir(), "resources/allStyles.xml").readText()
+        File(getRootDir(), "resources/allStyles.json").readText()
 
     override fun readMicroappOrEmpty(): String {
-        val file = File(getRootDir(), "microapp.xml")
+        val file = File(getRootDir(), "microapp.json")
         return if (file.exists()) file.readText() else ""
     }
 
     override fun readScreens(): List<Pair<String, String>> =
         getRootDir().resolve("screens")
             .listFiles()
-            ?.filter { it.extension == "xml" }
+            ?.filter { it.extension == "json" }
             ?.map { it.name to it.readText() }
             .orEmpty()
 }

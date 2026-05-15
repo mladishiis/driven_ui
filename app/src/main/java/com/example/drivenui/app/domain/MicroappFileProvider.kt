@@ -6,30 +6,30 @@ package com.example.drivenui.app.domain
 interface MicroappFileProvider {
 
     /**
-     * Читает microapp.xml.
+     * Читает microapp.json.
      *
-     * @return содержимое microapp.xml
+     * @return содержимое microapp.json
      */
     fun readMicroapp(): String
 
     /**
-     * Читает allStyles.xml.
+     * Читает allStyles.json.
      *
-     * @return содержимое allStyles.xml
+     * @return содержимое allStyles.json
      */
     fun readStyles(): String
 
     /**
-     * Читает XML экранов.
+     * Читает JSON экранов.
      *
-     * @return список пар (имя файла, xml-содержимое)
+     * @return список пар (имя файла, json-содержимое)
      */
     fun readScreens(): List<Pair<String, String>>
 
     /**
-     * Читает microapp.xml. При отсутствии файла возвращает пустую строку (для шаблона).
+     * Читает microapp.json. При отсутствии файла возвращает пустую строку (для шаблона).
      *
-     * @return содержимое microapp.xml или пустая строка
+     * @return содержимое microapp.json или пустая строка
      */
     fun readMicroappOrEmpty(): String
 }

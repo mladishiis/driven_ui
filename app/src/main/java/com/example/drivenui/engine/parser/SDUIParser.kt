@@ -19,7 +19,7 @@ import com.example.drivenui.engine.parser.parsers.StyleParser
 /**
  * Главный парсер SDUI-конфигурации микроаппов.
  *
- * Принимает сырые XML-строки (microapp, styles, screens) и возвращает
+ * Принимает сырые JSON-строки (microapp, styles, screens) и возвращает
  * структурированный [ParsedMicroappResult]. Не работает с файлами напрямую.
 */
 class SDUIParser {
@@ -143,20 +143,20 @@ class SDUIParser {
     /**
      * Выполняет полный парсинг конфигурации микроаппа.
      *
-     * @param microappXml XML метаданных микроаппа
-     * @param stylesXml XML стилей (текст, цвета, отступы)
-     * @param screens список пар (имя файла, xml-содержимое экрана)
+     * @param microappJson JSON метаданных микроаппа
+     * @param stylesJson JSON стилей (текст, цвета, отступы)
+     * @param screens список пар (имя файла, json-содержимое экрана)
      * @return результат парсинга или пустой [ParsedMicroappResult] при ошибке
      */
     fun parse(
-        microappXml: String,
-        stylesXml: String,
+        microappJson: String,
+        stylesJson: String,
         screens: List<Pair<String, String>>,
     ): ParsedMicroappResult {
 
         return try {
-            val microapp = parseMicroapp(microappXml)
-            val styles = parseStyles(stylesXml)
+            val microapp = parseMicroapp(microappJson)
+            val styles = parseStyles(stylesJson)
             val parsedScreens = parseScreens(screens)
 
             ParsedMicroappResult(
@@ -174,26 +174,26 @@ class SDUIParser {
     private fun parseScreens(
         screens: List<Pair<String, String>>,
     ): List<ParsedScreen> =
-        screens.mapNotNull { (name, xml) ->
+        screens.mapNotNull { (name, json) ->
             try {
-                componentParser.parseSingleScreenXml(xml)
+                componentParser.parseSingleScreenJson(json)
             } catch (e: Exception) {
                 Log.e("SDUIParser", "Ошибка парсинга экрана $name", e)
                 null
             }
         }
 
-    private fun parseMicroapp(xml: String): Microapp? =
+    private fun parseMicroapp(json: String): Microapp? =
         try {
-            microappParser.parseMicroapp(xml)
+            microappParser.parseMicroapp(json)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка парсинга микроаппа", e)
             null
         }
 
-    private fun parseStyles(xml: String): AllStyles? =
+    private fun parseStyles(json: String): AllStyles? =
         try {
-            styleParser.parseStyles(xml)
+            styleParser.parseStyles(json)
         } catch (e: Exception) {
             Log.e("SDUIParser", "Ошибка парсинга стилей", e)
             null

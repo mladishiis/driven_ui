@@ -40,15 +40,6 @@ internal class FileRepositoryImpl @Inject constructor(
             emptyList()
         }
 
-    override suspend fun loadXmlFile(fileName: String): String =
-        withContext(Dispatchers.IO) {
-            val file = File(getRootDir(), fileName)
-            if (!file.exists()) {
-                throw FileNotFoundException("XML file not found: $fileName")
-            }
-            file.readText()
-        }
-
     override suspend fun loadJsonFile(fileName: String): String =
         withContext(Dispatchers.IO) {
             val file = File(getRootDir(), fileName)

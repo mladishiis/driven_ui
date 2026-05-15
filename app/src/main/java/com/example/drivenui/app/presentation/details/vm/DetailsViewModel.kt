@@ -457,7 +457,6 @@ internal class DetailsViewModel @Inject constructor(
             val typeName = when (comp.type) {
                 ComponentType.LAYOUT -> "Layout"
                 ComponentType.WIDGET -> "Widget"
-                ComponentType.SCREEN_LAYOUT -> "ScreenLayout"
                 ComponentType.SCREEN -> "Screen"
             }
 

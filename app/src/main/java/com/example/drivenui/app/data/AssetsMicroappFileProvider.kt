@@ -8,17 +8,17 @@ class AssetsMicroappFileProvider(
 ) : MicroappFileProvider {
 
     override fun readMicroapp() =
-        read("microapp.xml")
+        read("microapp.json")
 
     override fun readStyles() =
-        read("resources/allStyles.xml")
+        read("resources/allStyles.json")
 
     override fun readMicroappOrEmpty(): String =
-        readOrEmpty("microapp.xml")
+        readOrEmpty("microapp.json")
 
     override fun readScreens(): List<Pair<String, String>> {
         return context.assets.list("screens")
-            ?.filter { it.endsWith(".xml") }
+            ?.filter { it.endsWith(".json") }
             ?.map { it to read("screens/$it") }
             ?: emptyList()
     }

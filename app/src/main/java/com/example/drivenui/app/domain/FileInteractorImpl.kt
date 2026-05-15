@@ -20,7 +20,7 @@ import javax.inject.Inject
  * @property fileRepository репозиторий для чтения/записи файлов
  * @property context контекст приложения
  * @property source источник микроаппа (ASSETS или FILE_SYSTEM_JSON)
- * @property fileProvider провайдер XML-файлов микроаппа
+ * @property fileProvider провайдер JSON-файлов микроаппа
  * @property microappStorage хранилище закэшированных данных
  */
 internal class FileInteractorImpl @Inject constructor(
@@ -38,8 +38,8 @@ internal class FileInteractorImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val result = parser.parse(
-                    microappXml = fileProvider.readMicroapp(),
-                    stylesXml = fileProvider.readStyles(),
+                    microappJson = fileProvider.readMicroapp(),
+                    stylesJson = fileProvider.readStyles(),
                     screens = fileProvider.readScreens(),
                 )
 
@@ -56,7 +56,7 @@ internal class FileInteractorImpl @Inject constructor(
     override suspend fun parseTemplate(): SDUIParser.ParsedMicroappResult =
         withContext(Dispatchers.IO) {
             try {
-                val stylesXml = fileProvider.readStyles()
+                val stylesJson = fileProvider.readStyles()
                 val screens = fileProvider.readScreens()
 
                 if (screens.isEmpty()) {
@@ -64,8 +64,8 @@ internal class FileInteractorImpl @Inject constructor(
                 }
 
                 val result = parser.parse(
-                    microappXml = fileProvider.readMicroappOrEmpty(),
-                    stylesXml = stylesXml,
+                    microappJson = fileProvider.readMicroappOrEmpty(),
+                    stylesJson = stylesJson,
                     screens = screens,
                 )
 

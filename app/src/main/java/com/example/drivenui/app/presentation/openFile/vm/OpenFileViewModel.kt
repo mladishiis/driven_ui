@@ -101,7 +101,7 @@ internal class OpenFileViewModel @Inject constructor(
 
     /**
      * Обрабатывает загрузку и парсинг файла (полный микроапп или шаблон).
-     * Логика парсинга единая и допускает отсутствие microapp.xml.
+     * Логика парсинга единая и допускает отсутствие microapp.json.
      */
     private fun handleUploadFile() {
         viewModelScope.launch(Dispatchers.IO) {

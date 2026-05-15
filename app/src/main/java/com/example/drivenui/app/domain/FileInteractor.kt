@@ -28,10 +28,10 @@ interface FileInteractor {
 
     /**
      * Запускает парсинг шаблона (урезанный микроапп для теста визуала), маппинг и сохранение.
-     * Обязательны: экран(ы) и allStyles.xml. microapp.xml может отсутствовать.
+     * Обязательны: экран(ы) и allStyles.json. microapp.json может отсутствовать.
      *
      * @return результат парсинга
-     * @throws Exception если отсутствуют экраны или allStyles.xml
+     * @throws Exception если отсутствуют экраны или allStyles.json
      */
     suspend fun parseTemplate(): SDUIParser.ParsedMicroappResult
 

@@ -3,7 +3,7 @@ package com.example.drivenui.app.data
 /**
  * Репозиторий для низкоуровневого доступа к файловой системе и assets.
  *
- * Предоставляет методы чтения и записи файлов, включая XML и JSON.
+ * Предоставляет методы чтения и записи JSON-файлов.
  */
 interface FileRepository {
 
@@ -22,15 +22,6 @@ interface FileRepository {
      * @return список имён JSON-файлов
      */
     fun getAvailableJsonFiles(): List<String>
-
-    /**
-     * Загружает содержимое XML-файла по имени.
-     *
-     * @param fileName имя XML-файла
-     * @return содержимое файла в виде строки
-     * @throws Exception если файл не найден или произошла ошибка чтения
-     */
-    suspend fun loadXmlFile(fileName: String): String
 
     /**
      * Загружает содержимое JSON-файла по имени.
@@ -59,7 +50,7 @@ interface FileRepository {
      * @property name имя файла
      * @property size размер файла в байтах
      * @property lastModified время последнего изменения в миллисекундах с эпохи
-     * @property type тип файла (например, "xml", "json", "txt")
+     * @property type тип файла (например, "json", "txt")
      */
     data class FileInfo(
         val name: String,
