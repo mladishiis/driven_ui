@@ -422,6 +422,7 @@ class GenerativeScreenViewModel @Inject constructor(
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
                 action = action as UiAction.ExecuteQuery,
+                resolveQueryValue = ::resolveQueryValue,
             )
         }
         val resolvedScreen = resolveScreen(
@@ -453,7 +454,14 @@ class GenerativeScreenViewModel @Inject constructor(
     private fun countLeadingExecuteQueries(orderedOnCreate: List<UiAction>): Int =
         orderedOnCreate.takeWhile { it is UiAction.ExecuteQuery }.size
 
-    
+    private fun resolveQueryValue(value: String): String {
+        return resolveTemplateString(
+            value,
+            requestInteractor.getDataContext(),
+            contextManager,
+        ) ?: value
+    }
+
     private suspend fun openBottomSheetAfterScreenOnCreate(screen: ScreenModel) {
         val localStyleRegistry = styleRegistry ?: return
         val preComposeActions = screen.onCreateActions
@@ -463,6 +471,7 @@ class GenerativeScreenViewModel @Inject constructor(
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
                 action = action as UiAction.ExecuteQuery,
+                resolveQueryValue = ::resolveQueryValue,
             )
         }
         val resolvedScreen = resolveScreen(

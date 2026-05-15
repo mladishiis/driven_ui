@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.drivenui.app.theme.isSystemInDarkTheme
 import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
 import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
@@ -217,6 +218,7 @@ class ActionHandler(
         val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
             screenModel = definition,
             action = action,
+            resolveQueryValue = ::resolveQueryValue,
         )
 
         val resolvedScreen = resolveScreen(
@@ -234,6 +236,14 @@ class ActionHandler(
         )
 
         return ActionResult.Success
+    }
+
+    private fun resolveQueryValue(value: String): String {
+        return resolveTemplateString(
+            value,
+            requestInteractor.getDataContext(),
+            contextManager,
+        ) ?: value
     }
 
     private fun handleSaveToContext(action: UiAction.SaveToContext): ActionResult {

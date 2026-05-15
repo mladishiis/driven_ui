@@ -126,12 +126,18 @@ fun EventAction.mapToUiAction(): UiAction {
                 val mockEnabled = properties["mockEnabled"]?.trim()?.takeIf { it.isNotEmpty() }?.toBoolean()
                     ?: true
                 val mockFile = properties["mockFile"]?.trim()?.takeIf { it.isNotEmpty() }
+                val queryString = properties.extractQueryParameters("queryString.")
+                val queryBody = properties.extractQueryParameters("queryBody.")
+                val queryHeader = properties.extractQueryParameters("queryHeader.")
                 UiAction.ExecuteQuery(
                     queryCode = queryCode,
                     type = type,
                     endpoint = endpoint,
                     mockEnabled = mockEnabled,
                     mockFile = mockFile,
+                    queryString = queryString,
+                    queryBody = queryBody,
+                    queryHeader = queryHeader,
                 )
             }
         }
@@ -168,3 +174,13 @@ fun EventAction.mapToUiAction(): UiAction {
         else -> UiAction.Empty
     }
 }
+
+private fun Map<String, String>.extractQueryParameters(prefix: String): Map<String, String> =
+    mapNotNull { (code, value) ->
+        val name = code.removePrefix(prefix).takeIf { it != code }?.trim()
+        if (name.isNullOrEmpty()) {
+            null
+        } else {
+            name to value
+        }
+    }.toMap()
