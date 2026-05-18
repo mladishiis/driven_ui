@@ -20,6 +20,9 @@ class MicroappParser {
      *   "persistent": ["..."],
      *   "screen": [{ "code": "...", "title": "..." }]
      * }
+     *
+     * @param jsonContent JSON-строка с метаданными микроаппа
+     * @return [Microapp] или null, если JSON пустой или корень не является объектом
      */
     fun parseMicroapp(jsonContent: String): Microapp? {
         val root = parseJsonObject(jsonContent) ?: return null

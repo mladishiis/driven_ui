@@ -26,12 +26,24 @@ import com.google.gson.JsonObject
  */
 class ComponentParser {
 
+    /**
+     * Парсит один экран из canvas JSON.
+     *
+     * @param jsonContent JSON-строка с корнем type=SCREEN
+     * @return [ParsedScreen] при успешном парсинге или null для пустого/не экранного JSON
+     */
     fun parseSingleScreenJson(jsonContent: String): ParsedScreen? {
         val root = parseJsonObject(jsonContent) ?: return null
         if (!root.string("type").equals("SCREEN", ignoreCase = true)) return null
         return parseScreen(root)
     }
 
+    /**
+     * Собирает модель экрана из корневого JSON-объекта.
+     *
+     * @param json корневой объект экрана
+     * @return [ParsedScreen] или null, если у экрана нет кода
+     */
     private fun parseScreen(json: JsonObject): ParsedScreen? {
         val params = json.params()
         val screenCode = params?.string("screenCode")?.takeIf { it.isNotEmpty() }
@@ -48,6 +60,12 @@ class ComponentParser {
         )
     }
 
+    /**
+     * Преобразует корневой SCREEN-узел в лэйаут-компонент.
+     *
+     * @param json корневой объект экрана
+     * @return корневой [LayoutComponent] с дочерним деревом
+     */
     private fun parseRootLayout(json: JsonObject): Component =
         LayoutComponent(
             title = json.string("name", "title"),
@@ -62,6 +80,12 @@ class ComponentParser {
             maxForIndex = json.params()?.string("maxForIndex")?.takeIf { it.isNotEmpty() },
         )
 
+    /**
+     * Парсит дочерний UI-узел, пропуская EVENT-узлы.
+     *
+     * @param json объект дочернего узла
+     * @return лэйаут или виджет, либо null для служебных узлов
+     */
     private fun parseComponent(json: JsonObject): Component? {
         val type = json.string("type")
         if (type.isEmpty() || type.equals(EVENT_TYPE, ignoreCase = true)) return null
@@ -72,6 +96,12 @@ class ComponentParser {
         }
     }
 
+    /**
+     * Парсит контейнерный LAYOUT-узел.
+     *
+     * @param json объект лэйаута
+     * @return [LayoutComponent] с рекурсивно распарсенными дочерними компонентами
+     */
     private fun parseLayout(json: JsonObject): Component =
         LayoutComponent(
             title = json.string("name", "title"),
@@ -87,6 +117,13 @@ class ComponentParser {
             maxForIndex = json.params()?.string("maxForIndex")?.takeIf { it.isNotEmpty() },
         )
 
+    /**
+     * Парсит виджетовый узел.
+     *
+     * @param json объект виджета
+     * @param type значение поля type из canvas JSON
+     * @return [WidgetComponent] с параметрами, стилями и событиями
+     */
     private fun parseWidget(json: JsonObject, type: String): Component {
         val widgetCode = type.lowercase()
         return WidgetComponent(
@@ -102,19 +139,43 @@ class ComponentParser {
         )
     }
 
+    /**
+     * Парсит дочерние UI-компоненты текущего узла.
+     *
+     * @param json объект с полем children
+     * @return список дочерних компонентов без EVENT-узлов
+     */
     private fun parseChildren(json: JsonObject): List<Component> =
         json.get("children")
             .asArrayOrSingle()
             .mapNotNull { it.asObjectOrNull() }
             .mapNotNull(::parseComponent)
 
+    /**
+     * Парсит свойства компонента.
+     *
+     * @param json объект компонента
+     * @return карта код свойства -> значение
+     */
     private fun parseProperties(json: JsonObject): Map<String, String> =
         json.objectMap("properties")
 
+    /**
+     * Парсит стили компонента.
+     *
+     * @param json объект компонента
+     * @return список стилей виджета или лэйаута
+     */
     private fun parseStyles(json: JsonObject): List<WidgetStyle> =
         json.objectMap("styles")
             .map { (code, value) -> WidgetStyle(code, value) }
 
+    /**
+     * Парсит EVENT-узлы из children текущего компонента.
+     *
+     * @param json объект компонента
+     * @return события, сгруппированные по eventCode
+     */
     private fun parseEvents(json: JsonObject): List<WidgetEvent> {
         val actionsByEventCode = linkedMapOf<String, MutableList<EventAction>>()
         json.get("children")
@@ -147,6 +208,12 @@ class ComponentParser {
         }
     }
 
+    /**
+     * Парсит список свойств, значения которых должны заполняться биндингом.
+     *
+     * @param json объект компонента
+     * @return список кодов bindingProperties
+     */
     private fun parseBindingProperties(json: JsonObject): List<String> =
         json.get("bindingProperties")
             .asArrayOrSingle()
@@ -162,6 +229,12 @@ class ComponentParser {
     private fun JsonObject.params(): JsonObject? =
         get("params").asObjectOrNull()
 
+    /**
+     * Определяет тип виджета по его коду.
+     *
+     * @param widgetCode код виджета в нижнем регистре
+     * @return "native" для поддержанных нативных компонентов, иначе "composite"
+     */
     private fun determineWidgetType(widgetCode: String): String =
         when (widgetCode) {
             "label", "button", "image", "checkbox", "switcher", "input", "appbar" -> "native"

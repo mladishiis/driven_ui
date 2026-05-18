@@ -73,6 +73,17 @@ data class DataContext(
 
 /**
  * Базовый компонент UI в дереве парсинга.
+ *
+ * @property title Человекочитаемое название компонента
+ * @property code Уникальный код компонента из canvas JSON
+ * @property properties Плоская карта свойств компонента
+ * @property styles Список стилей компонента
+ * @property events Список событий, привязанных к компоненту
+ * @property children Дочерние компоненты
+ * @property bindingProperties Коды свойств, заполняемых через биндинг
+ * @property type Тип компонента в дереве
+ * @property index Порядковый индекс компонента внутри родителя
+ * @property forIndexName Имя переменной индекса для циклического рендера
  */
 @Parcelize
 sealed class Component : Parcelable {
@@ -90,6 +101,11 @@ sealed class Component : Parcelable {
 
 /**
  * Компонент лэйаута (контейнер)
+ *
+ * @property title Человекочитаемое название лэйаута
+ * @property code Уникальный код лэйаута на экране
+ * @property layoutCode Код типа лэйаута ("vertical", "horizontal", "layers")
+ * @property maxForIndex Максимальное значение индекса для циклического рендера
  */
 data class LayoutComponent(
     override val title: String,
@@ -108,6 +124,11 @@ data class LayoutComponent(
 
 /**
  * Компонент виджета (листовой элемент)
+ *
+ * @property title Человекочитаемое название виджета
+ * @property code Уникальный код виджета на экране
+ * @property widgetCode Код виджета из поля type canvas JSON
+ * @property widgetType Тип виджета: "native" или "composite"
  */
 data class WidgetComponent(
     override val title: String,
@@ -192,6 +213,13 @@ data class Microapp(
 
 /**
  * Упрощенный экран с компонентами
+ *
+ * @property title Человекочитаемое название экрана
+ * @property screenCode Уникальный код экрана
+ * @property screenShortCode Короткий код экрана для deeplink
+ * @property deeplink Deeplink экрана
+ * @property rootComponent Корневой компонент дерева экрана
+ * @property events События, объявленные на корневом узле экрана
  */
 @Parcelize
 data class ParsedScreen(
