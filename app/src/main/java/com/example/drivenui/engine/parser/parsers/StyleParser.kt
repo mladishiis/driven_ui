@@ -16,21 +16,20 @@ import com.google.gson.JsonObject
 
 /**
  * Парсер стилей из canvas JSON.
+ *
+ * Поддерживает плоский контракт: `{ "textStyles": [...] }`.
  */
 class StyleParser {
 
     /**
-     * Парсит все стили из JSON строки с корнем allStyles.
+     * Парсит все стили из JSON строки.
      * Списки стилей ожидаются как JSON arrays.
      *
-     * @param jsonContent JSON-строка с контейнером allStyles
+     * @param jsonContent JSON-строка со стилями
      * @return [AllStyles] контейнер со всеми типами стилей
      */
     fun parseStyles(jsonContent: String): AllStyles {
-        val root = parseJsonObject(jsonContent)
-            ?.get("allStyles")
-            ?.asObjectOrNull()
-            ?: JsonObject()
+        val root = parseJsonObject(jsonContent) ?: JsonObject()
 
         return AllStyles(
             textStyles = root.objects("textStyles").map(::parseTextStyle),
