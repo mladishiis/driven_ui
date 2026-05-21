@@ -84,9 +84,9 @@ fun getPaddingFromProperties(component: Component): PaddingValues {
 }
 
 /**
- * Создаёт ModifierParams из свойств компонента (padding, height, width).
+ * Создаёт ModifierParams из свойств компонента (padding, height, width, fill-проценты).
  *
- * @param component Компонент с properties padding*, height, width
+ * @param component Компонент с properties padding*, height, width, widthPercentage, heightPercentage
  * @return Параметры для Modifier (отступы, height/width: fillMax, wrapContent или px) — для applyParams
  */
 fun getModifierParamsFromComponent(component: Component): ModifierParams {
@@ -100,5 +100,22 @@ fun getModifierParamsFromComponent(component: Component): ModifierParams {
         paddingBottom = paddings[3],
         height = heightProperty,
         width = widthProperty,
+        widthFillFraction = widthProperty.parseFillFraction(component.properties["widthPercentage"]),
+        heightFillFraction = heightProperty.parseFillFraction(component.properties["heightPercentage"]),
     )
 }
+
+/**
+ * Преобразует процент из JSON (например `50` или `33.5`) в долю для [Modifier.fillMaxWidth]/[fillMaxHeight].
+ *
+ * @receiver значение width/height; доля вычисляется только при `fillMax`
+ * @param percentageValue строка widthPercentage или heightPercentage
+ * @return доля 0..1 или `null`, если размер не fillMax или процент не задан
+ */
+private fun String.parseFillFraction(percentageValue: String?): Float? {
+    if (!equals("fillmax", ignoreCase = true)) return null
+    val percent = percentageValue?.trim()?.toFloatOrNull() ?: return null
+    return (percent / PERCENT_DIVISOR).coerceIn(0f, 1f)
+}
+
+private const val PERCENT_DIVISOR = 100f
