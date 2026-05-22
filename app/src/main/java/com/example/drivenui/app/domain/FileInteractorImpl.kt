@@ -3,6 +3,7 @@ package com.example.drivenui.app.domain
 import android.content.Context
 import android.util.Log
 import com.example.drivenui.app.data.FileRepository
+import com.example.drivenui.app.data.MicroappRootFinder
 import com.example.drivenui.engine.cache.CachedMicroappData
 import com.example.drivenui.engine.cache.toCachedScreenModel
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
@@ -84,8 +85,12 @@ internal class FileInteractorImpl @Inject constructor(
         val styleRegistry = ComposeStyleRegistry(result.styles)
         val screenMapper = ScreenMapper(styleRegistry)
         val cachedScreens = result.screens.map { screenMapper.mapToScreenModel(it).toCachedScreenModel() }
+        val microappCode = result.microapp?.code?.takeIf { it.isNotBlank() } ?: "template"
+        MicroappRootFinder.getMicroappRootPath(context)?.let { assetsDir ->
+            MicroappRootFinder.registerMicroappAssets(context, microappCode, assetsDir)
+        }
         val cachedData = CachedMicroappData(
-            microappCode = result.microapp?.code?.takeIf { it.isNotBlank() } ?: "template",
+            microappCode = microappCode,
             microappTitle = result.microapp?.title ?: "",
             microappDeeplink = result.microapp?.deeplink ?: "",
             allStyles = result.styles,

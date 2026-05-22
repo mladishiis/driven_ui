@@ -8,7 +8,7 @@ import java.io.File
  * Резолвит значение из url в источник данных для Coil:
  * - если это полный URL, возвращает его как есть;
  * - если это имя файла (например, "resources/images/close.svg"), ищет:
- *   1) во временной папке microapp: microapps/{microappName}/resources/images
+ *   1) в папке активного микроаппа ([MicroappRootFinder.resolveActiveMicroappRoot])
  *   2) в assets: resources/images.
  *
  * @param context Контекст приложения
@@ -22,7 +22,7 @@ fun resolveImageData(context: Context, url: String?): Any? {
         return url
     }
 
-    val microappRoot = MicroappRootFinder.findMicroappRoot(context)
+    val microappRoot = MicroappRootFinder.resolveActiveMicroappRoot(context)
     if (microappRoot != null) {
         val runtimeFile = File(microappRoot, url)
         if (runtimeFile.exists()) {

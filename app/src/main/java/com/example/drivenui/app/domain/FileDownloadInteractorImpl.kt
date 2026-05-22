@@ -52,8 +52,6 @@ class FileDownloadInteractorImpl @Inject constructor(
 
                     val body = response.body ?: error("Empty response body")
 
-                    clearAssetsFolder()
-
                     var extractedMicroappCode: String? = null
 
                     val zipStream = when (format) {
@@ -66,6 +64,7 @@ class FileDownloadInteractorImpl @Inject constructor(
                                 throw IllegalArgumentException("Invalid JSON response: archive field is empty")
                             }
                             extractedMicroappCode = parsed.microappCode?.takeIf { it.isNotBlank() }
+                            extractedMicroappCode?.let { clearMicroappDir(it) }
                             val archiveBytes = Base64.decode(parsed.archiveBase64, Base64.DEFAULT)
                             ZipInputStream(ByteArrayInputStream(archiveBytes))
                         }
@@ -80,6 +79,9 @@ class FileDownloadInteractorImpl @Inject constructor(
                         ?: microappsDir.listFiles()?.firstOrNull { it.isDirectory }?.name
                     if (rootName != null) {
                         MicroappRootFinder.saveMicroappRootName(context, rootName)
+                        val code = extractedMicroappCode ?: rootName
+                        MicroappRootFinder.registerMicroappAssets(context, code, rootName)
+                        MicroappRootFinder.setActiveMicroappCode(context, code)
                     } else {
                         Log.w(TAG, "После распаковки в microapps нет подпапок")
                     }
@@ -180,6 +182,15 @@ class FileDownloadInteractorImpl @Inject constructor(
 
     private fun getMicroappsDir(): File =
         File(context.filesDir, MICROAPPS_DIR)
+
+    /** Удаляет только папку одного микроаппа перед повторной загрузкой. */
+    private fun clearMicroappDir(dirName: String) {
+        val dir = File(getMicroappsDir(), dirName)
+        if (dir.exists()) {
+            dir.deleteRecursively()
+            Log.d(TAG, "Удалена папка микроаппа перед загрузкой: $dirName")
+        }
+    }
 
     companion object {
         private const val TAG = "FileDownloadInteractor"

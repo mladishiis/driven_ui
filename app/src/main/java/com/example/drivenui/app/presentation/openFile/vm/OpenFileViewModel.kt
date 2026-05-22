@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.drivenui.R
 import com.example.drivenui.app.data.MicroappCollectionApi
+import com.example.drivenui.app.data.MicroappRootFinder
 import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
 import com.example.drivenui.app.domain.FileDownloadInteractor
@@ -139,6 +140,7 @@ internal class OpenFileViewModel @Inject constructor(
                         val mappedData = fileInteractor.loadCachedMicroapp(microappCode)
                             ?: microappStorage.loadMapped(microappCode)
                         if (mappedData != null) {
+                            MicroappRootFinder.setActiveMicroappCode(context, mappedData.microappCode)
                             setEffect { OpenFileEffect.NavigateToTestScreen(mappedData) }
                         } else {
                             setEffect { OpenFileEffect.ShowParsingErrorDialog("Не удалось загрузить шаблон") }
@@ -451,6 +453,7 @@ internal class OpenFileViewModel @Inject constructor(
                 ?: microappStorage.loadMapped(microappCode)
             withContext(Dispatchers.Main) {
                 if (mappedData != null) {
+                    MicroappRootFinder.setActiveMicroappCode(context, microappCode)
                     setEffect { OpenFileEffect.NavigateToTestScreen(mappedData) }
                 } else {
                     setEffect { OpenFileEffect.ShowError(context.getString(R.string.microapp_not_found)) }
