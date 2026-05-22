@@ -53,12 +53,14 @@ fun ImageRenderer(
     } else {
         null
     }
+    val contentScale = model.modifierParams.imageContentScale()
 
     if (data == null) {
         Image(
             modifier = imageModifier,
             painter = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
+            contentScale = contentScale,
             colorFilter = colorFilter,
         )
     } else {
@@ -71,6 +73,7 @@ fun ImageRenderer(
             placeholder = painterResource(id = R.drawable.ic_24_close),
             error = painterResource(id = R.drawable.ic_24_close),
             contentDescription = null,
+            contentScale = contentScale,
             colorFilter = colorFilter,
         )
     }

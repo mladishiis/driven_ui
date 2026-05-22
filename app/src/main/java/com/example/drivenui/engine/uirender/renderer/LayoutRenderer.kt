@@ -4,7 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +24,8 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
+import com.example.drivenui.engine.uirender.models.ModifierParams
+import com.example.drivenui.engine.uirender.models.sduiModifierParams
 import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
 import com.example.drivenui.engine.uirender.utils.expandComponentWithIndex
 import com.example.drivenui.engine.uirender.utils.parseBoxAlignment
@@ -135,9 +141,13 @@ private fun ColumnRenderer(
     CompositionLocalProvider(LocalInsideVerticalScroll provides (parentIsScrollable || applyScroll)) {
         Column(modifier = columnModifier) {
             model.children.forEach { child ->
+                val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
                 ComponentRenderer(
-                    modifier = Modifier.align(parseColumnAlignment(child.alignment)),
-                    model = applyBindingsForComponent?.invoke(child) ?: child,
+                    modifier = columnChildPercentModifier(
+                        Modifier.align(parseColumnAlignment(child.alignment)),
+                        resolvedChild.sduiModifierParams(),
+                    ),
+                    model = resolvedChild,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
                     applyBindingsForComponent = applyBindingsForComponent,
@@ -156,9 +166,13 @@ private fun RowRenderer(
 ) {
     Row(modifier = model.modifier) {
         model.children.forEach { child ->
+            val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
             ComponentRenderer(
-                modifier = Modifier.align(parseRowAlignment(child.alignment)),
-                model = applyBindingsForComponent?.invoke(child) ?: child,
+                modifier = rowChildPercentModifier(
+                    Modifier.align(parseRowAlignment(child.alignment)),
+                    resolvedChild.sduiModifierParams(),
+                ),
+                model = resolvedChild,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
@@ -236,16 +250,22 @@ private fun RenderForChildren(
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val indexStr = index.toString()
-    model.children.forEach { templateChild ->
-        val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-        val childWithBindings =
-            applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-        ComponentRenderer(
-            model = childWithBindings,
-            onActions = onActions,
-            onWidgetValueChange = onWidgetValueChange,
-            applyBindingsForComponent = applyBindingsForComponent,
-        )
+    Column {
+        model.children.forEach { templateChild ->
+            val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
+            val childWithBindings =
+                applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+            ComponentRenderer(
+                modifier = columnChildPercentModifier(
+                    Modifier,
+                    childWithBindings.sduiModifierParams(),
+                ),
+                model = childWithBindings,
+                onActions = onActions,
+                onWidgetValueChange = onWidgetValueChange,
+                applyBindingsForComponent = applyBindingsForComponent,
+            )
+        }
     }
 }
 
@@ -264,16 +284,22 @@ private fun LazyRowRenderer(
     LazyRow(modifier = model.modifier) {
         items(maxForIndex) { index ->
             val indexStr = index.toString()
-            model.children.forEach { templateChild ->
-                val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                val childWithBindings =
-                    applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                ComponentRenderer(
-                    model = childWithBindings,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                model.children.forEach { templateChild ->
+                    val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
+                    val childWithBindings =
+                        applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+                    ComponentRenderer(
+                        modifier = rowChildPercentModifier(
+                            Modifier.align(parseRowAlignment(childWithBindings.alignment)),
+                            childWithBindings.sduiModifierParams(),
+                        ),
+                        model = childWithBindings,
+                        onActions = onActions,
+                        onWidgetValueChange = onWidgetValueChange,
+                        applyBindingsForComponent = applyBindingsForComponent,
+                    )
+                }
             }
         }
     }
@@ -288,13 +314,53 @@ private fun BoxRenderer(
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
+            val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
             ComponentRenderer(
-                modifier = Modifier.align(parseBoxAlignment(child.alignment)),
-                model = applyBindingsForComponent?.invoke(child) ?: child,
+                modifier = Modifier
+                    .align(parseBoxAlignment(child.alignment))
+                    .thenBoxChildPercent(resolvedChild.sduiModifierParams()),
+                model = resolvedChild,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
             )
         }
     }
+}
+
+/**
+ * Row: width% → [RowScope.weight] (доля от всей ширины Row, не от остатка после siblings).
+ * height% → [fillMaxHeight]: у всех children одна и та же maxHeight Row.
+ */
+private fun RowScope.rowChildPercentModifier(
+    base: Modifier,
+    params: ModifierParams,
+): Modifier {
+    var modifier = base
+    params.widthFillFraction?.let { modifier = modifier.weight(it) }
+    params.heightFillFraction?.let { modifier = modifier.fillMaxHeight(it) }
+    return modifier
+}
+
+/**
+ * Column: height% → [ColumnScope.weight]; width% → [fillMaxWidth] (полная ширина Column).
+ */
+private fun ColumnScope.columnChildPercentModifier(
+    base: Modifier,
+    params: ModifierParams,
+): Modifier {
+    var modifier = base
+    params.heightFillFraction?.let { modifier = modifier.weight(it) }
+    params.widthFillFraction?.let { modifier = modifier.fillMaxWidth(it) }
+    return modifier
+}
+
+/**
+ * Box: каждый child меряется с полными constraints контейнера — fillMax*(fraction) корректен.
+ */
+private fun Modifier.thenBoxChildPercent(params: ModifierParams): Modifier {
+    var modifier = this
+    params.widthFillFraction?.let { modifier = modifier.fillMaxWidth(it) }
+    params.heightFillFraction?.let { modifier = modifier.fillMaxHeight(it) }
+    return modifier
 }
