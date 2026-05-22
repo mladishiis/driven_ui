@@ -298,13 +298,6 @@ private fun ContentWithMicroapps(
                     onItemClick = { code -> onEvent(OpenFileEvent.OnShowTestScreen(code)) },
                 )
             }
-            if (state.availableJsonFiles.isNotEmpty()) {
-                JsonFilesCard(
-                    availableCount = state.availableJsonFiles.size,
-                    selectedCount = state.selectedJsonFiles.size,
-                    onSelectJson = { onEvent(OpenFileEvent.OnSelectJsonFiles(state.selectedJsonFiles)) },
-                )
-            }
             if (state.microappSource == MicroappSource.ASSETS) {
                 state.selectedFileName?.let { fileName ->
                     SelectedFileCard(fileName = fileName)
@@ -405,60 +398,6 @@ private fun MicroappListItem(
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f),
             )
-        }
-    }
-}
-
-@Composable
-private fun JsonFilesCard(
-    availableCount: Int,
-    selectedCount: Int,
-    onSelectJson: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = stringResource(R.string.json_files),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.available_files, availableCount),
-                fontSize = 14.sp,
-            )
-            if (selectedCount > 0) {
-                Text(
-                    text = stringResource(R.string.selected_files, selectedCount),
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onSelectJson,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
-                ) {
-                    Text(stringResource(R.string.change_json_selection))
-                }
-            }
         }
     }
 }
