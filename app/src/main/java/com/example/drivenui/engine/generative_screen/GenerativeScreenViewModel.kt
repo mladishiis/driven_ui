@@ -29,11 +29,11 @@ import com.example.drivenui.engine.parser.models.ParsedScreen
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -422,6 +422,7 @@ class GenerativeScreenViewModel @Inject constructor(
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
                 action = action as UiAction.ExecuteQuery,
+                resolveQueryValue = ::resolveQueryValue,
             )
         }
         val resolvedScreen = resolveScreen(
@@ -453,7 +454,14 @@ class GenerativeScreenViewModel @Inject constructor(
     private fun countLeadingExecuteQueries(orderedOnCreate: List<UiAction>): Int =
         orderedOnCreate.takeWhile { it is UiAction.ExecuteQuery }.size
 
-    
+    private fun resolveQueryValue(value: String): String {
+        return resolveTemplateString(
+            value,
+            requestInteractor.getDataContext(),
+            contextManager,
+        ) ?: value
+    }
+
     private suspend fun openBottomSheetAfterScreenOnCreate(screen: ScreenModel) {
         val localStyleRegistry = styleRegistry ?: return
         val preComposeActions = screen.onCreateActions
@@ -463,6 +471,7 @@ class GenerativeScreenViewModel @Inject constructor(
             workingScreen = requestInteractor.executeQueryAndUpdateScreen(
                 screenModel = workingScreen,
                 action = action as UiAction.ExecuteQuery,
+                resolveQueryValue = ::resolveQueryValue,
             )
         }
         val resolvedScreen = resolveScreen(

@@ -50,13 +50,16 @@ sealed interface UiAction {
     data class OpenDeeplink(val deeplink: String) : UiAction
 
     /**
-     * Выполнение запроса (на данном этапе только загрузка mock JSON по [mockFile], если [mockEnabled]).
+     * Выполнение запроса или загрузка mock JSON в `DataContext`.
      *
      * @param queryCode Ключ результата в DataContext для биндингов `${queryCode.path}`
-     * @param type HTTP-метод (для будущей сети)
-     * @param endpoint Путь (для будущей сети)
-     * @param mockEnabled Загружать ли [mockFile] в контекст
+     * @param type HTTP-метод
+     * @param endpoint URL или путь запроса
+     * @param mockEnabled Загружать ли [mockFile] вместо сетевого запроса
      * @param mockFile Имя JSON в assets / каталоге моков
+     * @param queryString Параметры URL
+     * @param queryBody JSON-поля тела запроса
+     * @param queryHeader HTTP-заголовки
      */
     data class ExecuteQuery(
         val queryCode: String,
@@ -64,6 +67,9 @@ sealed interface UiAction {
         val endpoint: String = "",
         val mockEnabled: Boolean = true,
         val mockFile: String? = null,
+        val queryString: Map<String, String> = emptyMap(),
+        val queryBody: Map<String, String> = emptyMap(),
+        val queryHeader: Map<String, String> = emptyMap(),
     ) : UiAction
 
     /**
