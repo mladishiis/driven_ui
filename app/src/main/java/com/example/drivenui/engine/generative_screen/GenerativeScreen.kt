@@ -14,6 +14,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -127,13 +128,15 @@ private fun ScreenContent(
             }
         }
         is GenerativeUiState.Screen -> {
-            state.model?.also {
-                ComponentRenderer(
-                    model = it,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
+            key(state.screenId) {
+                state.model?.also { model ->
+                    ComponentRenderer(
+                        model = model,
+                        onActions = onActions,
+                        onWidgetValueChange = onWidgetValueChange,
+                        applyBindingsForComponent = applyBindingsForComponent,
+                    )
+                }
             }
         }
         is GenerativeUiState.Error -> {

@@ -390,12 +390,13 @@ class GenerativeScreenViewModel @Inject constructor(
     }
 
     private fun updateUiStateFromNavigation() {
-        val currentScreen = navigationManager.getCurrentScreen()
-        if (currentScreen != null) {
-            _currentScreenId.value = currentScreen.definition?.id
-            val resolvedRoot = currentScreen.definition?.rootComponent
-            _uiState.value = GenerativeUiState.Screen(resolvedRoot)
-        }
+        val currentScreen = navigationManager.getCurrentScreen() ?: return
+        val screenId = currentScreen.definition?.id ?: currentScreen.id
+        _currentScreenId.value = screenId
+        _uiState.value = GenerativeUiState.Screen(
+            screenId = screenId,
+            model = currentScreen.definition?.rootComponent,
+        )
     }
 
     private fun navigateToScreen(screen: ScreenModel) {

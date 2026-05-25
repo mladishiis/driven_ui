@@ -6,6 +6,15 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
 @Stable
 sealed interface GenerativeUiState {
     data object Loading : GenerativeUiState
-    data class Screen(val model: ComponentModel?) : GenerativeUiState
+
+    /**
+     * @property screenId ключ экрана для сброса Compose-composition при навигации назад
+     * @property model корневой компонент экрана
+     */
+    data class Screen(
+        val screenId: String,
+        val model: ComponentModel?,
+    ) : GenerativeUiState
+
     data class Error(val message: String) : GenerativeUiState
 }

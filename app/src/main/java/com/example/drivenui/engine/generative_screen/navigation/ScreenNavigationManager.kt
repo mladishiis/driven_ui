@@ -1,46 +1,43 @@
 package com.example.drivenui.engine.generative_screen.navigation
 
-import androidx.compose.runtime.mutableStateListOf
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 
+/**
+ * Стек навигации SDUI-экранов внутри микроаппа.
+ */
 class ScreenNavigationManager {
 
-    private val _navigationStack = mutableStateListOf<ScreenState>()
-    val navigationStack: List<ScreenState> get() = _navigationStack
+    private val navigationStack = ArrayDeque<ScreenState>()
 
+    /** Текущий стек (копия для чтения). */
+    val stackSnapshot: List<ScreenState>
+        get() = navigationStack.toList()
 
     fun pushScreen(screenState: ScreenState) {
-        _navigationStack.add(screenState)
+        navigationStack.addLast(screenState)
     }
 
     fun popScreen(): ScreenState? {
-        if (_navigationStack.size > 1) {
-            _navigationStack.removeLast()
-            return _navigationStack.lastOrNull()
-        }
-        return null
+        if (navigationStack.size <= 1) return null
+        navigationStack.removeLast()
+        return navigationStack.lastOrNull()
     }
 
-    fun getCurrentScreen(): ScreenState? {
-        return _navigationStack.lastOrNull()
-    }
+    fun getCurrentScreen(): ScreenState? =
+        navigationStack.lastOrNull()
 
-    fun getPreviousScreen(): ScreenState? {
-        if (_navigationStack.size > 1) {
-            return _navigationStack[_navigationStack.size - 2]
-        }
-        return null
-    }
+    fun getPreviousScreen(): ScreenState? =
+        navigationStack.dropLast(1).lastOrNull()
 
-    fun canNavigateBack(): Boolean = _navigationStack.size > 1
+    fun canNavigateBack(): Boolean =
+        navigationStack.size > 1
 
     fun updateCurrentScreen(screenState: ScreenState) {
-        if (_navigationStack.isNotEmpty()) {
-            _navigationStack[_navigationStack.size - 1] = screenState
-        }
+        if (navigationStack.isEmpty()) return
+        navigationStack[navigationStack.lastIndex] = screenState
     }
 
     fun clear() {
-        _navigationStack.clear()
+        navigationStack.clear()
     }
 }
