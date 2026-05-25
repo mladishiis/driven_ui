@@ -54,20 +54,12 @@ fun LayoutRenderer(
         else -> currentIsDark
     }
 
-    val baseModifier = modifier
-        .then(model.modifierParams.applyParams(Modifier))
+    val layoutModifier = modifier
+        .then(model.resolveSizeModifier())
         .then(model.modifier)
-    val layoutModifier = if (model.onTapActions.isNotEmpty()) {
-        baseModifier.then(
-            Modifier.clickable {
-                onActions(model.onTapActions)
-            }
-        )
-    } else {
-        baseModifier
-    }
+        .withOnTapClickable(model.onTapActions, onActions)
 
-    val modelWithClickable = model.copy(modifier = layoutModifier)
+    val modelWithResolvedModifier = model.copy(modifier = layoutModifier)
 
     val contentColor = resolvedBgColor?.let {
         if (it.luminance() > 0.5f) Color(0xFF1C1B1F) else Color.White
@@ -78,39 +70,35 @@ fun LayoutRenderer(
     ) {
         when (model.type) {
             LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
-                model = modelWithClickable,
-                originalModelModifier = model.modifier,
-                outerModifier = modifier,
+                model = modelWithResolvedModifier,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
             )
 
             LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
-                model = modelWithClickable,
-                originalModelModifier = model.modifier,
-                outerModifier = modifier,
+                model = modelWithResolvedModifier,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
                 applyBindingsForComponent = applyBindingsForComponent,
             )
 
             LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
-                modelWithClickable,
+                modelWithResolvedModifier,
                 onActions,
                 onWidgetValueChange,
                 applyBindingsForComponent,
             )
 
             LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
-                modelWithClickable,
+                modelWithResolvedModifier,
                 onActions,
                 onWidgetValueChange,
                 applyBindingsForComponent,
             )
 
             LayoutType.LAYER -> BoxRenderer(
-                modelWithClickable,
+                modelWithResolvedModifier,
                 onActions,
                 onWidgetValueChange,
                 applyBindingsForComponent,
@@ -125,16 +113,11 @@ private fun ColumnRenderer(
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-    originalModelModifier: Modifier = Modifier,
-    outerModifier: Modifier = Modifier,
 ) {
     val parentIsScrollable = LocalInsideVerticalScroll.current
     val applyScroll = model.modifierParams.scrollable && !parentIsScrollable
     val columnModifier = if (applyScroll) {
-        outerModifier
-            .then(model.modifierParams.applyParamsExcludingHeight(Modifier))
-            .then(originalModelModifier)
-            .verticalScroll(rememberScrollState())
+        model.modifier.verticalScroll(rememberScrollState())
     } else {
         model.modifier
     }
@@ -187,8 +170,6 @@ private fun LazyColumnRenderer(
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
     applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-    originalModelModifier: Modifier = Modifier,
-    outerModifier: Modifier = Modifier,
 ) {
     val forIndexName = model.forParams.forIndexName ?: return
     val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
@@ -197,19 +178,7 @@ private fun LazyColumnRenderer(
 
     val parentIsScrollable = LocalInsideVerticalScroll.current
     if (parentIsScrollable) {
-        val baseModifier = outerModifier
-            .then(model.modifierParams.applyParamsExcludingHeight(Modifier))
-            .then(originalModelModifier)
-        val columnModifier = if (model.onTapActions.isNotEmpty()) {
-            baseModifier.then(
-                Modifier.clickable {
-                    onActions(model.onTapActions)
-                }
-            )
-        } else {
-            baseModifier
-        }
-        Column(modifier = columnModifier) {
+        Column(modifier = model.modifier) {
             repeat(maxForIndex) { index ->
                 RenderForChildren(
                     index = index,
@@ -364,3 +333,24 @@ private fun Modifier.thenBoxChildPercent(params: ModifierParams): Modifier {
     params.heightFillFraction?.let { modifier = modifier.fillMaxHeight(it) }
     return modifier
 }
+
+/**
+ * Размеры layout: для скроллируемого [LayoutType.VERTICAL_LAYOUT] без [fillMaxHeight],
+ * иначе [fillMaxHeight] конфликтует с [verticalScroll] в [ColumnRenderer].
+ */
+private fun LayoutModel.resolveSizeModifier(): Modifier =
+    if (type == LayoutType.VERTICAL_LAYOUT && modifierParams.scrollable) {
+        modifierParams.applyParamsExcludingHeight(Modifier)
+    } else {
+        modifierParams.applyParams(Modifier)
+    }
+
+private fun Modifier.withOnTapClickable(
+    onTapActions: List<UiAction>,
+    onActions: (List<UiAction>) -> Unit,
+): Modifier =
+    if (onTapActions.isNotEmpty()) {
+        then(Modifier.clickable { onActions(onTapActions) })
+    } else {
+        this
+    }
