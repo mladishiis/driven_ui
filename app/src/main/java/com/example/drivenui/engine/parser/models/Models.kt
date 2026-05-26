@@ -152,6 +152,9 @@ data class WidgetComponent(
  * @property code Уникальный код действия (например, "query", "openScreen")
  * @property order Порядковый номер выполнения действия относительно других действий
  * @property properties Список свойств действия
+ * @property queryString Параметры URL запроса (query action)
+ * @property queryBody Поля тела запроса (query action)
+ * @property queryHeader HTTP-заголовки запроса (query action)
  */
 @Parcelize
 data class  EventAction(
@@ -159,6 +162,9 @@ data class  EventAction(
     val code: String = "",
     val order: Int = 0,
     val properties: Map<String, String> = emptyMap(),
+    val queryString: Map<String, String> = emptyMap(),
+    val queryBody: Map<String, String> = emptyMap(),
+    val queryHeader: Map<String, String> = emptyMap(),
 ): Parcelable
 
 /**

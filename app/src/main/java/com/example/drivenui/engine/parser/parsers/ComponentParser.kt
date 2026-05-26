@@ -195,6 +195,9 @@ class ComponentParser {
                     code = actionType,
                     order = event.int("order", default = index),
                     properties = parseProperties(event),
+                    queryString = event.objectMap("queryString"),
+                    queryBody = event.objectMap("queryBody"),
+                    queryHeader = event.objectMap("queryHeader"),
                 )
                 actionsByEventCode.getOrPut(eventCode) { mutableListOf() }.add(action)
             }
