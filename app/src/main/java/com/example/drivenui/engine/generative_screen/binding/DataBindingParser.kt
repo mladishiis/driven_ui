@@ -8,6 +8,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.google.gson.JsonPrimitive
 
 object DataBindingParser {
 
@@ -107,10 +108,23 @@ object DataBindingParser {
     }
 
     /**
-     * Извлекает значение из JsonElement по пути (поддерживает [index] и .property).
+     * Встроенная операция движка: размер JSON-массива (не поле объекта в ответе API).
+     */
+    private fun arrayCountElement(array: JsonArray): JsonPrimitive =
+        JsonPrimitive(array.size())
+
+    private fun navigateProperty(current: JsonElement, property: String): JsonElement? =
+        when {
+            property == "count" && current is JsonArray -> arrayCountElement(current)
+            current is JsonObject -> current.get(property)
+            else -> null
+        }
+
+    /**
+     * Извлекает значение из JsonElement по пути (поддерживает [index], .property и .count для массивов).
      *
      * @param data JSON-элемент для обхода
-     * @param path путь в формате [0].property или .property
+     * @param path путь в формате [0].field, array.count или field.subfield
      * @return извлечённое значение или null
      */
     fun extractValue(data: JsonElement?, path: String): Any? {
@@ -162,10 +176,10 @@ object DataBindingParser {
                 val dotIndex = remainingPath.indexOf('.')
                 val property = remainingPath.substring(0, dotIndex)
 
-                if (current is JsonObject) {
-                    current = current.get(property)
-                } else {
-                    Log.w(TAG, "Нет свойства '$property' у $current")
+                val parent = current!!
+                current = navigateProperty(parent, property)
+                if (current == null) {
+                    Log.w(TAG, "Нет свойства '$property' у $parent")
                     return null
                 }
 
@@ -173,13 +187,18 @@ object DataBindingParser {
             }
             else {
                 val property = remainingPath
-                if (current is JsonObject) {
-                    current = current.get(property)
-                } else if (current is JsonArray && property.toIntOrNull() != null) {
-                    val index = property.toInt()
-                    current = if (index < current.size()) current[index] else null
-                } else {
-                    Log.w(TAG, "Нет свойства '$property' у $current")
+                val parent = current!!
+                current = when {
+                    property == "count" && parent is JsonArray -> arrayCountElement(parent)
+                    parent is JsonObject -> parent.get(property)
+                    parent is JsonArray && property.toIntOrNull() != null -> {
+                        val index = property.toInt()
+                        if (index < parent.size()) parent[index] else null
+                    }
+                    else -> null
+                }
+                if (current == null) {
+                    Log.w(TAG, "Нет свойства '$property' у $parent")
                     return null
                 }
                 remainingPath = ""
