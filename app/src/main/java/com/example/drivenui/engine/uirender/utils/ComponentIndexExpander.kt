@@ -13,8 +13,8 @@ import com.example.drivenui.engine.uirender.models.RadiusValues
 /**
  * Подставляет в строковые поля компонента плейсхолдер цикла `{#<имя>}` на фактическое значение [index].
  *
- * Паттерн строится как `"{#" + forIndexName + "}"` (например при `forIndexName == "carrier_index"`
- * ищется подстрока `{#carrier_index}` и заменяется на [index]).
+ * Паттерн строится как `"{#" + forIndexName + "}"` (например при `forIndexName == "rowIndex"`
+ * ищется подстрока `{#rowIndex}` и заменяется на [index]).
  *
  * Рекурсивно обходит дочерние элементы у [LayoutModel]. Для остальных поддерживаемых типов
  * (Label, Button, AppBar, Input, Image) заменяются только перечисленные в реализации поля.

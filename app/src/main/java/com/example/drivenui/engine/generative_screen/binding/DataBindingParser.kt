@@ -38,61 +38,36 @@ object DataBindingParser {
     }
 
     /**
-     * Парсит одиночное выражение биндинга. Поддерживаемые форматы:
-     * - source.[index].property (например carriers_allCarriers.[0].carrierName)
-     * - source[index].property (например carriers_allCarriers[0].carrierName)
-     * - source.property (точечная нотация)
-     * - source (только имя источника)
+     * Парсит одиночное выражение биндинга.
+     *
+     * Имя источника — всегда первый сегмент до первой точки или скобки
+     * (код запроса, имя JSON-файла и т.п.). Остальное — путь внутри источника.
      */
     private fun parseBinding(content: String): DataBinding? {
-        if (content.contains(".[")) {
-            val dotBracketIndex = content.indexOf(".[")
-            val sourceName = content.substring(0, dotBracketIndex)
-            val rest = content.substring(dotBracketIndex + 1)
-
-            return DataBinding(
-                sourceType = detectSourceType(sourceName),
-                sourceName = sourceName,
-                path = rest,
-                expression = "",
-                defaultValue = ""
-            )
-        }
-        else if (content.contains("[")) {
-            val bracketIndex = content.indexOf("[")
-            val sourceName = content.substring(0, bracketIndex)
-            val rest = content.substring(bracketIndex)
-
-            return DataBinding(
-                sourceType = detectSourceType(sourceName),
-                sourceName = sourceName,
-                path = rest,
-                expression = "",
-                defaultValue = ""
-            )
-        }
-        else if (content.contains(".")) {
-            val dotIndex = content.indexOf(".")
-            val sourceName = content.substring(0, dotIndex)
-            val path = content.substring(dotIndex + 1)
-
-            return DataBinding(
-                sourceType = detectSourceType(sourceName),
-                sourceName = sourceName,
-                path = path,
-                expression = "",
-                defaultValue = ""
-            )
-        }
-        else {
+        val sourceEnd = content.indexOfFirst { it == '.' || it == '[' }
+        if (sourceEnd == -1) {
             return DataBinding(
                 sourceType = detectSourceType(content),
                 sourceName = content,
                 path = "",
                 expression = "",
-                defaultValue = ""
+                defaultValue = "",
             )
         }
+
+        val sourceName = content.substring(0, sourceEnd)
+        val path = when (val rest = content.substring(sourceEnd)) {
+            rest.startsWith(".") -> rest.drop(1)
+            else -> rest
+        }
+
+        return DataBinding(
+            sourceType = detectSourceType(sourceName),
+            sourceName = sourceName,
+            path = path,
+            expression = "",
+            defaultValue = "",
+        )
     }
 
     /**

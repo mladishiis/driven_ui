@@ -21,7 +21,7 @@ class DataContextProvider(private val appContext: Context) {
     /**
      * Загружает JSON-файл из папки микроаппа или assets.
      *
-     * @param fileName Имя файла (например, "carriers.json")
+     * @param fileName Имя файла (например, "data.json")
      * @return JsonElement или null, если файл не найден
      */
     fun loadJsonSmart(fileName: String): JsonElement? {

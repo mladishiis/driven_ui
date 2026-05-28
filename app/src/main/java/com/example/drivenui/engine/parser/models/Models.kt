@@ -21,9 +21,9 @@ enum class ComponentType {
  * Описание биндинга данных.
  *
  * @property sourceType Тип источника
- * @property sourceName Имя источника (например, "carriers_allCarriers")
- * @property path Путь к данным (например, "[0].carrierName")
- * @property expression Полное выражение (например, "${carriers_allCarriers.[0].carrierName}")
+ * @property sourceName Имя источника (например, "query1")
+ * @property path Путь к данным (например, "items.[0].title")
+ * @property expression Полное выражение (например, "${query1.items.[0].title}")
  * @property defaultValue Значение по умолчанию
  */
 @Parcelize
