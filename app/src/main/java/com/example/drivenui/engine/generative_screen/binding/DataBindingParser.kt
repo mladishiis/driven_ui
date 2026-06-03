@@ -15,6 +15,15 @@ object DataBindingParser {
     private const val TAG = "DataBindingParser"
 
     /**
+     * Индекс первой capturing group в [MatchResult.groupValues]:
+     * `[0]` — полное совпадение, `[1]` — первые скобки `(...)` в regex.
+     */
+    private const val REGEX_FIRST_CAPTURE_GROUP_INDEX = 1
+
+    /** Индекс элемента массива в пути: только `[0]`, `[12]`, не `[{#i}]`. */
+    private val ARRAY_INDEX_PREFIX = Regex("""^\[(\d+)]""")
+
+    /**
      * Парсит строку с макросами ${...} на список биндингов.
      *
      * @param text строка, содержащая выражения вида ${source.path}
@@ -26,7 +35,7 @@ object DataBindingParser {
 
         pattern.findAll(text).forEach { matchResult ->
             val expression = matchResult.value
-            val content = matchResult.groupValues[1]
+            val content = matchResult.groupValues[REGEX_FIRST_CAPTURE_GROUP_INDEX]
 
             parseBinding(content)?.let { binding ->
                 val fullBinding = binding.copy(expression = expression)
@@ -56,10 +65,8 @@ object DataBindingParser {
         }
 
         val sourceName = content.substring(0, sourceEnd)
-        val path = when (val rest = content.substring(sourceEnd)) {
-            rest.startsWith(".") -> rest.drop(1)
-            else -> rest
-        }
+        val rest = content.substring(sourceEnd)
+        val path = if (rest.startsWith(".")) rest.drop(1) else rest
 
         return DataBinding(
             sourceType = detectSourceType(sourceName),
@@ -109,40 +116,35 @@ object DataBindingParser {
         var remainingPath = path
 
         while (remainingPath.isNotEmpty() && current != null) {
-            if (remainingPath.startsWith('[') && remainingPath.contains(']')) {
-                val endIndex = remainingPath.indexOf(']')
-                val indexStr = remainingPath.substring(1, endIndex)
-                val index = indexStr.toIntOrNull()
+            if (remainingPath.startsWith('[')) {
+                val indexMatch = ARRAY_INDEX_PREFIX.find(remainingPath)
+                if (indexMatch == null) {
+                    Log.w(TAG, "Ожидался числовой индекс массива в пути: $remainingPath")
+                    return null
+                }
+                val index = indexMatch.groupValues[REGEX_FIRST_CAPTURE_GROUP_INDEX].toInt()
 
-                if (current is JsonArray && index != null) {
+                if (current is JsonArray) {
                     current = if (index < current.size()) current[index] else null
                 } else if (current is JsonObject) {
-                    val entrySet = current.entrySet()
                     var found = false
-
-                    for ((key, value) in entrySet) {
-                        if (value is JsonArray && index != null) {
+                    for ((_, value) in current.entrySet()) {
+                        if (value is JsonArray) {
                             current = if (index < value.size()) value[index] else null
                             found = true
                             break
                         }
                     }
-
                     if (!found) {
                         Log.w(TAG, "В объекте не найден массив для индекса $index")
                         return null
                     }
                 } else {
-                    Log.w(TAG, "Нет доступа к индексу $indexStr у $current")
+                    Log.w(TAG, "Нет доступа к индексу $index у $current")
                     return null
                 }
 
-                remainingPath = if (endIndex + 1 < remainingPath.length) {
-                    remainingPath.substring(endIndex + 1)
-                } else {
-                    ""
-                }
-
+                remainingPath = remainingPath.substring(indexMatch.range.last + 1)
                 if (remainingPath.startsWith('.')) {
                     remainingPath = remainingPath.substring(1)
                 }

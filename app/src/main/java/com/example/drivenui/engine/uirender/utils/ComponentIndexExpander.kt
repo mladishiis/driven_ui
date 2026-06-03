@@ -1,5 +1,6 @@
 package com.example.drivenui.engine.uirender.utils
 
+import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ComponentModel
@@ -17,7 +18,7 @@ import com.example.drivenui.engine.uirender.models.RadiusValues
  * ищется подстрока `{#rowIndex}` и заменяется на [index]).
  *
  * Рекурсивно обходит дочерние элементы у [LayoutModel]. Для остальных поддерживаемых типов
- * (Label, Button, AppBar, Input, Image) заменяются только перечисленные в реализации поля.
+ * (Label, Button, AppBar, Input, Image) заменяются перечисленные поля и `tapActions` / `onTapActions`.
  * Неподдерживаемые подтипы [ComponentModel] возвращаются без изменений.
  *
  * Используется в шаблонах `verticalFor` / `horizontalFor` (LazyColumn/LazyRow).
@@ -59,6 +60,7 @@ internal fun expandComponentWithIndex(
                     )
                 },
                 visibilityCode = component.visibilityCode.replaceIndex(),
+                onTapActions = expandUiActions(component.onTapActions, forIndexName, index),
             )
         }
         is LabelModel -> {
@@ -70,6 +72,7 @@ internal fun expandComponentWithIndex(
                 colorStyleCode = component.colorStyleCode.replaceIndex(),
                 textAlignment = component.textAlignment.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
+                tapActions = expandUiActions(component.tapActions, forIndexName, index),
             )
         }
         is ButtonModel -> {
@@ -95,6 +98,7 @@ internal fun expandComponentWithIndex(
                 ),
                 textAlignment = component.textAlignment.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
+                tapActions = expandUiActions(component.tapActions, forIndexName, index),
             )
         }
         is AppBarModel -> {
@@ -109,6 +113,7 @@ internal fun expandComponentWithIndex(
                 leftIconColorStyleCode = component.leftIconColorStyleCode.replaceIndex(),
                 backgroundColorStyleCode = component.backgroundColorStyleCode.replaceIndex(),
                 visibilityCode = component.visibilityCode.replaceIndex(),
+                tapActions = expandUiActions(component.tapActions, forIndexName, index),
             )
         }
         is InputModel -> {
@@ -118,7 +123,7 @@ internal fun expandComponentWithIndex(
                 displayText = component.displayText.replaceIndex(),
                 displayHint = component.displayHint.replaceIndex(),
                 widgetCode = component.widgetCode.replaceIndex(),
-                tapActions = component.tapActions,
+                tapActions = expandUiActions(component.tapActions, forIndexName, index),
                 visibilityCode = component.visibilityCode.replaceIndex(),
             )
         }
@@ -132,5 +137,33 @@ internal fun expandComponentWithIndex(
             )
         }
         else -> component
+    }
+}
+
+private fun expandUiActions(
+    actions: List<UiAction>,
+    forIndexName: String,
+    index: String,
+): List<UiAction> {
+    val pattern = "{#${forIndexName}}"
+    fun String.replaceIndex(): String = replace(pattern, index)
+    fun Map<String, String>.replaceIndexValues(): Map<String, String> =
+        mapValues { (_, value) -> value.replaceIndex() }
+
+    return actions.map { action ->
+        when (action) {
+            is UiAction.SaveToContext -> action.copy(
+                valueFrom = action.valueFrom.replaceIndex(),
+            )
+            is UiAction.ExecuteQuery -> action.copy(
+                queryString = action.queryString.replaceIndexValues(),
+                queryBody = action.queryBody.replaceIndexValues(),
+                queryHeader = action.queryHeader.replaceIndexValues(),
+            )
+            is UiAction.OpenDeeplink -> action.copy(
+                deeplink = action.deeplink.replaceIndex(),
+            )
+            else -> action
+        }
     }
 }
