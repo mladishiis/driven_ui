@@ -115,6 +115,8 @@ class GenerativeScreenViewModel @Inject constructor(
         this.microappCode = microappCode
         this.microappDeeplink = microappDeeplink
 
+        requestInteractor.clearQueryResults()
+
         val localStyleRegistry = ComposeStyleRegistry(allStyles)
         styleRegistry = localStyleRegistry
         _styleRegistryState.value = localStyleRegistry
@@ -150,6 +152,8 @@ class GenerativeScreenViewModel @Inject constructor(
         this.allStyles = mappedData.allStyles
         this.microappCode = mappedData.microappCode.takeIf { it.isNotBlank() }
         this.microappDeeplink = mappedData.microappDeeplink
+
+        requestInteractor.clearQueryResults()
 
         val localStyleRegistry = ComposeStyleRegistry(mappedData.allStyles)
         styleRegistry = localStyleRegistry
@@ -493,6 +497,7 @@ class GenerativeScreenViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        requestInteractor.clearQueryResults()
         navigationManager.clear()
     }
 

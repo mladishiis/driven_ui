@@ -282,7 +282,11 @@ class ActionHandler(
             ) ?: ""
         }
 
-        return expression
+        return resolveTemplateString(
+            expression,
+            requestInteractor.getDataContext(),
+            contextManager,
+        ) ?: expression
     }
 
     private fun parseMicroappContextTarget(expression: String): Pair<String, String>? {

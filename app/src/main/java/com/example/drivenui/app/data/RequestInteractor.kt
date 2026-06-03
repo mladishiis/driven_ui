@@ -31,6 +31,11 @@ class RequestInteractor @Inject constructor(
 
     private val dataContextProvider = DataContextProvider(appContext)
 
+    /** Сбрасывает результаты screen query (при смене микроаппа или сессии). */
+    fun clearQueryResults() {
+        dataContextProvider.clearScreenQueryResults()
+    }
+
     /**
      * Выполняет screen query и обновляет экран с учётом нового `DataContext`.
      *
@@ -44,6 +49,8 @@ class RequestInteractor @Inject constructor(
         action: UiAction.ExecuteQuery,
         resolveQueryValue: (String) -> String = { it },
     ): ScreenModel {
+        dataContextProvider.removeScreenQueryResult(action.queryCode)
+
         if (action.mockEnabled) {
             loadMockQuery(action)
         } else {

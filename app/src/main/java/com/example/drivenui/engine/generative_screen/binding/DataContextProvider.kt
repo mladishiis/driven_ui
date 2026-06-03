@@ -56,6 +56,23 @@ class DataContextProvider(private val appContext: Context) {
     }
 
     /**
+     * Удаляет результат screen query из контекста.
+     *
+     * @param name код запроса
+     */
+    fun removeScreenQueryResult(name: String) {
+        val currentResults = dataContext.screenQueryResults.toMutableMap()
+        if (currentResults.remove(name) == null) return
+        dataContext = dataContext.copy(screenQueryResults = currentResults)
+    }
+
+    /** Очищает только результаты screen query. */
+    fun clearScreenQueryResults() {
+        if (dataContext.screenQueryResults.isEmpty()) return
+        dataContext = dataContext.copy(screenQueryResults = emptyMap())
+    }
+
+    /**
      * Добавляет результат screen query в контекст.
      *
      * @param name Имя результата
