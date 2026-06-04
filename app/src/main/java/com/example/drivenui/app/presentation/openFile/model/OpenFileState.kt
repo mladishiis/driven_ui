@@ -2,6 +2,7 @@ package com.example.drivenui.app.presentation.openFile.model
 
 import com.example.drivenui.app.domain.MicroappSource
 import com.example.drivenui.engine.parser.SDUIParser
+import com.example.drivenui.engine.parser.models.Component
 import com.example.drivenui.utile.VtbState
 
 /**
@@ -92,7 +93,7 @@ internal data class OpenFileState(
     /**
      * Считает количество компонентов рекурсивно
      */
-    private fun countComponents(component: com.example.drivenui.engine.parser.models.Component): Int {
+    private fun countComponents(component: Component): Int {
         var count = 1
         component.children.forEach { child ->
             count += countComponents(child)

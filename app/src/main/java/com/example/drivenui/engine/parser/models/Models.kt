@@ -9,12 +9,10 @@ import kotlinx.parcelize.Parcelize
  *
  * @property LAYOUT Базовый лэйаут (vertical, horizontal, layers)
  * @property WIDGET Виджет (button, label, image и т.д.)
- * @property SCREEN Экран
  */
 enum class ComponentType {
     LAYOUT,
     WIDGET,
-    SCREEN,
 }
 
 /**
@@ -218,14 +216,14 @@ data class Microapp(
 )
 
 /**
- * Упрощенный экран с компонентами
+ * Распарсенный экран.
  *
- * @property title Человекочитаемое название экрана
- * @property screenCode Уникальный код экрана
- * @property screenShortCode Короткий код экрана для deeplink
- * @property deeplink Deeplink экрана
- * @property rootComponent Корневой компонент дерева экрана
- * @property events События, объявленные на корневом узле экрана
+ * @property title params.screenName
+ * @property screenCode params.screenCode
+ * @property screenShortCode params.screenShortCode
+ * @property deeplink params.deepLink
+ * @property rootComponent Первый LAYOUT из children screen
+ * @property events EVENT-узлы из children screen
  */
 @Parcelize
 data class ParsedScreen(
@@ -235,7 +233,7 @@ data class ParsedScreen(
     val deeplink: String,
     val rootComponent: Component? = null,
     val events: List<WidgetEvent> = emptyList(),
-): Parcelable
+) : Parcelable
 
 /**
  * Стиль текста

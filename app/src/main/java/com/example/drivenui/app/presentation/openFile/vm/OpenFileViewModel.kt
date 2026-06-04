@@ -18,6 +18,7 @@ import com.example.drivenui.app.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
 import com.example.drivenui.app.presentation.openFile.model.OpenFileState
 import com.example.drivenui.engine.context.IContextManager
+import com.example.drivenui.engine.parser.models.Component
 import com.example.drivenui.utile.CoreMviViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -462,7 +463,7 @@ internal class OpenFileViewModel @Inject constructor(
         }
     }
 
-    private fun countComponents(component: com.example.drivenui.engine.parser.models.Component?): Int {
+    private fun countComponents(component: Component?): Int {
         if (component == null) return 0
         return 1 + component.children.sumOf { countComponents(it) }
     }

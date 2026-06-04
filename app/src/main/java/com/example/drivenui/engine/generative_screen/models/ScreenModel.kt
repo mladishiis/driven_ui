@@ -9,7 +9,7 @@ import com.example.drivenui.engine.uirender.models.ComponentModel
  * @property deeplink Deeplink экрана
  * @property onCreateActions Действия до первой отрисовки; до завершения показывается лоадер
  * @property onDestroyActions Действия при уходе с экрана по навигации назад
- * @property rootComponent Дерево компонентов (корневой layout без предвыполнения onCreate)
+ * @property rootComponent Первый layout из children screen (после маппинга)
  */
 data class ScreenModel(
     val id: String,

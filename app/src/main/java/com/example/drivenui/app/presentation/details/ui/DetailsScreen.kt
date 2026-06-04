@@ -62,6 +62,13 @@ import com.example.drivenui.app.presentation.details.model.LayoutItem
 import com.example.drivenui.app.presentation.details.model.ScreenItem
 import com.example.drivenui.app.presentation.details.model.WidgetItem
 import com.example.drivenui.app.theme.DrivenUITheme
+import com.example.drivenui.engine.parser.SDUIParser
+import com.example.drivenui.engine.parser.models.AllEventActions
+import com.example.drivenui.engine.parser.models.EventAction
+import com.example.drivenui.engine.parser.models.Layout
+import com.example.drivenui.engine.parser.models.Microapp
+import com.example.drivenui.engine.parser.models.ParsedScreen
+import com.example.drivenui.engine.parser.models.Widget
 
 /**
  * Экран деталей парсинга микроаппа.
@@ -634,7 +641,7 @@ private fun ActionButton(
  * @param parsedMicroapp Результат парсинга микроаппа
  * @return JSON-строка
  */
-private fun createExportJson(parsedMicroapp: com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult): String {
+private fun createExportJson(parsedMicroapp: SDUIParser.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
         appendLine("  \"microapp\": {")
@@ -888,7 +895,7 @@ private fun LayoutCard(
  * @param parsedMicroapp Результат парсинга микроаппа
  * @return JSON-строка
  */
-private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult): String {
+private fun createDetailedJson(parsedMicroapp: SDUIParser.ParsedMicroappResult): String {
     return buildString {
         appendLine("{")
 
@@ -984,7 +991,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
 
             appendLine("  \"widgets\": [")
             widgets.forEachIndexed { widgetIndex, widget ->
-                if (widget is com.example.drivenui.engine.parser.models.Widget) {
+                if (widget is Widget) {
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(widget.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(widget.code)}\",")
@@ -1016,7 +1023,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
 
             appendLine("  \"layouts\": [")
             layouts.forEachIndexed { layoutIndex, layout ->
-                if (layout is com.example.drivenui.engine.parser.models.Layout) {
+                if (layout is Layout) {
                     appendLine("    {")
                     appendLine("      \"title\": \"${escapeJson(layout.title)}\",")
                     appendLine("      \"code\": \"${escapeJson(layout.code)}\",")
@@ -1043,7 +1050,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                 parsedMicroapp::class.java.getDeclaredField("allEventActions")
             allEventActionsField.isAccessible = true
             val allEventActions =
-                allEventActionsField.get(parsedMicroapp) as? com.example.drivenui.engine.parser.models.AllEventActions
+                allEventActionsField.get(parsedMicroapp) as? AllEventActions
 
             appendLine("  \"allEventActions\": [")
             allEventActions?.eventActions?.forEachIndexed { eaIndex, action ->
@@ -1069,7 +1076,7 @@ private fun createDetailedJson(parsedMicroapp: com.example.drivenui.engine.parse
                 val eventActionsField = parsedMicroapp::class.java.getDeclaredField("eventActions")
                 eventActionsField.isAccessible = true
                 val eventActions =
-                    eventActionsField.get(parsedMicroapp) as? List<com.example.drivenui.engine.parser.models.EventAction>
+                    eventActionsField.get(parsedMicroapp) as? List<EventAction>
 
                 appendLine("  \"eventActions\": [")
                 eventActions?.forEachIndexed { eaIndex, action ->
@@ -1141,8 +1148,8 @@ private fun DetailsScreenPreviewNoData() {
 @Preview(name = "Content")
 @Composable
 private fun DetailsScreenPreviewContent() {
-    val parsedResult = com.example.drivenui.engine.parser.SDUIParser.ParsedMicroappResult(
-        microapp = com.example.drivenui.engine.parser.models.Microapp(
+    val parsedResult = SDUIParser.ParsedMicroappResult(
+        microapp = Microapp(
             title = "Тест",
             code = "test",
             shortCode = "t",
@@ -1150,7 +1157,7 @@ private fun DetailsScreenPreviewContent() {
             persistents = emptyList(),
         ),
         screens = listOf(
-            com.example.drivenui.engine.parser.models.ParsedScreen(
+            ParsedScreen(
                 title = "Экран 1",
                 screenCode = "s1",
                 screenShortCode = "s1",

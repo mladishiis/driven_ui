@@ -19,7 +19,7 @@ import com.google.gson.JsonObject
  * Парсер экранов Driven UI canvas JSON.
  *
  * Контракт входного экрана:
- * - корень: type=SCREEN, params.screenCode/screenShortCode/deepLink
+ * - корень JSON: type=SCREEN → [ParsedScreen] (params, первый LAYOUT в children, events)
  * - контейнеры: type=LAYOUT, layoutType=vertical/horizontal/layers/...
  * - виджеты: type=LABEL/IMAGE/BUTTON/INPUT/APPBAR/...
  * - события: дочерние узлы type=EVENT с params.eventCode и params.actionType
@@ -51,34 +51,24 @@ class ComponentParser {
         if (screenCode.isEmpty()) return null
 
         return ParsedScreen(
-            title = params?.string("screenName")?.takeIf { it.isNotEmpty() } ?: json.string("name", "title"),
+            title = params?.string("screenName").orEmpty(),
             screenCode = screenCode,
-            screenShortCode = params?.string("screenShortCode") ?: json.string("screenShortCode"),
-            deeplink = params?.string("deepLink") ?: json.string("deeplink"),
-            rootComponent = parseRootLayout(json),
+            screenShortCode = params?.string("screenShortCode").orEmpty(),
+            deeplink = params?.string("deepLink").orEmpty(),
+            rootComponent = parseFirstLayoutChild(json),
             events = parseEvents(json),
         )
     }
 
     /**
-     * Преобразует корневой SCREEN-узел в лэйаут-компонент.
-     *
-     * @param json корневой объект экрана
-     * @return корневой [LayoutComponent] с дочерним деревом
+     * Возвращает первый LAYOUT среди children screen (EVENT и виджеты пропускаются).
      */
-    private fun parseRootLayout(json: JsonObject): Component =
-        LayoutComponent(
-            title = json.string("name", "title"),
-            code = json.string("id", default = ROOT_CODE),
-            layoutCode = json.string("layoutType", default = DEFAULT_LAYOUT_TYPE),
-            properties = parseProperties(json),
-            styles = parseStyles(json),
-            events = parseEvents(json),
-            children = parseChildren(json),
-            bindingProperties = parseBindingProperties(json),
-            forIndexName = json.params()?.string("forIndexName")?.takeIf { it.isNotEmpty() },
-            maxForIndex = json.params()?.string("maxForIndex")?.takeIf { it.isNotEmpty() },
-        )
+    private fun parseFirstLayoutChild(json: JsonObject): Component? =
+        json.get("children")
+            .asArrayOrSingle()
+            .mapNotNull { it.asObjectOrNull() }
+            .firstOrNull { it.string("type").equals(LAYOUT_TYPE, ignoreCase = true) }
+            ?.let { parseLayout(it) }
 
     /**
      * Парсит дочерний UI-узел, пропуская EVENT-узлы.
@@ -245,7 +235,6 @@ class ComponentParser {
         }
 
     private companion object {
-        const val ROOT_CODE = "root"
         const val DEFAULT_LAYOUT_TYPE = "vertical"
         const val LAYOUT_TYPE = "LAYOUT"
         const val EVENT_TYPE = "EVENT"

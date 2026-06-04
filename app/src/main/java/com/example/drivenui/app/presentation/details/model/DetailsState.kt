@@ -5,6 +5,7 @@ import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.mapParsedScreenToUI
 import com.example.drivenui.engine.parser.SDUIParser
 import com.example.drivenui.engine.parser.models.Component
+import com.example.drivenui.engine.parser.models.ComponentType
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.utile.VtbState
 
@@ -223,9 +224,8 @@ internal data class DetailsState(
         val items = mutableListOf<ComponentTreeItem>()
 
         val typeName = when (component.type) {
-            com.example.drivenui.engine.parser.models.ComponentType.LAYOUT -> "Layout"
-            com.example.drivenui.engine.parser.models.ComponentType.WIDGET -> "Widget"
-            com.example.drivenui.engine.parser.models.ComponentType.SCREEN -> "Screen"
+            ComponentType.LAYOUT -> "Layout"
+            ComponentType.WIDGET -> "Widget"
         }
 
         items.add(ComponentTreeItem(

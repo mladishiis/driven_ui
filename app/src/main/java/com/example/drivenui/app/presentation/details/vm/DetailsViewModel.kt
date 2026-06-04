@@ -457,7 +457,6 @@ internal class DetailsViewModel @Inject constructor(
             val typeName = when (comp.type) {
                 ComponentType.LAYOUT -> "Layout"
                 ComponentType.WIDGET -> "Widget"
-                ComponentType.SCREEN -> "Screen"
             }
 
             stats[typeName] = stats.getOrDefault(typeName, 0) + 1
