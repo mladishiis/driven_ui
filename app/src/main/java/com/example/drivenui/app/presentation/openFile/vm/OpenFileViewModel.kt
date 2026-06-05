@@ -6,13 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.drivenui.R
 import com.example.drivenui.app.data.MicroappCollectionApi
 import com.example.drivenui.app.data.MicroappRootFinder
-import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.app.domain.ArchiveDownloadFormat
 import com.example.drivenui.app.domain.FileDownloadInteractor
 import com.example.drivenui.app.domain.FileInteractor
 import com.example.drivenui.app.domain.MicroappSource
 import com.example.drivenui.app.domain.MicroappStorage
 import com.example.drivenui.app.domain.toArchiveDownloadFormat
+import com.example.drivenui.app.navigation.NavigationManager
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEffect
 import com.example.drivenui.app.presentation.openFile.model.OpenFileEvent
@@ -81,7 +81,20 @@ internal class OpenFileViewModel @Inject constructor(
             is OpenFileEvent.OnShowTestScreen -> handleShowTestScreen(event.microappCode)
             OpenFileEvent.OnShowBindingStats -> handleShowBindingStats()
             OpenFileEvent.OnLoadJsonFiles -> handleLoadJsonFiles()
-            is OpenFileEvent.OnQrScanned -> handleQrScanned(event.url)
+            is OpenFileEvent.OnQrScanned -> handleDownloadFromUrl(event.url)
+            OpenFileEvent.OnLoadByUrlClick -> {
+                updateState { copy(showUrlInputDialog = true, urlInputText = "") }
+            }
+            OpenFileEvent.OnUrlInputDismiss -> {
+                updateState { copy(showUrlInputDialog = false, urlInputText = "") }
+            }
+            is OpenFileEvent.OnUrlInputChanged -> {
+                updateState { copy(urlInputText = event.url) }
+            }
+            is OpenFileEvent.OnUrlSubmitted -> {
+                updateState { copy(showUrlInputDialog = false, urlInputText = "") }
+                handleDownloadFromUrl(event.url)
+            }
             OpenFileEvent.OnAddCollection -> setEffect { OpenFileEffect.OpenQrScannerForCollection }
             is OpenFileEvent.OnQrScannedCollectionId -> handleQrScannedCollectionId(event.collectionId)
             is OpenFileEvent.OnSelectJsonFiles -> handleSelectJsonFiles(event.files)
@@ -178,8 +191,13 @@ internal class OpenFileViewModel @Inject constructor(
         }
     }
 
-    private fun handleQrScanned(url: String) {
-        if (!url.startsWith("http")) {
+    private fun handleDownloadFromUrl(url: String) {
+        val trimmedUrl = url.trim()
+        if (trimmedUrl.isEmpty()) {
+            setEffect { OpenFileEffect.ShowError(context.getString(R.string.load_by_url_empty)) }
+            return
+        }
+        if (!trimmedUrl.startsWith("http")) {
             setEffect { OpenFileEffect.ShowError(context.getString(R.string.qr_invalid_link)) }
             return
         }
@@ -195,7 +213,7 @@ internal class OpenFileViewModel @Inject constructor(
         }
 
         if (isTemplateMode) {
-            pendingTemplateUrl = url
+            pendingTemplateUrl = trimmedUrl
         }
 
         viewModelScope.launch {
@@ -203,7 +221,7 @@ internal class OpenFileViewModel @Inject constructor(
                 updateState { copy(isUploadFile = true, isParsing = true, errorMessage = null) }
 
                 val success = withContext(Dispatchers.IO) {
-                    fileDownloadInteractor.downloadAndExtractZip(url, format)
+                    fileDownloadInteractor.downloadAndExtractZip(trimmedUrl, format)
                 }
 
                 if (!success) {
@@ -213,7 +231,7 @@ internal class OpenFileViewModel @Inject constructor(
                 }
                 handleUploadFile()
             } catch (e: Exception) {
-                Log.e("OpenFileViewModel", "Ошибка загрузки по QR", e)
+                Log.e("OpenFileViewModel", "Ошибка загрузки по URL", e)
                 updateState { copy(isUploadFile = false, isParsing = false) }
                 val message = when (e) {
                     is java.net.UnknownHostException -> context.getString(R.string.no_network)

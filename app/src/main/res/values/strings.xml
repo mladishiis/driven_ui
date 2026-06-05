@@ -12,6 +12,12 @@
     <string name="using_json_files">Используются JSON файлы:</string>
     <string name="load_from_assets">Загрузить из assets</string>
     <string name="add_prototype">Добавить прототип</string>
+    <string name="load_by_url">Загрузить по url</string>
+    <string name="load_by_url_title">Загрузка по URL</string>
+    <string name="load_by_url_hint">https://…</string>
+    <string name="load_by_url_empty">Введите URL</string>
+    <string name="load">Загрузить</string>
+    <string name="cancel">Отмена</string>
     <string name="list_empty">Список пуст</string>
     <string name="scan_qr_for_prototypes">Сканируйте QR-коды на Портале для добавления прототипов</string>
     <string name="collection">Коллекция</string>

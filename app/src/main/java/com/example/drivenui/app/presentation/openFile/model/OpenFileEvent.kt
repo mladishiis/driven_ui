@@ -38,6 +38,18 @@ internal sealed interface OpenFileEvent : VtbEvent {
     /** QR успешно отсканирован */
     data class OnQrScanned(val url: String) : OpenFileEvent
 
+    /** Нажата кнопка «Загрузить по url» */
+    data object OnLoadByUrlClick : OpenFileEvent
+
+    /** Закрыт диалог ввода URL */
+    data object OnUrlInputDismiss : OpenFileEvent
+
+    /** Изменён текст URL в диалоге */
+    data class OnUrlInputChanged(val url: String) : OpenFileEvent
+
+    /** Подтверждён URL для скачивания микроаппа */
+    data class OnUrlSubmitted(val url: String) : OpenFileEvent
+
     /** Загрузить шаблон в режиме скриншотов */
     data object OnUploadTemplate : OpenFileEvent
 

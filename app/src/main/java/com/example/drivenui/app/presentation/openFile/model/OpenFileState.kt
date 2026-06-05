@@ -21,6 +21,8 @@ import com.example.drivenui.utile.VtbState
  * @property selectedJsonFiles выбранные JSON файлы
  * @property errorMessage сообщение об ошибке
  * @property showJsonSelectionDialog показать диалог выбора JSON
+ * @property showUrlInputDialog показать диалог ввода URL
+ * @property urlInputText текст URL в диалоге
  * @property bindingStats статистика биндингов
  * @property resolvedValues разрешённые значения биндингов
  */
@@ -38,6 +40,8 @@ internal data class OpenFileState(
     val selectedJsonFiles: List<String> = emptyList(),
     val errorMessage: String? = null,
     val showJsonSelectionDialog: Boolean = false,
+    val showUrlInputDialog: Boolean = false,
+    val urlInputText: String = "",
     val bindingStats: Map<String, Any>? = null,
     val resolvedValues: Map<String, String> = emptyMap(),
 ) : VtbState {

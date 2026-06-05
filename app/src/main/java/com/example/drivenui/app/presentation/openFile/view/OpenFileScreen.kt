@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -29,8 +31,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -42,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import com.example.drivenui.R
 import com.example.drivenui.app.domain.MicroappSource
 import com.example.drivenui.app.presentation.openFile.model.MicroappItem
@@ -64,6 +69,15 @@ internal fun OpenFileScreen(
     state: OpenFileState,
     onEvent: (OpenFileEvent) -> Unit,
 ) {
+    if (state.showUrlInputDialog) {
+        UrlInputDialog(
+            url = state.urlInputText,
+            onUrlChange = { onEvent(OpenFileEvent.OnUrlInputChanged(it)) },
+            onDismiss = { onEvent(OpenFileEvent.OnUrlInputDismiss) },
+            onConfirm = { onEvent(OpenFileEvent.OnUrlSubmitted(state.urlInputText)) },
+        )
+    }
+
     Scaffold(
         topBar = {
             OpenFileTopBar(
@@ -103,6 +117,49 @@ internal fun OpenFileScreen(
     }
 }
 
+
+@Composable
+private fun UrlInputDialog(
+    url: String,
+    onUrlChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth(0.92f),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        title = {
+            Text(
+                text = stringResource(R.string.load_by_url_title),
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            OutlinedTextField(
+                value = url,
+                onValueChange = onUrlChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 120.dp),
+                placeholder = { Text(stringResource(R.string.load_by_url_hint)) },
+                minLines = 3,
+                maxLines = 6,
+                singleLine = false,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.load))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -219,6 +276,7 @@ private fun EmptyStateContent(
             EmptyStateMessage()
         }
         BottomActionsBar(
+            state = state,
             uploadButtonText = when (state.microappSource) {
                 MicroappSource.ASSETS -> stringResource(R.string.load_from_assets)
                 MicroappSource.FILE_SYSTEM,
@@ -226,6 +284,7 @@ private fun EmptyStateContent(
             },
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
+            onLoadByUrl = { onEvent(OpenFileEvent.OnLoadByUrlClick) },
             onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
             onUploadTemplate = { onEvent(OpenFileEvent.OnUploadTemplate) },
         )
@@ -309,6 +368,7 @@ private fun ContentWithMicroapps(
         }
         Spacer(modifier = Modifier.height(16.dp))
         BottomActionsBar(
+            state = state,
             uploadButtonText = when (state.microappSource) {
                 MicroappSource.ASSETS -> stringResource(R.string.load_from_assets)
                 MicroappSource.FILE_SYSTEM,
@@ -316,6 +376,7 @@ private fun ContentWithMicroapps(
             },
             buttonsEnabled = buttonsEnabled,
             onUpload = { onEvent(OpenFileEvent.OnUpload) },
+            onLoadByUrl = { onEvent(OpenFileEvent.OnLoadByUrlClick) },
             onAddCollection = { onEvent(OpenFileEvent.OnAddCollection) },
             onUploadTemplate = { onEvent(OpenFileEvent.OnUploadTemplate) },
         )
@@ -445,12 +506,15 @@ private fun ErrorCard(message: String) {
 
 @Composable
 private fun BottomActionsBar(
+    state: OpenFileState,
     uploadButtonText: String,
     buttonsEnabled: Boolean,
     onUpload: () -> Unit,
+    onLoadByUrl: () -> Unit,
     onAddCollection: () -> Unit,
     onUploadTemplate: () -> Unit = {},
 ) {
+    val supportsRemoteLoad = state.microappSource != MicroappSource.ASSETS
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -461,6 +525,15 @@ private fun BottomActionsBar(
             enabled = buttonsEnabled,
         ) {
             Text(text = uploadButtonText)
+        }
+        if (supportsRemoteLoad) {
+            Button(
+                onClick = onLoadByUrl,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = buttonsEnabled,
+            ) {
+                Text(text = stringResource(R.string.load_by_url))
+            }
         }
         Button(
             onClick = onUploadTemplate,
