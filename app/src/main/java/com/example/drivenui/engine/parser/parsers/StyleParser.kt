@@ -15,7 +15,7 @@ import com.example.drivenui.engine.parser.utils.string
 import com.google.gson.JsonObject
 
 /**
- * Парсер стилей из canvas JSON.
+ * Парсер стилей из JSON микроаппа.
  *
  * Поддерживает плоский контракт: `{ "textStyles": [...] }`.
  */

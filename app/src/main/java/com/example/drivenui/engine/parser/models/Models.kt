@@ -73,7 +73,7 @@ data class DataContext(
  * Базовый компонент UI в дереве парсинга.
  *
  * @property title Человекочитаемое название компонента
- * @property code Уникальный код компонента из canvas JSON
+ * @property code Уникальный код компонента из JSON экрана
  * @property properties Плоская карта свойств компонента
  * @property styles Список стилей компонента
  * @property events Список событий, привязанных к компоненту
@@ -125,7 +125,7 @@ data class LayoutComponent(
  *
  * @property title Человекочитаемое название виджета
  * @property code Уникальный код виджета на экране
- * @property widgetCode Код виджета из поля type canvas JSON
+ * @property widgetCode Код виджета из поля type JSON-узла
  * @property widgetType Тип виджета: "native" или "composite"
  */
 data class WidgetComponent(

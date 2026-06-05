@@ -4,5 +4,5 @@
 Папка mocks: содержит json файлы с моками для запросов screenQueries
 Папка queries: содержит json файл с рееестром запросов allQueries.json
 Папка resources: содержит json файл с реестром стилей allStyles.json и, опционально, файлы с контентом (например, изображения/иконки). Файлы с контентом могут быть только для дев-версии
-Папка screens: содержит canvas json файлы с описанием отдельных экранов: корень type=SCREEN, контейнеры type=LAYOUT, виджеты type=LABEL/IMAGE/BUTTON/INPUT/APPBAR, события type=EVENT, папку prompts
+Папка screens: содержит JSON-файлы с описанием отдельных экранов: корень type=SCREEN, контейнеры type=LAYOUT, виджеты type=LABEL/IMAGE/BUTTON/INPUT/APPBAR, события type=EVENT, папку prompts
 Папка prompts: содержит txt файлы с описанием промптов для каждого конкретного экрана, с тем же названием (названиеЭкрана.txt), если он создавался через генератор экранов.

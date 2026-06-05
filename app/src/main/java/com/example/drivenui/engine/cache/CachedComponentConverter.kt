@@ -24,6 +24,7 @@ import com.example.drivenui.engine.uirender.models.RadiusValues
  */
 fun ComponentModel.toCached(): CachedComponentModel = when (this) {
     is LayoutModel -> CachedLayoutModel(
+        layoutCode = layoutCode,
         modifierParams = modifierParams,
         type = type,
         children = children.map { it.toCached() },
@@ -160,6 +161,7 @@ fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
  */
 fun CachedComponentModel.toComponentModel(): ComponentModel = when (this) {
     is CachedLayoutModel -> LayoutModel(
+        layoutCode = layoutCode,
         modifier = Modifier,
         modifierParams = modifierParams,
         type = type,

@@ -7,6 +7,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
 /**
  * Кэшированная модель лэйаута.
  *
+ * @property layoutCode код лэйаута из JSON экрана
  * @property modifierParams модификаторы
  * @property type тип лэйаута
  * @property children дочерние компоненты
@@ -25,6 +26,7 @@ import com.example.drivenui.engine.uirender.models.ModifierParams
  * @property visibilityCode код видимости
  */
 data class CachedLayoutModel(
+    val layoutCode: String = "",
     override val modifierParams: ModifierParams,
     val type: LayoutType,
     val children: List<CachedComponentModel>,

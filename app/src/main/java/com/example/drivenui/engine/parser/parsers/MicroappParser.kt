@@ -6,7 +6,7 @@ import com.example.drivenui.engine.parser.utils.parseJsonObject
 import com.example.drivenui.engine.parser.utils.string
 
 /**
- * Парсер метаданных микроаппа из canvas JSON.
+ * Парсер метаданных микроаппа из JSON-файла microapp.json.
  */
 class MicroappParser {
 

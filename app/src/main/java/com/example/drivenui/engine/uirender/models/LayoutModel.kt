@@ -6,6 +6,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
 /**
  * Модель layout-контейнера (вертикальный, горизонтальный, слои, циклы FOR).
  *
+ * @property layoutCode уникальный код лэйаута из JSON экрана (поля id/code)
  * @property modifier Modifier для Compose
  * @property modifierParams параметры модификатора (padding, размеры)
  * @property type тип layout (VERTICAL_LAYOUT, HORIZONTAL_LAYOUT, LAYER, VERTICAL_FOR, HORIZONTAL_FOR)
@@ -22,6 +23,7 @@ import com.example.drivenui.engine.generative_screen.models.UiAction
  * @property visibilityCode код условной видимости
  */
 data class LayoutModel(
+    val layoutCode: String = "",
     val modifier: Modifier,
     val modifierParams: ModifierParams = ModifierParams(),
     val type: LayoutType,

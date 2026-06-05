@@ -10,6 +10,10 @@ import com.example.drivenui.engine.generative_screen.models.ScreenModel
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.refresh.RefreshResolveContext
+import com.example.drivenui.engine.generative_screen.refresh.TargetedRefreshResult
+import com.example.drivenui.engine.generative_screen.refresh.refreshLayoutInScreen
+import com.example.drivenui.engine.generative_screen.refresh.refreshWidgetInScreen
 import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
@@ -157,56 +161,76 @@ class ActionHandler(
         return ActionResult.Success
     }
 
-    /**
-     * Обновляет экран: повторно применяет биндинги (FOR) и полный резолв шаблонов в поля display*.
-     */
-    private suspend fun handleRefreshWidget(@Suppress("UNUSED_PARAMETER") widgetCode: String): ActionResult {
-        val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
-            ?: return ActionResult.Error("Нет текущего экрана для обновления виджета")
-
-        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
-        val resolvedScreen = resolveScreen(
-            screenWithBindings,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
-        )
-        navigationManager.updateCurrentScreen(
-            ScreenState.fromDefinition(
-                definition = resolvedScreen,
-                sourceDefinition = definition,
+    private suspend fun handleRefreshWidget(widgetCode: String): ActionResult =
+        applyTargetedRefresh(
+            noScreenError = "Нет текущего экрана для обновления виджета",
+            notFoundError = "Виджет не найден: $widgetCode",
+        ) { definition, source, resolveContext ->
+            refreshWidgetInScreen(
+                definition = definition,
+                source = source,
+                widgetCode = widgetCode,
+                resolveContext = resolveContext,
             )
-        )
+        }
+
+    private suspend fun handleRefreshLayout(layoutCode: String): ActionResult =
+        applyTargetedRefresh(
+            noScreenError = "Нет текущего экрана для обновления лейаута",
+            notFoundError = "Layout не найден: $layoutCode",
+        ) { definition, source, resolveContext ->
+            refreshLayoutInScreen(
+                definition = definition,
+                source = source,
+                layoutCode = layoutCode,
+                resolveContext = resolveContext,
+            )
+        }
+
+    private suspend fun applyTargetedRefresh(
+        noScreenError: String,
+        notFoundError: String,
+        refresh: (ScreenModel, ScreenModel, RefreshResolveContext) -> TargetedRefreshResult?,
+    ): ActionResult {
+        val screenPair = resolveCurrentScreenPair() ?: return ActionResult.Error(noScreenError)
+        val refreshResult = refresh(
+            screenPair.definition,
+            screenPair.source,
+            buildRefreshResolveContext(),
+        ) ?: return ActionResult.Error(notFoundError)
+
+        commitTargetedRefresh(refreshResult)
         return ActionResult.Success
     }
 
-    /**
-     * Метод для обновления конкретного лейаута
-     * Пока что реализовано как обновление всего экрана
-     */
-    private suspend fun handleRefreshLayout(@Suppress("UNUSED_PARAMETER") layoutCode: String): ActionResult {
-        val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
-            ?: return ActionResult.Error("Нет текущего экрана для обновления лейаута")
+    private fun resolveCurrentScreenPair(): ScreenPair? {
+        val currentScreen = navigationManager.getCurrentScreen() ?: return null
+        val source = currentScreen.sourceDefinition ?: currentScreen.definition ?: return null
+        val definition = currentScreen.definition ?: source
+        return ScreenPair(source = source, definition = definition)
+    }
 
-        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
-        val resolvedScreen = resolveScreen(
-            screenWithBindings,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
+    private fun buildRefreshResolveContext(): RefreshResolveContext =
+        RefreshResolveContext(
+            contextManager = contextManager,
+            styleRegistry = styleRegistry,
+            dataContext = requestInteractor.getDataContext(),
+            useDarkColorPalette = applicationContext.isSystemInDarkTheme(),
         )
+
+    private fun commitTargetedRefresh(refreshResult: TargetedRefreshResult) {
         navigationManager.updateCurrentScreen(
             ScreenState.fromDefinition(
-                definition = resolvedScreen,
-                sourceDefinition = definition,
-            )
+                definition = refreshResult.definition,
+                sourceDefinition = refreshResult.source,
+            ),
         )
-        return ActionResult.Success
     }
+
+    private data class ScreenPair(
+        val source: ScreenModel,
+        val definition: ScreenModel,
+    )
 
     private suspend fun handleExecuteQuery(action: UiAction.ExecuteQuery): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()

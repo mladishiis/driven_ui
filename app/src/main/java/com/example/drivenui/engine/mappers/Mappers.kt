@@ -86,6 +86,7 @@ fun LayoutComponent.mapLayoutToUIModel(
     }
     val finalModifierParams = modifierParams.copy(scrollable = isScrollable)
     return LayoutModel(
+        layoutCode = code,
         modifier = modifier,
         modifierParams = finalModifierParams,
         type = layoutType,

@@ -16,7 +16,7 @@ import com.example.drivenui.engine.parser.utils.string
 import com.google.gson.JsonObject
 
 /**
- * Парсер экранов Driven UI canvas JSON.
+ * Парсер экранов из JSON-описания.
  *
  * Контракт входного экрана:
  * - корень JSON: type=SCREEN → [ParsedScreen] (params, первый LAYOUT в children, events)
@@ -27,7 +27,7 @@ import com.google.gson.JsonObject
 class ComponentParser {
 
     /**
-     * Парсит один экран из canvas JSON.
+     * Парсит один экран из JSON-файла (корень type=SCREEN).
      *
      * @param jsonContent JSON-строка с корнем type=SCREEN
      * @return [ParsedScreen] при успешном парсинге или null для пустого/не экранного JSON
@@ -111,7 +111,7 @@ class ComponentParser {
      * Парсит виджетовый узел.
      *
      * @param json объект виджета
-     * @param type значение поля type из canvas JSON
+     * @param type значение поля type из JSON узла (LABEL, LAYOUT, …)
      * @return [WidgetComponent] с параметрами, стилями и событиями
      */
     private fun parseWidget(json: JsonObject, type: String): Component {
