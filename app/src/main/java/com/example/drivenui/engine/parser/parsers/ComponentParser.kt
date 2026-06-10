@@ -95,7 +95,7 @@ class ComponentParser {
     private fun parseLayout(json: JsonObject): Component =
         LayoutComponent(
             title = json.string("name", "title"),
-            code = json.string("id", "code"),
+            code = json.string("name", "code"),
             layoutCode = json.string("layoutType", default = DEFAULT_LAYOUT_TYPE),
             properties = parseProperties(json),
             styles = parseStyles(json),
@@ -118,7 +118,7 @@ class ComponentParser {
         val widgetCode = type.lowercase()
         return WidgetComponent(
             title = json.string("name", "title"),
-            code = json.string("id", "code"),
+            code = json.string("name", "code"),
             widgetCode = widgetCode,
             widgetType = determineWidgetType(widgetCode),
             properties = parseProperties(json),
