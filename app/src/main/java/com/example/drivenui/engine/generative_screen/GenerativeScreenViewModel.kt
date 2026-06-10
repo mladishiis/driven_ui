@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.app.theme.isSystemInDarkTheme
 import com.example.drivenui.engine.cache.CachedMicroappData
-import com.example.drivenui.engine.cache.toScreenModel
+import com.example.drivenui.engine.cache.toScreenDefinition
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.action.ActionHandler
 import com.example.drivenui.engine.generative_screen.action.ActionResult
@@ -16,12 +16,11 @@ import com.example.drivenui.engine.generative_screen.action.ScreenProvider
 import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
 import com.example.drivenui.engine.generative_screen.mapper.ScreenMapper
 import com.example.drivenui.engine.generative_screen.models.GenerativeUiState
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
-import com.example.drivenui.engine.generative_screen.styles.resolveComponent
-import com.example.drivenui.engine.generative_screen.styles.resolveScreen
+import com.example.drivenui.engine.generative_screen.presentation.PresentationBuilder
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.parser.models.AllStyles
@@ -60,7 +59,7 @@ class GenerativeScreenViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var parsedScreens: List<ParsedScreen>? = null
-    private var mappedScreens: List<ScreenModel>? = null
+    private var mappedScreens: List<ScreenDefinition>? = null
     private var allStyles: AllStyles? = null
     private var microappCode: String? = null
     private var microappDeeplink: String = ""
@@ -146,7 +145,7 @@ class GenerativeScreenViewModel @Inject constructor(
      * @param mappedData заранее замапленные экраны и стили
      */
     fun setMappedResult(mappedData: CachedMicroappData) {
-        val screens = mappedData.screens.map { it.toScreenModel() }
+        val screens = mappedData.screens.map { it.toScreenDefinition() }
         this.mappedScreens = screens
         this.parsedScreens = null
         this.allStyles = mappedData.allStyles
@@ -190,14 +189,14 @@ class GenerativeScreenViewModel @Inject constructor(
             ?: parsed.firstOrNull()
 
         if (targetScreen != null) {
-            val screenModel = mapper.mapToScreenModel(targetScreen)
-            navigateToScreen(screenModel)
+            val definition = mapper.mapToScreenDefinition(targetScreen)
+            navigateToScreen(definition)
         } else {
             _uiState.value = GenerativeUiState.Error("No screens available")
         }
     }
 
-    private fun loadInitialScreenFromMapped(screens: List<ScreenModel>) {
+    private fun loadInitialScreenFromMapped(screens: List<ScreenDefinition>) {
         val targetScreen = findScreenByMicroappDeeplink(screens) { it.deeplink }
             ?: screens.firstOrNull()
 
@@ -263,11 +262,11 @@ class GenerativeScreenViewModel @Inject constructor(
                     }
                 }
                 is ActionResult.BottomSheetChanged -> {
-                    if (result.model == null) {
+                    if (result.definition == null) {
                         _bottomSheetState.value = null
                     } else {
                         viewModelScope.launch {
-                            openBottomSheetAfterScreenOnCreate(result.model)
+                            openBottomSheetAfterScreenOnCreate(result.definition)
                         }
                     }
                 }
@@ -354,33 +353,9 @@ class GenerativeScreenViewModel @Inject constructor(
         return resolved.toIntOrNull()
     }
 
-    /**
-     * Применяет биндинги и резолвит стили к компоненту.
-     *
-     * @param componentModel компонент для обработки
-     * @return компонент с применёнными биндингами и стилями
-     */
-    fun applyBindingsToComponent(componentModel: ComponentModel): ComponentModel {
-        val forLayoutBinding = requestInteractor.getForLayoutBinding()
-        val dataContext = requestInteractor.getDataContext()
-        val withBindings = forLayoutBinding.applyBindingsToComponent(componentModel, dataContext)
-        val localStyleRegistry = styleRegistry
-        return if (localStyleRegistry != null) {
-            resolveComponent(
-                withBindings,
-                contextManager,
-                localStyleRegistry,
-                dataContext,
-                applicationContext.isSystemInDarkTheme(),
-            ) ?: withBindings
-        } else {
-            withBindings
-        }
-    }
-
     private suspend fun handleNavigationChanged() {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
+        val definition = currentScreen?.definition
 
         if (definition == null) {
             updateUiStateFromNavigation()
@@ -388,70 +363,77 @@ class GenerativeScreenViewModel @Inject constructor(
         }
 
         processScreenForNavigation(
-            baseScreen = definition,
+            baseDefinition = definition,
             replaceCurrent = true,
         )
     }
 
     private fun updateUiStateFromNavigation() {
         val currentScreen = navigationManager.getCurrentScreen() ?: return
-        val screenId = currentScreen.definition?.id ?: currentScreen.id
+        val presentation = currentScreen.presentation
+        val screenId = presentation?.screenId ?: currentScreen.id
         _currentScreenId.value = screenId
+
+        if (presentation == null) {
+            _uiState.value = GenerativeUiState.Loading
+            return
+        }
+
         _uiState.value = GenerativeUiState.Screen(
             screenId = screenId,
-            model = currentScreen.definition?.rootComponent,
+            dataEpoch = presentation.dataEpoch,
+            model = presentation.rootComponent,
         )
     }
 
-    private fun navigateToScreen(screen: ScreenModel) {
+    private fun navigateToScreen(definition: ScreenDefinition) {
         viewModelScope.launch {
             processScreenForNavigation(
-                baseScreen = screen,
+                baseDefinition = definition,
                 replaceCurrent = false,
             )
         }
     }
 
     private suspend fun processScreenForNavigation(
-        baseScreen: ScreenModel,
+        baseDefinition: ScreenDefinition,
         replaceCurrent: Boolean,
     ) {
         val localStyleRegistry = styleRegistry ?: return
-        val preComposeActions = baseScreen.onCreateActions
+        val preComposeActions = baseDefinition.onCreateActions
         if (preComposeActions.isNotEmpty()) {
             _uiState.value = GenerativeUiState.Loading
         }
+
         val leadingQueryCount = countLeadingExecuteQueries(preComposeActions)
-        var workingScreen = baseScreen
+        var workingDefinition = baseDefinition
         for (action in preComposeActions.take(leadingQueryCount)) {
-            workingScreen = requestInteractor.executeQueryAndUpdateScreen(
-                screenModel = workingScreen,
+            workingDefinition = requestInteractor.executeQueryAndUpdateScreen(
+                definition = workingDefinition,
                 action = action as UiAction.ExecuteQuery,
                 resolveQueryValue = ::resolveQueryValue,
             )
         }
-        val resolvedScreen = resolveScreen(
-            workingScreen,
-            contextManager,
-            localStyleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
+
+        val presentation = PresentationBuilder.build(
+            definition = workingDefinition,
+            contextManager = contextManager,
+            styleRegistry = localStyleRegistry,
+            dataContext = requestInteractor.getDataContext(),
+            useDarkColorPalette = applicationContext.isSystemInDarkTheme(),
         )
+
+        val screenState = ScreenState.create(
+            definition = workingDefinition,
+            presentation = presentation,
+        )
+
         if (replaceCurrent) {
-            navigationManager.updateCurrentScreen(
-                ScreenState.fromDefinition(
-                    definition = resolvedScreen,
-                    sourceDefinition = baseScreen,
-                )
-            )
+            navigationManager.updateCurrentScreen(screenState)
         } else {
-            navigationManager.pushScreen(
-                ScreenState.fromDefinition(
-                    definition = resolvedScreen,
-                    sourceDefinition = baseScreen,
-                )
-            )
+            navigationManager.pushScreen(screenState)
         }
+
         runActionsSequentially(preComposeActions.drop(leadingQueryCount))
         updateUiStateFromNavigation()
     }
@@ -467,27 +449,29 @@ class GenerativeScreenViewModel @Inject constructor(
         ) ?: value
     }
 
-    private suspend fun openBottomSheetAfterScreenOnCreate(screen: ScreenModel) {
+    private suspend fun openBottomSheetAfterScreenOnCreate(definition: ScreenDefinition) {
         val localStyleRegistry = styleRegistry ?: return
-        val preComposeActions = screen.onCreateActions
+        val preComposeActions = definition.onCreateActions
         val leadingQueryCount = countLeadingExecuteQueries(preComposeActions)
-        var workingScreen = screen
+        var workingDefinition = definition
         for (action in preComposeActions.take(leadingQueryCount)) {
-            workingScreen = requestInteractor.executeQueryAndUpdateScreen(
-                screenModel = workingScreen,
+            workingDefinition = requestInteractor.executeQueryAndUpdateScreen(
+                definition = workingDefinition,
                 action = action as UiAction.ExecuteQuery,
                 resolveQueryValue = ::resolveQueryValue,
             )
         }
-        val resolvedScreen = resolveScreen(
-            workingScreen,
-            contextManager,
-            localStyleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
+
+        val presentation = PresentationBuilder.build(
+            definition = workingDefinition,
+            contextManager = contextManager,
+            styleRegistry = localStyleRegistry,
+            dataContext = requestInteractor.getDataContext(),
+            useDarkColorPalette = applicationContext.isSystemInDarkTheme(),
         )
+
         runActionsSequentially(preComposeActions.drop(leadingQueryCount))
-        _bottomSheetState.value = resolvedScreen.rootComponent
+        _bottomSheetState.value = presentation.rootComponent
     }
 
     private suspend fun runDestroyActionsForCurrentScreen() {
@@ -506,26 +490,26 @@ class GenerativeScreenViewModel @Inject constructor(
         private val mapper: ScreenMapper,
     ) : ScreenProvider {
 
-        override suspend fun findScreen(screenCode: String): ScreenModel? {
+        override suspend fun findScreen(screenCode: String): ScreenDefinition? {
             return parsedScreens.find { it.screenCode.equals(screenCode, ignoreCase = true) }
-                ?.let { mapper.mapToScreenModel(it) }
+                ?.let { mapper.mapToScreenDefinition(it) }
         }
 
-        override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {
+        override suspend fun findScreenByDeeplink(deeplink: String): ScreenDefinition? {
             return parsedScreens.find { it.deeplink == deeplink }
-                ?.let { mapper.mapToScreenModel(it) }
+                ?.let { mapper.mapToScreenDefinition(it) }
         }
     }
 
     private class MappedScreenProviderImpl(
-        private val screens: List<ScreenModel>,
+        private val screens: List<ScreenDefinition>,
     ) : ScreenProvider {
 
-        override suspend fun findScreen(screenCode: String): ScreenModel? {
+        override suspend fun findScreen(screenCode: String): ScreenDefinition? {
             return screens.find { it.id.equals(screenCode, ignoreCase = true) }
         }
 
-        override suspend fun findScreenByDeeplink(deeplink: String): ScreenModel? {
+        override suspend fun findScreenByDeeplink(deeplink: String): ScreenDefinition? {
             return screens.find { it.deeplink == deeplink }
         }
     }

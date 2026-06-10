@@ -23,7 +23,8 @@ import androidx.compose.ui.unit.dp
  * @property width Ширина: "fillmax", "wrapcontent" или число
  * @property widthFillFraction Доля ширины родителя (0..1) при [width] = fillMax; из widthPercentage / 100
  * @property heightFillFraction Доля высоты родителя (0..1) при [height] = fillMax; из heightPercentage / 100
- * @property scrollable Скроллируемость (вычисляется автоматически для vertical+fillMax)
+ * @property scrollable Скроллируемость (vertical / horizontal в зависимости от типа layout)
+ * @property lazyScroll Ленивая отрисовка списка (LazyColumn / LazyRow) для FOR-layout'ов
  */
 data class ModifierParams(
     val paddingLeft: Int = 0,
@@ -35,6 +36,7 @@ data class ModifierParams(
     val widthFillFraction: Float? = null,
     val heightFillFraction: Float? = null,
     val scrollable: Boolean = false,
+    val lazyScroll: Boolean = false,
 ) {
     fun applyParams(modifier: Modifier): Modifier {
         var result: Modifier = modifier

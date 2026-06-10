@@ -1,7 +1,7 @@
 package com.example.drivenui.engine.generative_screen.binding
 
 import android.util.Log
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.parser.models.DataContext
 import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
@@ -18,16 +18,16 @@ object ForLayoutBinding {
     /**
      * Обходит корень экрана и проставляет `resolvedMaxForIndex` для FOR-layout’ов.
      *
-     * @param screenModel экран
+     * @param definition описание экрана
      * @param dataContext JSON и результаты запросов для `${...}` в `maxForIndex`
-     * @return копия экрана с обновлённым деревом
+     * @return копия definition с обновлённым деревом
      */
     fun applyBindings(
-        screenModel: ScreenModel,
+        definition: ScreenDefinition,
         dataContext: DataContext,
-    ): ScreenModel {
-        val processedRoot = screenModel.rootComponent?.let { visitComponent(it, dataContext) }
-        return screenModel.copy(rootComponent = processedRoot)
+    ): ScreenDefinition {
+        val processedRoot = definition.rootComponent?.let { visitComponent(it, dataContext) }
+        return definition.copy(rootComponent = processedRoot)
     }
 
     /**

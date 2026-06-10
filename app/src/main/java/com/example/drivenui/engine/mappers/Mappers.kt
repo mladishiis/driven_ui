@@ -82,9 +82,20 @@ fun LayoutComponent.mapLayoutToUIModel(
     val isScrollable = when (scrollExplicit) {
         "true" -> true
         "false" -> false
-        else -> layoutType == LayoutType.VERTICAL_LAYOUT
+        else -> when (layoutType) {
+            LayoutType.VERTICAL_LAYOUT,
+            LayoutType.VERTICAL_FOR,
+            LayoutType.HORIZONTAL_FOR,
+            -> true
+            else -> false
+        }
     }
-    val finalModifierParams = modifierParams.copy(scrollable = isScrollable)
+    val isLazyScroll = scrollExplicit != "false" &&
+        (layoutType == LayoutType.VERTICAL_FOR || layoutType == LayoutType.HORIZONTAL_FOR)
+    val finalModifierParams = modifierParams.copy(
+        scrollable = isScrollable,
+        lazyScroll = isLazyScroll,
+    )
     return LayoutModel(
         layoutCode = code,
         modifier = modifier,

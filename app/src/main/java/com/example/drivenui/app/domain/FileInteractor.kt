@@ -6,7 +6,7 @@ import com.example.drivenui.engine.parser.SDUIParser
 /**
  * Интерактор для работы с microapp:
  * - парсинг SDUI-описаний,
- * - маппинг в ScreenModel,
+ * - маппинг в ScreenDefinition,
  * - хранение замапленного результата,
  * - валидация и сбор диагностической информации.
  *
@@ -19,7 +19,7 @@ interface FileInteractor {
      * Запускает парсинг microapp, маппинг и сохранение в кэш.
      *
      * Выполняет чтение необходимых файлов (microapp, styles, screens),
-     * парсинг, маппинг в ScreenModel и сохранение CachedMicroappData.
+     * парсинг, маппинг в ScreenDefinition и сохранение CachedMicroappData.
      *
      * @return результат парсинга microapp (для обратной совместимости с деталями парсинга)
      * @throws Exception если произошла ошибка чтения или парсинга

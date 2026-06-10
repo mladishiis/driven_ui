@@ -1,6 +1,6 @@
 package com.example.drivenui.engine.generative_screen.action
 
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 
 /**
  * Результат обработки действия.
@@ -18,14 +18,15 @@ sealed class ActionResult {
 
     /**
      * Изменение состояния нижней шторки (bottom sheet).
-     * model == null означает закрытие шторки.
+     * definition == null означает закрытие шторки.
      *
-     * @property model Модель экрана для шторки или null для закрытия
+     * @property definition описание экрана для шторки или null для закрытия
      */
-    data class BottomSheetChanged(val model: ScreenModel?) : ActionResult()
+    data class BottomSheetChanged(val definition: ScreenDefinition?) : ActionResult()
 
     /**
-     * Запрос выхода из микроаппа: стек навигации на корне, назад некуда (например [UiAction.Back] с первого экрана).
+     * Запрос выхода из микроаппа: стек навигации на корне, назад некуда
+     * (например [UiAction.Back] с первого экрана).
      */
     data object ExitMicroapp : ActionResult()
 

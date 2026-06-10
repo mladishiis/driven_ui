@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.parseVisibility
 import com.example.drivenui.engine.parser.models.DataContext
@@ -29,20 +29,20 @@ import com.example.drivenui.engine.uirender.models.RadiusValues
 /**
  * Резолвит экран: подстановка `${...}` и `@{...}` / `@@{...}` в поля `display*`, стили и радиусы по кодам.
  *
- * @param screenModel Модель экрана
+ * @param screen Описание экрана (шаблон)
  * @param contextManager Менеджер контекста
  * @param styleRegistry Реестр стилей
  * @param dataContext Контекст данных для `${...}`
  * @param useDarkColorPalette Брать ветку `darkTheme` цветов вместо `lightTheme` (как системная тёмная тема)
- * @return Обновлённая модель экрана
+ * @return Копия definition с resolved-корнем
  */
 fun resolveScreen(
-    screenModel: ScreenModel,
+    screen: ScreenDefinition,
     contextManager: IContextManager,
     styleRegistry: ComposeStyleRegistry,
     dataContext: DataContext,
     useDarkColorPalette: Boolean,
-): ScreenModel {
+): ScreenDefinition {
     val context = StyleResolveContext(
         contextManager = contextManager,
         styleRegistry = styleRegistry,
@@ -50,10 +50,10 @@ fun resolveScreen(
         useDarkColorPalette = useDarkColorPalette,
     )
     val resolvedRoot = resolveComponent(
-        component = screenModel.rootComponent,
+        component = screen.rootComponent,
         context = context,
     )
-    return screenModel.copy(rootComponent = resolvedRoot)
+    return screen.copy(rootComponent = resolvedRoot)
 }
 
 /**

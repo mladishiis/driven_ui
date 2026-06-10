@@ -1,6 +1,6 @@
 package com.example.drivenui.engine.generative_screen.mapper
 
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 import com.example.drivenui.engine.mappers.getOnCreateEvents
 import com.example.drivenui.engine.mappers.getOnDestroyEvents
@@ -12,10 +12,10 @@ class ScreenMapper(
     private val styleRegistry: ComposeStyleRegistry
 ) {
 
-    fun mapToScreenModel(
+    fun mapToScreenDefinition(
         parsedScreen: ParsedScreen,
-    ): ScreenModel {
-        return ScreenModel(
+    ): ScreenDefinition {
+        return ScreenDefinition(
             id = parsedScreen.screenCode,
             deeplink = parsedScreen.deeplink,
             onCreateActions = getOnCreateEvents(parsedScreen.events),

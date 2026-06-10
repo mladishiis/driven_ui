@@ -20,7 +20,6 @@ fun ComponentRenderer(
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     if (!model.visibility) return
     when (model) {
@@ -29,7 +28,6 @@ fun ComponentRenderer(
             onActions = onActions,
             modifier = modifier,
             onWidgetValueChange = onWidgetValueChange,
-            applyBindingsForComponent = applyBindingsForComponent,
         )
         is InputModel -> InputRenderer(
             model = model,

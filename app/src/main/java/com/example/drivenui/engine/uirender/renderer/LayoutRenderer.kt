@@ -21,13 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.example.drivenui.engine.generative_screen.models.UiAction
-import com.example.drivenui.engine.uirender.models.ComponentModel
 import com.example.drivenui.engine.uirender.models.LayoutModel
 import com.example.drivenui.engine.uirender.models.LayoutType
 import com.example.drivenui.engine.uirender.models.ModifierParams
 import com.example.drivenui.engine.uirender.models.sduiModifierParams
 import com.example.drivenui.engine.uirender.utils.WidgetValueSetter
-import com.example.drivenui.engine.uirender.utils.expandComponentWithIndex
 import com.example.drivenui.engine.uirender.utils.parseBoxAlignment
 import com.example.drivenui.engine.uirender.utils.parseColumnAlignment
 import com.example.drivenui.engine.uirender.utils.parseRowAlignment
@@ -40,7 +38,6 @@ fun LayoutRenderer(
     onActions: (List<UiAction>) -> Unit,
     modifier: Modifier = Modifier,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val currentIsDark = LocalIsDarkTheme.current
     val useDarkColorPalette = isSystemInDarkTheme()
@@ -69,39 +66,26 @@ fun LayoutRenderer(
         LocalContentColor provides (contentColor ?: LocalContentColor.current),
     ) {
         when (model.type) {
-            LayoutType.VERTICAL_LAYOUT -> ColumnRenderer(
+            LayoutType.VERTICAL_LAYOUT,
+            LayoutType.VERTICAL_FOR,
+            -> ColumnRenderer(
                 model = modelWithResolvedModifier,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
             )
 
-            LayoutType.VERTICAL_FOR -> LazyColumnRenderer(
-                model = modelWithResolvedModifier,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
-
-            LayoutType.HORIZONTAL_LAYOUT -> RowRenderer(
+            LayoutType.HORIZONTAL_LAYOUT,
+            LayoutType.HORIZONTAL_FOR,
+            -> RowRenderer(
                 modelWithResolvedModifier,
                 onActions,
                 onWidgetValueChange,
-                applyBindingsForComponent,
-            )
-
-            LayoutType.HORIZONTAL_FOR -> LazyRowRenderer(
-                modelWithResolvedModifier,
-                onActions,
-                onWidgetValueChange,
-                applyBindingsForComponent,
             )
 
             LayoutType.LAYER -> BoxRenderer(
                 modelWithResolvedModifier,
                 onActions,
                 onWidgetValueChange,
-                applyBindingsForComponent,
             )
         }
     }
@@ -112,10 +96,28 @@ private fun ColumnRenderer(
     model: LayoutModel,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     val parentIsScrollable = LocalInsideVerticalScroll.current
     val applyScroll = model.modifierParams.scrollable && !parentIsScrollable
+    val useLazyScroll = applyScroll && model.modifierParams.lazyScroll
+
+    if (useLazyScroll) {
+        CompositionLocalProvider(LocalInsideVerticalScroll provides true) {
+            LazyColumn(modifier = model.modifier) {
+                items(model.children.size) { index ->
+                    val child = model.children[index]
+                    ComponentRenderer(
+                        modifier = Modifier.fillMaxWidth(),
+                        model = child,
+                        onActions = onActions,
+                        onWidgetValueChange = onWidgetValueChange,
+                    )
+                }
+            }
+        }
+        return
+    }
+
     val columnModifier = if (applyScroll) {
         model.modifier.verticalScroll(rememberScrollState())
     } else {
@@ -124,16 +126,14 @@ private fun ColumnRenderer(
     CompositionLocalProvider(LocalInsideVerticalScroll provides (parentIsScrollable || applyScroll)) {
         Column(modifier = columnModifier) {
             model.children.forEach { child ->
-                val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
                 ComponentRenderer(
                     modifier = columnChildPercentModifier(
                         Modifier.align(parseColumnAlignment(child.alignment)),
-                        resolvedChild.sduiModifierParams(),
+                        child.sduiModifierParams(),
                     ),
-                    model = resolvedChild,
+                    model = child,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
@@ -145,131 +145,32 @@ private fun RowRenderer(
     model: LayoutModel,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
-    Row(modifier = model.modifier) {
-        model.children.forEach { child ->
-            val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
-            ComponentRenderer(
-                modifier = rowChildPercentModifier(
-                    Modifier.align(parseRowAlignment(child.alignment)),
-                    resolvedChild.sduiModifierParams(),
-                ),
-                model = resolvedChild,
-                onActions = onActions,
-                onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
-            )
-        }
-    }
-}
-
-@Composable
-private fun LazyColumnRenderer(
-    model: LayoutModel,
-    onActions: (List<UiAction>) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-) {
-    val forIndexName = model.forParams.forIndexName ?: return
-    val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
-        ?: model.forParams.maxForIndex?.toIntOrNull()
-        ?: return
-
-    val parentIsScrollable = LocalInsideVerticalScroll.current
-    if (parentIsScrollable) {
-        Column(modifier = model.modifier) {
-            repeat(maxForIndex) { index ->
-                RenderForChildren(
-                    index = index,
-                    forIndexName = forIndexName,
-                    model = model,
+    if (model.modifierParams.scrollable && model.modifierParams.lazyScroll) {
+        LazyRow(modifier = model.modifier) {
+            items(model.children.size) { index ->
+                val child = model.children[index]
+                ComponentRenderer(
+                    model = child,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
                 )
             }
         }
         return
     }
 
-    CompositionLocalProvider(LocalInsideVerticalScroll provides true) {
-        LazyColumn(modifier = model.modifier) {
-            items(maxForIndex) { index ->
-                RenderForChildren(
-                    index = index,
-                    forIndexName = forIndexName,
-                    model = model,
-                    onActions = onActions,
-                    onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RenderForChildren(
-    index: Int,
-    forIndexName: String,
-    model: LayoutModel,
-    onActions: (List<UiAction>) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-) {
-    val indexStr = index.toString()
-    Column {
-        model.children.forEach { templateChild ->
-            val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-            val childWithBindings =
-                applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
+    Row(modifier = model.modifier) {
+        model.children.forEach { child ->
             ComponentRenderer(
-                modifier = columnChildPercentModifier(
-                    Modifier,
-                    childWithBindings.sduiModifierParams(),
+                modifier = rowChildPercentModifier(
+                    Modifier.align(parseRowAlignment(child.alignment)),
+                    child.sduiModifierParams(),
                 ),
-                model = childWithBindings,
+                model = child,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
             )
-        }
-    }
-}
-
-@Composable
-private fun LazyRowRenderer(
-    model: LayoutModel,
-    onActions: (List<UiAction>) -> Unit,
-    onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-) {
-    val forIndexName = model.forParams.forIndexName ?: return
-    val maxForIndex = model.forParams.resolvedMaxForIndex?.toIntOrNull()
-        ?: model.forParams.maxForIndex?.toIntOrNull()
-        ?: return
-
-    LazyRow(modifier = model.modifier) {
-        items(maxForIndex) { index ->
-            val indexStr = index.toString()
-            Row(modifier = Modifier.fillMaxWidth()) {
-                model.children.forEach { templateChild ->
-                    val expandedChild = expandComponentWithIndex(templateChild, forIndexName, indexStr)
-                    val childWithBindings =
-                        applyBindingsForComponent?.invoke(expandedChild) ?: expandedChild
-                    ComponentRenderer(
-                        modifier = rowChildPercentModifier(
-                            Modifier.align(parseRowAlignment(childWithBindings.alignment)),
-                            childWithBindings.sduiModifierParams(),
-                        ),
-                        model = childWithBindings,
-                        onActions = onActions,
-                        onWidgetValueChange = onWidgetValueChange,
-                        applyBindingsForComponent = applyBindingsForComponent,
-                    )
-                }
-            }
         }
     }
 }
@@ -279,19 +180,16 @@ private fun BoxRenderer(
     model: LayoutModel,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter? = null,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
 ) {
     Box(modifier = model.modifier) {
         model.children.forEach { child ->
-            val resolvedChild = applyBindingsForComponent?.invoke(child) ?: child
             ComponentRenderer(
                 modifier = Modifier
                     .align(parseBoxAlignment(child.alignment))
-                    .thenBoxChildPercent(resolvedChild.sduiModifierParams()),
-                model = resolvedChild,
+                    .thenBoxChildPercent(child.sduiModifierParams()),
+                model = child,
                 onActions = onActions,
                 onWidgetValueChange = onWidgetValueChange,
-                applyBindingsForComponent = applyBindingsForComponent,
             )
         }
     }
@@ -335,15 +233,18 @@ private fun Modifier.thenBoxChildPercent(params: ModifierParams): Modifier {
 }
 
 /**
- * Размеры layout: для скроллируемого [LayoutType.VERTICAL_LAYOUT] без [fillMaxHeight],
- * иначе [fillMaxHeight] конфликтует с [verticalScroll] в [ColumnRenderer].
+ * Размеры layout: для скроллируемого вертикального контейнера без [fillMaxHeight],
+ * иначе [fillMaxHeight] конфликтует с [verticalScroll] / [LazyColumn] в [ColumnRenderer].
  */
-private fun LayoutModel.resolveSizeModifier(): Modifier =
-    if (type == LayoutType.VERTICAL_LAYOUT && modifierParams.scrollable) {
+private fun LayoutModel.resolveSizeModifier(): Modifier {
+    val isVerticalScrollable = modifierParams.scrollable &&
+        (type == LayoutType.VERTICAL_LAYOUT || type == LayoutType.VERTICAL_FOR)
+    return if (isVerticalScrollable) {
         modifierParams.applyParamsExcludingHeight(Modifier)
     } else {
         modifierParams.applyParams(Modifier)
     }
+}
 
 private fun Modifier.withOnTapClickable(
     onTapActions: List<UiAction>,

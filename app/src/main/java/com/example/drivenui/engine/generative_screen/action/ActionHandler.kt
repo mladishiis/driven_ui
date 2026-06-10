@@ -6,15 +6,16 @@ import com.example.drivenui.app.data.RequestInteractor
 import com.example.drivenui.app.theme.isSystemInDarkTheme
 import com.example.drivenui.engine.context.IContextManager
 import com.example.drivenui.engine.generative_screen.binding.resolveTemplateString
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
+import com.example.drivenui.engine.generative_screen.models.ScreenPresentation
 import com.example.drivenui.engine.generative_screen.models.ScreenState
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.generative_screen.navigation.ScreenNavigationManager
+import com.example.drivenui.engine.generative_screen.presentation.PresentationBuilder
 import com.example.drivenui.engine.generative_screen.refresh.RefreshResolveContext
 import com.example.drivenui.engine.generative_screen.refresh.TargetedRefreshResult
 import com.example.drivenui.engine.generative_screen.refresh.refreshLayoutInScreen
 import com.example.drivenui.engine.generative_screen.refresh.refreshWidgetInScreen
-import com.example.drivenui.engine.generative_screen.styles.resolveScreen
 import com.example.drivenui.engine.generative_screen.widget.IWidgetValueProvider
 import com.example.drivenui.engine.mappers.ComposeStyleRegistry
 
@@ -46,8 +47,8 @@ class ActionHandler(
     /**
      * Обрабатывает UI-действие.
      *
-     * @param action Действие для обработки
-     * @return Результат выполнения действия
+     * @param action действие для обработки
+     * @return результат выполнения действия
      */
     suspend fun handleAction(action: UiAction): ActionResult {
         return try {
@@ -72,24 +73,17 @@ class ActionHandler(
     }
 
     private suspend fun handleOpenScreen(screenCode: String): ActionResult {
-        val screenModel = screenProvider.findScreen(screenCode)
+        val definition = screenProvider.findScreen(screenCode)
             ?: return ActionResult.Error("Экран не найден: $screenCode")
 
-        return openResolvedScreen(screenModel)
+        return openScreenDefinition(definition)
     }
 
     private suspend fun handleOpenBottomSheet(screenCode: String): ActionResult {
-        val screenModel = screenProvider.findScreen(screenCode)
+        val definition = screenProvider.findScreen(screenCode)
             ?: return ActionResult.Error("Экран для нижней шторки не найден: $screenCode")
 
-        val resolvedScreen = resolveScreen(
-            screenModel,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
-        )
-        return ActionResult.BottomSheetChanged(resolvedScreen)
+        return ActionResult.BottomSheetChanged(definition)
     }
 
     private fun handleBack(): ActionResult {
@@ -102,9 +96,9 @@ class ActionHandler(
     }
 
     private suspend fun handleOpenDeeplink(deeplink: String): ActionResult {
-        val screenModel = screenProvider.findScreenByDeeplink(deeplink)
-        if (screenModel != null) {
-            return openResolvedScreen(screenModel)
+        val definition = screenProvider.findScreenByDeeplink(deeplink)
+        if (definition != null) {
+            return openScreenDefinition(definition)
         }
 
         val handled = externalDeeplinkHandler.handleExternalDeeplink(deeplink)
@@ -116,46 +110,27 @@ class ActionHandler(
     }
 
     /**
-     * Резолвит переменные контекста в экране и пушит результат в стек навигации.
+     * Кладёт definition в стек; presentation собирает ViewModel в [processScreenForNavigation].
      */
-    private fun openResolvedScreen(screenModel: ScreenModel): ActionResult {
-        val resolvedScreen = resolveScreen(
-            screenModel,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
-        )
-        navigationManager.pushScreen(
-            ScreenState.fromDefinition(
-                definition = resolvedScreen,
-                sourceDefinition = screenModel,
-            )
-        )
+    private fun openScreenDefinition(definition: ScreenDefinition): ActionResult {
+        navigationManager.pushScreen(ScreenState.create(definition = definition))
         return ActionResult.NavigationChanged(isBack = false)
     }
 
     /**
-     * Метод для обновления всего экранаа
+     * Обновляет весь текущий экран: FOR-биндинги и полная пересборка presentation.
      */
     private suspend fun handleRefreshScreen(@Suppress("UNUSED_PARAMETER") screenCode: String): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
             ?: return ActionResult.Error("Нет текущего экрана для обновления")
 
-        val screenWithBindings = requestInteractor.applyBindingsToScreen(definition)
-        val resolvedScreen = resolveScreen(
-            screenWithBindings,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
-        )
+        val definitionWithBindings = requestInteractor.applyBindingsToScreen(currentScreen.definition)
+        val presentation = buildPresentation(definitionWithBindings)
         navigationManager.updateCurrentScreen(
-            ScreenState.fromDefinition(
-                definition = resolvedScreen,
-                sourceDefinition = definition,
-            )
+            ScreenState.create(
+                definition = definitionWithBindings,
+                presentation = presentation,
+            ),
         )
 
         return ActionResult.Success
@@ -165,10 +140,10 @@ class ActionHandler(
         applyTargetedRefresh(
             noScreenError = "Нет текущего экрана для обновления виджета",
             notFoundError = "Виджет не найден: $widgetCode",
-        ) { definition, source, resolveContext ->
+        ) { definition, presentation, resolveContext ->
             refreshWidgetInScreen(
                 definition = definition,
-                source = source,
+                presentation = presentation,
                 widgetCode = widgetCode,
                 resolveContext = resolveContext,
             )
@@ -178,10 +153,10 @@ class ActionHandler(
         applyTargetedRefresh(
             noScreenError = "Нет текущего экрана для обновления лейаута",
             notFoundError = "Layout не найден: $layoutCode",
-        ) { definition, source, resolveContext ->
+        ) { definition, presentation, resolveContext ->
             refreshLayoutInScreen(
                 definition = definition,
-                source = source,
+                presentation = presentation,
                 layoutCode = layoutCode,
                 resolveContext = resolveContext,
             )
@@ -190,12 +165,12 @@ class ActionHandler(
     private suspend fun applyTargetedRefresh(
         noScreenError: String,
         notFoundError: String,
-        refresh: (ScreenModel, ScreenModel, RefreshResolveContext) -> TargetedRefreshResult?,
+        refresh: (ScreenDefinition, ScreenPresentation, RefreshResolveContext) -> TargetedRefreshResult?,
     ): ActionResult {
         val screenPair = resolveCurrentScreenPair() ?: return ActionResult.Error(noScreenError)
         val refreshResult = refresh(
             screenPair.definition,
-            screenPair.source,
+            screenPair.presentation,
             buildRefreshResolveContext(),
         ) ?: return ActionResult.Error(notFoundError)
 
@@ -205,9 +180,11 @@ class ActionHandler(
 
     private fun resolveCurrentScreenPair(): ScreenPair? {
         val currentScreen = navigationManager.getCurrentScreen() ?: return null
-        val source = currentScreen.sourceDefinition ?: currentScreen.definition ?: return null
-        val definition = currentScreen.definition ?: source
-        return ScreenPair(source = source, definition = definition)
+        val presentation = currentScreen.presentation ?: return null
+        return ScreenPair(
+            definition = currentScreen.definition,
+            presentation = presentation,
+        )
     }
 
     private fun buildRefreshResolveContext(): RefreshResolveContext =
@@ -220,47 +197,46 @@ class ActionHandler(
 
     private fun commitTargetedRefresh(refreshResult: TargetedRefreshResult) {
         navigationManager.updateCurrentScreen(
-            ScreenState.fromDefinition(
+            ScreenState.create(
                 definition = refreshResult.definition,
-                sourceDefinition = refreshResult.source,
+                presentation = refreshResult.presentation,
             ),
         )
     }
 
     private data class ScreenPair(
-        val source: ScreenModel,
-        val definition: ScreenModel,
+        val definition: ScreenDefinition,
+        val presentation: ScreenPresentation,
     )
 
     private suspend fun handleExecuteQuery(action: UiAction.ExecuteQuery): ActionResult {
         val currentScreen = navigationManager.getCurrentScreen()
-        val definition = currentScreen?.sourceDefinition ?: currentScreen?.definition
-        if (definition == null) {
-            return ActionResult.Error("Нет текущего экрана для выполнения запроса")
-        }
+            ?: return ActionResult.Error("Нет текущего экрана для выполнения запроса")
 
-        val processedScreen = requestInteractor.executeQueryAndUpdateScreen(
-            screenModel = definition,
+        val definitionWithQuery = requestInteractor.executeQueryAndUpdateScreen(
+            definition = currentScreen.definition,
             action = action,
             resolveQueryValue = ::resolveQueryValue,
         )
-
-        val resolvedScreen = resolveScreen(
-            processedScreen,
-            contextManager,
-            styleRegistry,
-            requestInteractor.getDataContext(),
-            applicationContext.isSystemInDarkTheme(),
-        )
+        val presentation = buildPresentation(definitionWithQuery)
         navigationManager.updateCurrentScreen(
-            ScreenState.fromDefinition(
-                definition = resolvedScreen,
-                sourceDefinition = definition,
-            )
+            ScreenState.create(
+                definition = definitionWithQuery,
+                presentation = presentation,
+            ),
         )
 
         return ActionResult.Success
     }
+
+    private fun buildPresentation(definition: ScreenDefinition) =
+        PresentationBuilder.build(
+            definition = definition,
+            contextManager = contextManager,
+            styleRegistry = styleRegistry,
+            dataContext = requestInteractor.getDataContext(),
+            useDarkColorPalette = applicationContext.isSystemInDarkTheme(),
+        )
 
     private fun resolveQueryValue(value: String): String {
         return resolveTemplateString(

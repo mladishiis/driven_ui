@@ -95,7 +95,6 @@ internal class TestRenderFragment : Fragment() {
                         onActions = viewModel::handleActions,
                         onBack = { handleMicroappBackPress() },
                         onWidgetValueChange = viewModel::onWidgetValueChange,
-                        applyBindingsForComponent = viewModel::applyBindingsToComponent,
                         getSheetCornerRadiusDp = viewModel::getSheetCornerRadiusDp,
                         styleRegistry = styleRegistry,
                     )

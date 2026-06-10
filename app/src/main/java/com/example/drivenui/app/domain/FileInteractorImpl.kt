@@ -16,7 +16,7 @@ import javax.inject.Inject
 /**
  * Оркестратор парсинга микроаппов:
  * выбирает источник, читает файлы, вызывает SDUIParser,
- * маппит в ScreenModel и сохраняет CachedMicroappData.
+ * маппит в ScreenDefinition и сохраняет CachedMicroappData.
  *
  * @property fileRepository репозиторий для чтения/записи файлов
  * @property context контекст приложения
@@ -84,7 +84,7 @@ internal class FileInteractorImpl @Inject constructor(
         if (!result.hasData()) return
         val styleRegistry = ComposeStyleRegistry(result.styles)
         val screenMapper = ScreenMapper(styleRegistry)
-        val cachedScreens = result.screens.map { screenMapper.mapToScreenModel(it).toCachedScreenModel() }
+        val cachedScreens = result.screens.map { screenMapper.mapToScreenDefinition(it).toCachedScreenModel() }
         val microappCode = result.microapp?.code?.takeIf { it.isNotBlank() } ?: "template"
         MicroappRootFinder.getMicroappRootPath(context)?.let { assetsDir ->
             MicroappRootFinder.registerMicroappAssets(context, microappCode, assetsDir)

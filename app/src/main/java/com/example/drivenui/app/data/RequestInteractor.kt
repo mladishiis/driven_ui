@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.drivenui.engine.generative_screen.binding.DataContextProvider
 import com.example.drivenui.engine.generative_screen.binding.ForLayoutBinding
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.generative_screen.models.UiAction
 import com.example.drivenui.engine.parser.models.DataContext
 import com.google.gson.JsonObject
@@ -39,16 +39,16 @@ class RequestInteractor @Inject constructor(
     /**
      * Выполняет screen query и обновляет экран с учётом нового `DataContext`.
      *
-     * @param screenModel экран для обновления
+     * @param definition описание экрана для обновления
      * @param action параметры запроса из разметки события
      * @param resolveQueryValue резолв значений запроса перед отправкой
-     * @return экран с применёнными биндингами
+     * @return definition с применёнными FOR-биндингами
      */
     suspend fun executeQueryAndUpdateScreen(
-        screenModel: ScreenModel,
+        definition: ScreenDefinition,
         action: UiAction.ExecuteQuery,
         resolveQueryValue: (String) -> String = { it },
-    ): ScreenModel {
+    ): ScreenDefinition {
         dataContextProvider.removeScreenQueryResult(action.queryCode)
 
         if (action.mockEnabled) {
@@ -58,20 +58,19 @@ class RequestInteractor @Inject constructor(
         }
 
         return ForLayoutBinding.applyBindings(
-            screenModel,
+            definition,
             dataContextProvider.getDataContext(),
         )
     }
 
     /**
-     * Применяет биндинги к экрану без выполнения запросов.
+     * Применяет FOR-биндинги к экрану без выполнения запросов.
      *
-     * @param screenModel экран для применения биндингов
-     * 
-     * @return экран с применёнными биндингами
+     * @param definition описание экрана
+     * @return definition с применёнными биндингами
      */
-    fun applyBindingsToScreen(screenModel: ScreenModel): ScreenModel {
-        return ForLayoutBinding.applyBindings(screenModel, dataContextProvider.getDataContext())
+    fun applyBindingsToScreen(definition: ScreenDefinition): ScreenDefinition {
+        return ForLayoutBinding.applyBindings(definition, dataContextProvider.getDataContext())
     }
 
     /**
@@ -82,7 +81,7 @@ class RequestInteractor @Inject constructor(
     fun getForLayoutBinding(): ForLayoutBinding = ForLayoutBinding
 
     /**
-     * Возвращает `DataContext` для применения биндингов в рендерерах.
+     * Возвращает `DataContext` для сборки presentation и резолва шаблонов.
      *
      * @return текущий контекст данных (JSON-источники, результаты запросов)
      */

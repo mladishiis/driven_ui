@@ -8,13 +8,20 @@ sealed interface GenerativeUiState {
     data object Loading : GenerativeUiState
 
     /**
-     * @property screenId ключ экрана для сброса Compose-composition при навигации назад
-     * @property model корневой компонент экрана
+     * Готовый к отрисовке экран.
+     *
+     * @property screenId код экрана для сброса composition при навигации
+     * @property dataEpoch версия данных; меняется при каждой пересборке presentation
+     * @property model resolved-корень дерева компонентов
      */
     data class Screen(
         val screenId: String,
+        val dataEpoch: Long,
         val model: ComponentModel?,
     ) : GenerativeUiState
 
+    /**
+     * @property message текст ошибки для отображения или логирования
+     */
     data class Error(val message: String) : GenerativeUiState
 }

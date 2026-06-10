@@ -3,7 +3,7 @@ package com.example.drivenui.engine.cache
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import com.example.drivenui.engine.generative_screen.models.ScreenModel
+import com.example.drivenui.engine.generative_screen.models.ScreenDefinition
 import com.example.drivenui.engine.uirender.models.AppBarModel
 import com.example.drivenui.engine.uirender.models.ButtonModel
 import com.example.drivenui.engine.uirender.models.ButtonStrokeStyle
@@ -120,14 +120,13 @@ fun ComponentModel.toCached(): CachedComponentModel = when (this) {
 }
 
 /**
- * Конвертирует [CachedScreenModel] в [ScreenModel].
+ * Конвертирует [CachedScreenModel] в [ScreenDefinition].
  *
  * @receiver закэшированная модель экрана
- * 
- * @return модель экрана для рендеринга
+ * @return описание экрана для сборки presentation
  */
-fun CachedScreenModel.toScreenModel(): ScreenModel =
-    ScreenModel(
+fun CachedScreenModel.toScreenDefinition(): ScreenDefinition =
+    ScreenDefinition(
         id = id,
         deeplink = deeplink,
         onCreateActions = onCreateActions ?: emptyList(),
@@ -136,13 +135,12 @@ fun CachedScreenModel.toScreenModel(): ScreenModel =
     )
 
 /**
- * Конвертирует [ScreenModel] в [CachedScreenModel] для сохранения.
+ * Конвертирует [ScreenDefinition] в [CachedScreenModel] для сохранения.
  *
- * @receiver модель экрана для сериализации
- * 
+ * @receiver описание экрана для сериализации
  * @return сериализуемое представление экрана
  */
-fun ScreenModel.toCachedScreenModel(): CachedScreenModel =
+fun ScreenDefinition.toCachedScreenModel(): CachedScreenModel =
     CachedScreenModel(
         id = id,
         deeplink = deeplink,

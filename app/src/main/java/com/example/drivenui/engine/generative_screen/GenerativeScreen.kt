@@ -35,14 +35,13 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Главный экран генеративного UI с поддержкой нижней шторки.
  *
- * @param state Состояние UI
- * @param bottomSheetState Состояние нижней шторки
- * @param onActions Callback для экшенов
- * @param onBack Callback при нажатии Back
- * @param onWidgetValueChange Callback при изменении значения виджета
- * @param applyBindingsForComponent Функция применения биндингов
- * @param getSheetCornerRadiusDp Функция получения радиуса скругления шторки
- * @param styleRegistry Реестр стилей для Compose: текст и цвет по коду стиля
+ * @param state состояние UI (Loading / Screen / Error)
+ * @param bottomSheetState поток корневого компонента нижней шторки или null, если закрыта
+ * @param onActions callback для списка UI-действий
+ * @param onBack callback при нажатии Back или закрытии шторки
+ * @param onWidgetValueChange callback при изменении значения виджета
+ * @param getSheetCornerRadiusDp радиус скругления корневого layout шторки (dp) или null
+ * @param styleRegistry реестр стилей для Compose (текст и цвет по коду стиля)
  */
 @Composable
 fun GenerativeScreen(
@@ -51,7 +50,6 @@ fun GenerativeScreen(
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)?,
     getSheetCornerRadiusDp: (ComponentModel) -> Int?,
     styleRegistry: ComposeStyleRegistry? = null,
 ) {
@@ -61,12 +59,22 @@ fun GenerativeScreen(
         onActions = onActions,
         onBack = onBack,
         onWidgetValueChange = onWidgetValueChange,
-        applyBindingsForComponent = applyBindingsForComponent,
         getSheetCornerRadiusDp = getSheetCornerRadiusDp,
         styleRegistry = styleRegistry,
     )
 }
 
+/**
+ * Внутренний UI-слой [GenerativeScreen] без обёртки темы вызывающей стороны.
+ *
+ * @param state состояние UI (Loading / Screen / Error)
+ * @param bottomSheetState поток корневого компонента нижней шторки или null, если закрыта
+ * @param onActions callback для списка UI-действий
+ * @param onBack callback при нажатии Back или закрытии шторки
+ * @param onWidgetValueChange callback при изменении значения виджета
+ * @param getSheetCornerRadiusDp радиус скругления корневого layout шторки (dp) или null
+ * @param styleRegistry реестр стилей для Compose (текст и цвет по коду стиля)
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenerativeScreenUi(
@@ -75,7 +83,6 @@ fun GenerativeScreenUi(
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
     getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null },
     styleRegistry: ComposeStyleRegistry? = null,
 ) {
@@ -94,7 +101,6 @@ fun GenerativeScreenUi(
                         state = state,
                         onActions = onActions,
                         onWidgetValueChange = onWidgetValueChange,
-                        applyBindingsForComponent = applyBindingsForComponent,
                     )
                 }
 
@@ -103,7 +109,6 @@ fun GenerativeScreenUi(
                     onActions = onActions,
                     onBack = onBack,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent,
                     getSheetCornerRadiusDp = getSheetCornerRadiusDp,
                 )
             }
@@ -116,7 +121,6 @@ private fun ScreenContent(
     state: GenerativeUiState,
     onActions: (List<UiAction>) -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null
 ) {
     when (state) {
         is GenerativeUiState.Loading -> {
@@ -128,13 +132,12 @@ private fun ScreenContent(
             }
         }
         is GenerativeUiState.Screen -> {
-            key(state.screenId) {
+            key(state.screenId, state.dataEpoch) {
                 state.model?.also { model ->
                     ComponentRenderer(
                         model = model,
                         onActions = onActions,
                         onWidgetValueChange = onWidgetValueChange,
-                        applyBindingsForComponent = applyBindingsForComponent,
                     )
                 }
             }
@@ -152,8 +155,7 @@ private fun BottomSheetHost(
     onActions: (List<UiAction>) -> Unit,
     onBack: () -> Unit,
     onWidgetValueChange: WidgetValueSetter,
-    applyBindingsForComponent: ((ComponentModel) -> ComponentModel)? = null,
-    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null }
+    getSheetCornerRadiusDp: (ComponentModel) -> Int? = { null },
 ) {
     val bottomSheet = bottomSheetState.collectAsStateWithLifecycle().value
 
@@ -186,7 +188,6 @@ private fun BottomSheetHost(
                     model = sheetModel,
                     onActions = onActions,
                     onWidgetValueChange = onWidgetValueChange,
-                    applyBindingsForComponent = applyBindingsForComponent
                 )
             }
         }
